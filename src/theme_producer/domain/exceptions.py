@@ -7,7 +7,12 @@ __all__ = [
     "EngineExecutionError",
     "EngineNotAvailableError",
     "EngineParseError",
+    "InvalidImageMetricsError",
+    "InvalidSchemePolicyCatalogError",
+    "InvalidSchemeRuleError",
+    "SchemePolicyError",
     "ThemeValidationError",
+    "UnknownSchemePolicyError",
 ]
 
 
@@ -71,3 +76,27 @@ class EngineParseError(ValueError):
         self.engine = engine
         self.message = message
         super().__init__(f"Engine {engine!r} produced unparseable output: {message}")
+
+
+class SchemePolicyError(ValueError):
+    """Base class for invalid scheme-policy data or resolution requests.
+
+    Messages name the offending field and value so callers can surface a
+    useful error without inspecting the exception hierarchy.
+    """
+
+
+class InvalidImageMetricsError(SchemePolicyError):
+    """Raised when an image metric is missing, unknown, or outside ``[0, 1]``."""
+
+
+class InvalidSchemeRuleError(SchemePolicyError):
+    """Raised when a condition, rule, or scheme policy violates an invariant."""
+
+
+class InvalidSchemePolicyCatalogError(SchemePolicyError):
+    """Raised when a scheme-policy catalog is malformed or unsupported."""
+
+
+class UnknownSchemePolicyError(SchemePolicyError):
+    """Raised when a policy name is not present in the catalog."""

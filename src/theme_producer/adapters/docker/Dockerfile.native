@@ -1,0 +1,28 @@
+# tpr-native v2 engine image, derived from the pinned base image.
+#
+# AD-4/AD-10: the helper is original code on the MIT/Apache-2.0
+# `material-colors` crate. The Rust build is a separate stage; the final image
+# carries only the binary and its third-party notices.
+ARG BASE_IMAGE=tpr-base-docker:latest
+
+FROM rust:1.99-slim AS build
+
+WORKDIR /build
+
+COPY native/Cargo.toml native/Cargo.lock ./
+COPY native/src ./src
+
+RUN cargo build --release --locked
+
+FROM ${BASE_IMAGE}
+
+COPY --from=build /build/target/release/tpr-native /usr/local/bin/tpr-native
+COPY THIRD_PARTY_LICENSES.md /usr/share/doc/tpr-native/THIRD_PARTY_LICENSES.md
+
+RUN tpr-native --version
+
+LABEL org.opencontainers.image.title="theme-producer native engine" \
+      org.opencontainers.image.description="tpr-native 0.1.0 built on the material-colors crate" \
+      org.opencontainers.image.licenses="MIT AND Apache-2.0" \
+      org.opencontainers.image.source="https://github.com/RandomGenericUsername/theme-producer" \
+      org.opencontainers.image.version="0.1.0"

@@ -20,7 +20,7 @@ IMAGE_ENGINE ?= podman
 IMAGE_TAG    ?= v$(VERSION)
 IMAGE_PREFIX ?= tpr
 BASE_IMAGE    = $(IMAGE_PREFIX)-base-$(IMAGE_ENGINE):$(IMAGE_TAG)
-THEME_ENGINES = matugen
+THEME_ENGINES = matugen native
 DOCKER_DIR   := $(CURDIR)/src/theme_producer/adapters/docker
 
 # The authoritative gate set. `make gates` runs it for a developer; CI runs one
@@ -43,7 +43,7 @@ help:
 	@echo "docs-check      README/CHANGELOG/LICENSE/AGENTS + CLAUDE symlink + Dockerfiles"
 	@echo "gates           $(GATES)"
 	@echo "ci-gates-parity Workflow jobs equal GATES + declared CI-only jobs"
-	@echo "image           Build $(BASE_IMAGE) + the $(THEME_ENGINES) image, run tpr/matugen --version"
+	@echo "image           Build $(BASE_IMAGE) + the $(THEME_ENGINES) images, run tpr/matugen/tpr-native --version"
 	@echo "build           Build sdist + wheel into dist/"
 	@echo "install         Install the built package into .venv"
 	@echo "clean           Remove dist/ and local caches"
@@ -87,6 +87,9 @@ docs-check:
 	@test -f CHANGELOG.md   || { echo "missing CHANGELOG.md"; exit 1; }
 	@test -f LICENSE        || { echo "missing LICENSE"; exit 1; }
 	@test -f AGENTS.md      || { echo "missing AGENTS.md"; exit 1; }
+	@test -f THIRD_PARTY_LICENSES.md || { echo "missing THIRD_PARTY_LICENSES.md"; exit 1; }
+	@test -f native/Cargo.toml || { echo "missing native/Cargo.toml"; exit 1; }
+	@test -f native/Cargo.lock || { echo "missing native/Cargo.lock"; exit 1; }
 	@test -L CLAUDE.md      || { echo "CLAUDE.md must be a symlink to AGENTS.md"; exit 1; }
 	@test "$$(readlink CLAUDE.md)" = "AGENTS.md" || { echo "CLAUDE.md must point to AGENTS.md"; exit 1; }
 	@grep -q "MIT License" LICENSE || { echo "LICENSE is not the MIT text"; exit 1; }
@@ -111,11 +114,13 @@ image:
 	$(IMAGE_ENGINE) run --rm "$(BASE_IMAGE)" tpr version
 	@for engine in $(THEME_ENGINES); do \
 	  image="$(IMAGE_PREFIX)-$$engine-$(IMAGE_ENGINE):$(IMAGE_TAG)"; \
+	  binary="$$engine"; \
+	  if [ "$$engine" = native ]; then binary=tpr-native; fi; \
 	  echo "building $$image"; \
 	  $(IMAGE_ENGINE) build -t "$$image" \
 	    --build-arg BASE_IMAGE="$(BASE_IMAGE)" \
 	    -f "$(DOCKER_DIR)/Dockerfile.$$engine" "$(CURDIR)" || exit 1; \
-	  $(IMAGE_ENGINE) run --rm "$$image" matugen --version || exit 1; \
+	  $(IMAGE_ENGINE) run --rm "$$image" $$binary --version || exit 1; \
 	done
 
 build:

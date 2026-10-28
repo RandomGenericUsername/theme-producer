@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[3]
 DOCKER_DIR = ROOT / "src" / "theme_producer" / "adapters" / "docker"
 BASE = DOCKER_DIR / "Dockerfile.base"
 MATUGEN = DOCKER_DIR / "Dockerfile.matugen"
+NATIVE = DOCKER_DIR / "Dockerfile.native"
 
 MATUGEN_VERSION = "4.2.0"
 MATUGEN_SHA256 = "a2e3b50e49ed6439999ba3c252ed04fabd98ee4e9d12e5e5dff2e66370569751"
@@ -28,7 +29,9 @@ def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-@pytest.mark.parametrize("name", ["Dockerfile.base", "Dockerfile.matugen"])
+@pytest.mark.parametrize(
+    "name", ["Dockerfile.base", "Dockerfile.matugen", "Dockerfile.native"]
+)
 def test_dockerfile_exists(name: str) -> None:
     assert (DOCKER_DIR / name).is_file()
 
@@ -121,13 +124,17 @@ def test_matugen_image_fails_the_build_when_the_binary_is_missing() -> None:
     assert "matugen --version" in text
 
 
-@pytest.mark.parametrize("path", [BASE, MATUGEN], ids=["base", "matugen"])
+@pytest.mark.parametrize(
+    "path", [BASE, MATUGEN, NATIVE], ids=["base", "matugen", "native"]
+)
 def test_no_dockerfile_references_a_path_outside_this_repo(path: Path) -> None:
     text = read(path)
     assert "../" not in text
     assert "color-scheme-generator" not in text
     for line in text.splitlines():
         if re.match(r"^\s*(COPY|ADD)\s", line):
+            if "--from=" in line:
+                continue  # a multi-stage source inside the build, not the host
             for source in line.split()[1:-1]:
                 assert not source.startswith("/"), f"absolute COPY source: {source}"
 
@@ -143,11 +150,32 @@ def test_makefile_builds_both_images_at_the_pyproject_version() -> None:
     assert "IMAGE_ENGINE ?= podman" in makefile
     assert "IMAGE_TAG    ?= v$(VERSION)" in makefile
     assert "IMAGE_PREFIX ?= tpr" in makefile
-    assert "THEME_ENGINES = matugen" in makefile
+    assert "THEME_ENGINES = matugen native" in makefile
     assert "BASE_IMAGE    = $(IMAGE_PREFIX)-base-$(IMAGE_ENGINE):$(IMAGE_TAG)" in makefile
     assert "Dockerfile.base" in makefile
     assert "Dockerfile.$$engine" in makefile
     assert "--build-arg BASE_IMAGE=" in makefile
     assert "tpr version" in makefile
-    assert "matugen --version" in makefile
+    assert "binary=tpr-native" in makefile
+    assert "$$binary --version" in makefile
     assert re.search(r"^GATES := test lint hermetic lock-check docs-check$", makefile, re.MULTILINE)
+
+
+def test_native_image_builds_the_helper_in_a_pinned_rust_stage() -> None:
+    text = read(NATIVE)
+    assert "ARG BASE_IMAGE=tpr-base-docker:latest" in text
+    assert "FROM rust:1.99-slim AS build" in text
+    assert "COPY native/Cargo.toml native/Cargo.lock ./" in text
+    assert "COPY native/src ./src" in text
+    assert "cargo build --release --locked" in text
+    assert "FROM ${BASE_IMAGE}" in text
+    assert "COPY --from=build /build/target/release/tpr-native /usr/local/bin/tpr-native" in text
+    assert "RUN tpr-native --version" in text
+
+
+def test_native_image_ships_third_party_notices_and_labels() -> None:
+    text = read(NATIVE)
+    assert "THIRD_PARTY_LICENSES.md" in text
+    assert "/usr/share/doc/tpr-native/THIRD_PARTY_LICENSES.md" in text
+    assert 'org.opencontainers.image.licenses="MIT AND Apache-2.0"' in text
+    assert 'org.opencontainers.image.version="0.1.0"' in text

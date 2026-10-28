@@ -4,6 +4,8 @@ default_formats = []
 overwrite = false
 verbosity = 1
 apply_to_terminal = true
+default_mode = "dark"
+smart_threshold = 0.5
 
 [generation]
 engine = "matugen"

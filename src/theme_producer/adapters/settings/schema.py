@@ -13,9 +13,12 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
+from theme_producer.domain.generation import InvalidSmartThresholdError
 from theme_producer.domain.settings import ContainerEngine, RuntimeMode
+from theme_producer.domain.smart_mode import ProjectionMode, validate_threshold
 
 _MEMORY_LIMIT_PATTERN = re.compile(r"^\d+[kKmMgGtT]?$")
+_PROJECTION_MODES = {mode.value for mode in ProjectionMode}
 
 
 class OutputSettingsSchema(BaseModel):
@@ -24,6 +27,8 @@ class OutputSettingsSchema(BaseModel):
     overwrite: bool = False
     verbosity: int = Field(default=1, ge=0, le=3)
     apply_to_terminal: bool = True
+    default_mode: str = "dark"
+    smart_threshold: float = 0.5
 
     @field_validator("directory", mode="before")
     @classmethod
@@ -31,6 +36,29 @@ class OutputSettingsSchema(BaseModel):
         if isinstance(value, str) and not value.strip():
             raise ValueError("directory must not be empty")
         return value
+
+    @field_validator("default_mode", mode="before")
+    @classmethod
+    def _validate_default_mode(cls, value: object) -> str:
+        if not isinstance(value, str):
+            raise ValueError(
+                f"Invalid output default mode {value!r} — must be dark, light, or smart"
+            )
+        normalized = value.strip().lower()
+        if normalized not in _PROJECTION_MODES:
+            raise ValueError(
+                f"Invalid output default mode '{value}' — must be one of: "
+                f"{', '.join(sorted(_PROJECTION_MODES))}"
+            )
+        return normalized
+
+    @field_validator("smart_threshold", mode="before")
+    @classmethod
+    def _validate_smart_threshold(cls, value: object) -> float:
+        try:
+            return validate_threshold(value)
+        except InvalidSmartThresholdError as exc:
+            raise ValueError(str(exc)) from exc
 
 
 class GenerationSettingsSchema(BaseModel):

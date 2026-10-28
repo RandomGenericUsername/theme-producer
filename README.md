@@ -27,6 +27,7 @@ make sync
 make gates
 make image IMAGE_ENGINE=podman          # base + matugen + native at v0.2.0
 uv run tpr generate wallpaper.png -o /tmp/theme
+uv run tpr generate wallpaper.png --mode smart -o /tmp/theme   # luminance-selected mode
 uv run tpr --output-format json list-engines
 ```
 
@@ -38,6 +39,10 @@ uv run tpr --output-format json list-engines
   `theme.html` preview.
 - Engines behind `ThemeEnginePort` — v1 `matugen` (pinned, containerized, JSON only), v2 own Rust
   helper on the MIT/Apache `material-colors` crate. A pure-Python engine is a recorded non-goal.
+- Projection mode — `--mode dark|light|smart` on `generate`/`show`; `smart` picks `light` when the
+  source's mean relative luminance is at least `smart_threshold`, otherwise `dark`. Configure with
+  `[output] default_mode` / `smart_threshold` or the matching env/CLI overrides. See
+  `docs/SMART-MODE.md`.
 
 ## Container images
 

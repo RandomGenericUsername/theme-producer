@@ -41,6 +41,10 @@ class OutputSettings:
     # successful generate, but only when sequences were produced and stdout is
     # a real TTY.
     apply_to_terminal: bool = True
+    # Projection mode when ``--mode`` is omitted: dark, light, or smart.
+    default_mode: str = "dark"
+    # Mean relative luminance at which smart mode switches to light.
+    smart_threshold: float = 0.5
 
 
 @dataclass(frozen=True)

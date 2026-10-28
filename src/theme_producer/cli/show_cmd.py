@@ -21,6 +21,7 @@ from theme_producer.cli.options import (
     ENGINE_OPT,
     PROJECTION_MODE_OPT,
     RUNTIME_OPT,
+    SMART_THRESHOLD_OPT,
     TEMPLATES_DIR_OPT,
 )
 from theme_producer.domain.settings import ContainerEngine, RuntimeMode
@@ -36,7 +37,8 @@ def show(
     param: list[str] = typer.Option(  # noqa: B008
         [], "--param", help="Engine parameter override K=V"
     ),
-    mode: str = PROJECTION_MODE_OPT,
+    mode: str | None = PROJECTION_MODE_OPT,
+    smart_threshold: float | None = SMART_THRESHOLD_OPT,
     runtime: RuntimeMode | None = RUNTIME_OPT,
     container_engine: ContainerEngine | None = ENGINE_OPT,
     config_path: Path | None = CONFIG_OPT,
@@ -60,6 +62,12 @@ def show(
         effective_templates = selected(ctx, "templates_dir", templates_dir)
         if effective_templates is None and settings.templates.directory:
             effective_templates = settings.templates.directory
+        effective_mode = mode if mode is not None else settings.output.default_mode
+        effective_threshold = (
+            smart_threshold
+            if smart_threshold is not None
+            else settings.output.smart_threshold
+        )
         request = build_request(
             image_path=image,
             engine=engine_name,
@@ -67,7 +75,8 @@ def show(
             formats=(),
             output_dir=settings.output.directory,
             settings=settings,
-            mode=mode,
+            mode=effective_mode,
+            smart_threshold=effective_threshold,
         )
         processor = create_processor(
             deps,

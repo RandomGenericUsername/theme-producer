@@ -29,7 +29,9 @@ __all__ = [
     "GenerationError",
     "GenerationRequest",
     "GenerationResult",
+    "InvalidSmartThresholdError",
     "OutputWriteError",
+    "SmartModeError",
     "UnknownFormatError",
     "UnknownModeError",
 ]
@@ -59,6 +61,14 @@ class UnknownFormatError(GenerationError):
 
 class UnknownModeError(GenerationError):
     """Raised when ``--mode`` names a mode the Theme does not carry."""
+
+
+class InvalidSmartThresholdError(GenerationError):
+    """Raised when a smart-mode threshold is not a finite number in ``[0, 1]``."""
+
+
+class SmartModeError(GenerationError):
+    """Raised when smart mode cannot measure its source."""
 
 
 class EngineNotRegisteredError(GenerationError):

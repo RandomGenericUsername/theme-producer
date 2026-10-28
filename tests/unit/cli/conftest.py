@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from PIL import Image
 from typer.testing import CliRunner
 
 from theme_producer.adapters.engines_catalog_loader import YamlEngineCatalogLoader
@@ -163,6 +164,12 @@ def invoke(
 
 def make_image(path: Path) -> Path:
     path.write_bytes(b"\x89PNG\r\n\x1a\nfake")
+    return path
+
+
+def make_solid_image(path: Path, rgb: tuple[int, int, int], size: tuple[int, int] = (8, 8)) -> Path:
+    """Write a real, decodable image for smart-mode luminance tests."""
+    Image.new("RGB", size, rgb).save(path)
     return path
 
 

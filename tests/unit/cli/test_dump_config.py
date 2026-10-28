@@ -24,6 +24,8 @@ def test_dump_config_prints_resolved_toml(
     assert payload["generation"]["engine"] == "matugen"
     assert payload["container"]["engine"] == "podman"
     assert payload["container"]["image_tag"] == f"v{get_version()}"
+    assert payload["output"]["default_mode"] == "dark"
+    assert payload["output"]["smart_threshold"] == 0.5
 
 
 def test_dump_config_writes_a_file_and_refuses_overwrite(

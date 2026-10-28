@@ -48,7 +48,7 @@ matugen:
 
 native:
   display_name: Native
-  description: "Reserved for the v2 Rust helper (REQ-013)"
+  description: "v2 Rust helper on the MIT/Apache-2.0 material-colors crate"
   min_version: "0.1.0"
   parameters:
     - name: mode
@@ -78,7 +78,7 @@ native:
     - name: source_color_index
       param_type: int
       default: 0
-      description: "Which extracted source color to use (0-3)"
+      description: "Which extracted source color to use (0-4)"
     - name: timeout
       param_type: int
       default: 300

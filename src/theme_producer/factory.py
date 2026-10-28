@@ -15,6 +15,7 @@ from cli_output.domain.enums import OutputFormat as SharedOutputFormat
 from theme_producer.adapters.container_processor import ContainerProcessor
 from theme_producer.adapters.dry_run_processor import DryRunProcessor
 from theme_producer.adapters.engines.matugen import MatugenEngine
+from theme_producer.adapters.engines.native import NativeEngine
 from theme_producer.adapters.engines_catalog_loader import YamlEngineCatalogLoader
 from theme_producer.adapters.jinja_renderer import JinjaThemeRenderer
 from theme_producer.adapters.local_processor import LocalProcessor
@@ -66,10 +67,10 @@ class CliDependencies:
 def create_engine_registry() -> dict[str, ThemeEnginePort]:
     """Return the engines implemented in this package.
 
-    ``native`` is described by the catalog but has no adapter yet (REQ-013);
-    it therefore appears as unavailable in ``list-engines``.
+    Both engines are behind the same port and each reports its own host
+    availability, so ``list-engines`` stays honest when one binary is absent.
     """
-    return {"matugen": MatugenEngine()}
+    return {"matugen": MatugenEngine(), "native": NativeEngine()}
 
 
 def create_engine_catalog_loader() -> YamlEngineCatalogLoader:

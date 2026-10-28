@@ -31,11 +31,13 @@ The engine runs in a pinned image; the tag is the pin (never `latest` by default
 | --- | --- | --- |
 | base | `tpr-base-<container-engine>:v<version>` | `python:3.14-slim` + the frozen `uv` env and the `tpr` console script |
 | matugen | `tpr-matugen-<container-engine>:v<version>` | base + matugen 4.2.0 (sha256-pinned) with its GPL-2.0-or-later text and source reference under `/usr/share/doc/matugen/` |
+| native | `tpr-native-<container-engine>:v<version>` | base + `tpr-native` 0.1.0 built from `native/` on the MIT/Apache-2.0 `material-colors` crate, with third-party notices under `/usr/share/doc/tpr-native/` |
 
 ```sh
-make image IMAGE_ENGINE=podman        # builds both images at v<pyproject version>
+make image IMAGE_ENGINE=podman        # builds base, matugen, and native at v<pyproject version>
 tpr install --container-engine podman # same references, tag from settings.container.image_tag
 podman run --rm tpr-matugen-podman:v0.1.0 matugen --version
+podman run --rm tpr-native-podman:v0.1.0 tpr-native --version
 ```
 
 `make image` is a declared CI-only job (`image`) because it needs a live engine and network access.

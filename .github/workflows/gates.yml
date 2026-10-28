@@ -5,8 +5,9 @@ name: gates
 # and the Makefile's `GATES` set differ in either direction; CI-only jobs are
 # declared there with a reason. The Makefile is the authoritative list.
 #
-# `image` is deliberately absent: REQ-011 adds the target, the job, and the
-# parity exemption together.
+# `image` is a declared CI-only job: it builds and smoke-runs the pinned base +
+# matugen images. It needs a live container engine and network access, so it is
+# not part of `make gates`.
 on:
   push:
     branches: [main]
@@ -75,3 +76,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: make ci-gates-parity
+
+  image:
+    name: image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.9.22"
+          enable-cache: true
+      - name: Use the runner's Docker engine
+        # ubuntu-latest ships the Docker CLI + daemon; fail here, not inside the
+        # build, if that ever changes.
+        run: docker version --format '{{.Server.Version}}'
+      - name: Build the base + matugen images and smoke-run both
+        # The tag is derived from pyproject (`IMAGE_TAG ?= v$(VERSION)`), so a
+        # release bump cannot leave this job building a stale tag.
+        run: make sync && make image IMAGE_ENGINE=docker
+      - name: Smoke-run `tpr generate` inside the matugen image
+        run: >-
+          TPR_IMAGE_SMOKE=1 IMAGE_ENGINE=docker
+          uv run pytest tests/integration/test_image_smoke.py -q -rs

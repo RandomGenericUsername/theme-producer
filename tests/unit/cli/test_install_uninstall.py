@@ -90,8 +90,15 @@ def test_install_missing_engine_dockerfile_is_clear(
 def test_install_without_any_dockerfiles_fails_clearly(
     runner: CliRunner,
     fake_engine: FakeEngine,
+    tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    docker_dir = tmp_path / "docker"
+    docker_dir.mkdir()
+    monkeypatch.setattr(
+        "theme_producer.cli.install_cmd.dockerfile_path",
+        lambda name: docker_dir / f"Dockerfile.{name}",
+    )
     runtime = FakeContainerRuntime()
     deps = make_deps(fake_engine, container_runtime=runtime)
 

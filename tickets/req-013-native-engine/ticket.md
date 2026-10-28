@@ -2,14 +2,14 @@
 id: REQ-013
 title: "v2 Rust helper on material-colors + oracle parity"
 kind: requirement
-status: proposed
+status: in-progress
 lane: 3 — ticket-multi
 parent: EPIC-001
 links:
   openspec: req-013-native-engine
   bmad: none
-worktree: none
-branch: none
+worktree: .worktrees/req-013/
+branch: ticket/req-013-native-engine
 ---
 
 # v2 Rust helper on material-colors + oracle parity

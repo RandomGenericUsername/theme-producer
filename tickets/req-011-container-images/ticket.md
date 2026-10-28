@@ -2,7 +2,7 @@
 id: REQ-011
 title: "Pinned base + matugen images, install/uninstall"
 kind: requirement
-status: in-progress
+status: done
 lane: 3 — ticket-multi
 parent: EPIC-001
 links:

@@ -1,0 +1,89 @@
+# Engine catalog — resolved through config-assembler-engine.
+#
+# Strategy chain: --config > THEME_ENGINES_CONFIG_FILE_PATH > ./engines.yaml
+# (up to 3 parents) > $XDG_CONFIG_HOME/theme-producer/engines.yaml > this file.
+# Unknown engine names are skipped with a warning by the loader.
+
+matugen:
+  display_name: Matugen
+  description: "Material You engine (pinned external binary)"
+  min_version: "4.2.0"
+  parameters:
+    - name: mode
+      param_type: str
+      default: dark
+      choices: [dark, light, smart]
+      description: "Matugen color mode"
+    - name: scheme_type
+      param_type: str
+      default: scheme-tonal-spot
+      choices:
+        - scheme-content
+        - scheme-expressive
+        - scheme-fidelity
+        - scheme-fruit-salad
+        - scheme-monochrome
+        - scheme-neutral
+        - scheme-rainbow
+        - scheme-tonal-spot
+        - scheme-vibrant
+        - scheme-smart
+      description: "Material color scheme type"
+    - name: contrast
+      param_type: float
+      default: 0.0
+      description: "Contrast adjustment in [-1, 1]"
+    - name: source_color_index
+      param_type: int
+      default: 0
+      description: "Which extracted source color to use (0-3)"
+    - name: timeout
+      param_type: int
+      default: 300
+      description: "Subprocess timeout in seconds"
+    - name: fallback_color
+      param_type: str
+      default: ""
+      description: "Optional seed color used when extraction is inconclusive"
+
+native:
+  display_name: Native
+  description: "Reserved for the v2 Rust helper (REQ-013)"
+  min_version: "0.1.0"
+  parameters:
+    - name: mode
+      param_type: str
+      default: dark
+      choices: [dark, light, smart]
+      description: "Color mode"
+    - name: scheme_type
+      param_type: str
+      default: scheme-tonal-spot
+      choices:
+        - scheme-content
+        - scheme-expressive
+        - scheme-fidelity
+        - scheme-fruit-salad
+        - scheme-monochrome
+        - scheme-neutral
+        - scheme-rainbow
+        - scheme-tonal-spot
+        - scheme-vibrant
+        - scheme-smart
+      description: "Material color scheme type"
+    - name: contrast
+      param_type: float
+      default: 0.0
+      description: "Contrast adjustment in [-1, 1]"
+    - name: source_color_index
+      param_type: int
+      default: 0
+      description: "Which extracted source color to use (0-3)"
+    - name: timeout
+      param_type: int
+      default: 300
+      description: "Subprocess timeout in seconds"
+    - name: fallback_color
+      param_type: str
+      default: ""
+      description: "Optional seed color used when extraction is inconclusive"

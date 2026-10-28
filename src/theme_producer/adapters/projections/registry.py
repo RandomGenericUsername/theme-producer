@@ -15,6 +15,12 @@ from types import MappingProxyType
 from typing import Any
 
 from theme_producer.adapters.jinja_renderer import JinjaThemeRenderer
+from theme_producer.adapters.projections.ansi import (
+    ANSI_PROJECTIONS,
+    SEQUENCES_PROJECTION,
+    AnsiProjection,
+    sequences_postprocess,
+)
 from theme_producer.adapters.projections.btop import BtopRow, build_btop_rows
 from theme_producer.adapters.template_catalog_loader import (
     TemplateCatalog,
@@ -26,8 +32,10 @@ from theme_producer.domain.services import AliasService
 from theme_producer.ports.projection import Capability, Projection, ProjectionPort
 
 __all__ = [
+    "ALL_PROJECTIONS",
     "CAPABILITY_TABLE",
     "DEV_PROJECTIONS",
+    "FIXED_PROJECTIONS",
     "LEGACY_ALIAS_COUNT",
     "OPEN_PROJECTIONS",
     "PROJECTION_VOCABULARY",
@@ -102,20 +110,27 @@ OPEN_PROJECTIONS: tuple[Projection, ...] = (
     ),
 )
 
-#: Capability contract data: every shipped projection is an open/semantic one.
-#: REQ-009 adds the ``fixed`` ANSI projections (kitty, sequences).
+#: The fixed ANSI projections (kitty + OSC sequences). They are registered in
+#: the same registry but kept separate so the open catalog's identity is stable.
+FIXED_PROJECTIONS: tuple[Projection, ...] = ANSI_PROJECTIONS
+
+#: Every shipped projection, open first, then the fixed ANSI pair.
+ALL_PROJECTIONS: tuple[Projection, ...] = OPEN_PROJECTIONS + FIXED_PROJECTIONS
+
+#: Capability contract data: the complete projection catalog carries both the
+#: open/semantic projections and the deliberate fixed ANSI table (REQ-009).
 CAPABILITY_TABLE: Mapping[str, Capability] = MappingProxyType(
-    {projection.name: projection.capability for projection in OPEN_PROJECTIONS}
+    {projection.name: projection.capability for projection in ALL_PROJECTIONS}
 )
 
 RUNTIME_PROJECTIONS: tuple[Projection, ...] = tuple(
-    projection for projection in OPEN_PROJECTIONS if not projection.dev_only
+    projection for projection in ALL_PROJECTIONS if not projection.dev_only
 )
 DEV_PROJECTIONS: tuple[Projection, ...] = tuple(
-    projection for projection in OPEN_PROJECTIONS if projection.dev_only
+    projection for projection in ALL_PROJECTIONS if projection.dev_only
 )
 
-for _projection in OPEN_PROJECTIONS:  # pragma: no cover - import-time guard
+for _projection in ALL_PROJECTIONS:  # pragma: no cover - import-time guard
     if _projection.template.removesuffix(".j2") != _projection.filename:
         raise RuntimeError(
             f"projection {_projection.name!r} template/filename drift: "
@@ -232,7 +247,7 @@ class TemplateProjection:
 
 
 class ProjectionRegistry:
-    """Render the open projection catalog from one Theme."""
+    """Render the shipped projection catalog from one Theme."""
 
     def __init__(
         self,
@@ -245,39 +260,46 @@ class ProjectionRegistry:
         self._renderer = renderer or JinjaThemeRenderer(templates_dir=self._templates_dir)
         self._catalog_loader = catalog_loader or TemplateCatalogLoader()
         self._catalog: TemplateCatalog | None = None
-        self._projection_renderers: dict[str, TemplateProjection] = {
+        self._projection_renderers: dict[str, ProjectionPort] = {
             projection.name: TemplateProjection(projection, self._renderer)
             for projection in OPEN_PROJECTIONS
         }
+        for projection in FIXED_PROJECTIONS:
+            postprocess = sequences_postprocess if projection == SEQUENCES_PROJECTION else None
+            self._projection_renderers[projection.name] = AnsiProjection(
+                projection,
+                self._renderer,
+                postprocess=postprocess,
+            )
 
     @property
     def projections(self) -> tuple[Projection, ...]:
-        """All open projections, including dev-only previews."""
-        return OPEN_PROJECTIONS
+        """All shipped projections, including dev-only previews."""
+        return ALL_PROJECTIONS
 
     @property
     def runtime_projections(self) -> tuple[Projection, ...]:
-        """Open projections that are part of the runtime artifact contract."""
+        """Shipped projections that are part of the runtime artifact contract."""
         return RUNTIME_PROJECTIONS
 
     def catalog(self) -> TemplateCatalog:
         """Validate and return the 1:1 template catalog for every projection."""
         if self._catalog is None:
             self._catalog = self._catalog_loader.load(
-                (projection.template for projection in OPEN_PROJECTIONS),
+                (projection.template for projection in ALL_PROJECTIONS),
                 explicit_dir=self._templates_dir,
             )
         return self._catalog
 
     def _resolve(self, projection: Projection | str) -> Projection:
         if isinstance(projection, Projection):
-            if projection not in OPEN_PROJECTIONS:
+            if projection not in ALL_PROJECTIONS:
                 raise KeyError(f"projection {projection.name!r} is not registered")
             return projection
-        for candidate in OPEN_PROJECTIONS:
+        for candidate in ALL_PROJECTIONS:
             if candidate.name == projection:
                 return candidate
-        known = ", ".join(item.name for item in OPEN_PROJECTIONS)
+        known = ", ".join(item.name for item in ALL_PROJECTIONS)
         raise KeyError(f"unknown projection {projection!r}; known projections: {known}")
 
     def renderer_for(self, projection: Projection | str) -> ProjectionPort:
@@ -310,8 +332,8 @@ class ProjectionRegistry:
         return rendered
 
     def render_all(self, theme: Theme, output_dir: Path) -> dict[str, Path]:
-        """Render every open projection, including dev-only previews."""
-        return self._render_many(OPEN_PROJECTIONS, theme, output_dir)
+        """Render every shipped projection, including dev-only previews."""
+        return self._render_many(ALL_PROJECTIONS, theme, output_dir)
 
     def render_runtime(self, theme: Theme, output_dir: Path) -> dict[str, Path]:
         """Render the runtime projections only (no dev preview)."""

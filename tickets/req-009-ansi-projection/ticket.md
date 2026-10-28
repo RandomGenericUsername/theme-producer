@@ -2,7 +2,7 @@
 id: REQ-009
 title: "ANSI intent projection (kitty, sequences)"
 kind: requirement
-status: in-progress
+status: done
 lane: 3 — ticket-multi
 parent: EPIC-001
 links:

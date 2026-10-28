@@ -2,7 +2,7 @@
 id: REQ-010
 title: "CLI surface + local/container/dry-run processors"
 kind: requirement
-status: in-progress
+status: done
 lane: 2 — openspec-single
 parent: EPIC-001
 links:

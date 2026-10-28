@@ -2,14 +2,14 @@
 id: REQ-011
 title: "Pinned base + matugen images, install/uninstall"
 kind: requirement
-status: proposed
+status: in-progress
 lane: 3 — ticket-multi
 parent: EPIC-001
 links:
   openspec: req-011-container-images
   bmad: none
-worktree: none
-branch: none
+worktree: .worktrees/req-011/
+branch: ticket/req-011-container-images
 ---
 
 # Pinned base + matugen images, install/uninstall

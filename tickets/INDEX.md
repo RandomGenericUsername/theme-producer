@@ -7,7 +7,7 @@
 
 ## Epics
 
-- [epic-001-theme-producer](./epic-001-theme-producer/ticket.md) — Theme producer (successor to CSG) | `in-progress` | 11/16 complete (10 done + 1 spike reported) | done-when: a pinned `tpr` release produces a schema-valid Theme + eight projections; adoption spike reports a mechanical CSG swap; gates + image smoke green | exec: bmad brief+spec+spine
+- [epic-001-theme-producer](./epic-001-theme-producer/ticket.md) — Theme producer (successor to CSG) | `in-progress` | 12/16 complete (11 done + 1 spike reported) | done-when: a pinned `tpr` release produces a schema-valid Theme + eight projections; adoption spike reports a mechanical CSG swap; gates + image smoke green | exec: bmad brief+spec+spine
   - [ops-001-repo-birth](./ops-001-repo-birth/ticket.md) — Repo birth + planning substrate | `done`
   - [req-001-product-brief](./req-001-product-brief/ticket.md) — Product brief | `done`
   - [req-002-spec](./req-002-spec/ticket.md) — Spec (CAP-001..012) | `done`
@@ -18,8 +18,8 @@
   - [req-007-engines](./req-007-engines/ticket.md) — ThemeEnginePort + matugen engine + engines.yaml | `done`
   - [req-008-projections](./req-008-projections/ticket.md) — Canonical theme.json + open projections | `done`
   - [req-009-ansi-projection](./req-009-ansi-projection/ticket.md) — ANSI intent projection (kitty, sequences) | `done`
-  - [req-010-cli](./req-010-cli/ticket.md) — CLI surface + local/container/dry-run processors | `in-progress`
-  - [req-011-container-images](./req-011-container-images/ticket.md) — Pinned base + matugen images, install/uninstall | `proposed`
+  - [req-010-cli](./req-010-cli/ticket.md) — CLI surface + local/container/dry-run processors | `done`
+  - [req-011-container-images](./req-011-container-images/ticket.md) — Pinned base + matugen images, install/uninstall | `in-progress`
   - [req-012-invocation-contract](./req-012-invocation-contract/ticket.md) — contracts record + conformance test (blocked) | `proposed`
   - [req-013-native-engine](./req-013-native-engine/ticket.md) — v2 Rust helper on material-colors + oracle parity | `proposed`
   - [req-014-dotfiles-adoption](./req-014-dotfiles-adoption/ticket.md) — Dotfiles runtime/provisioning adoption (after spike) | `proposed`

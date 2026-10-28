@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.1 — 2026-10-28
+
+- **Legacy token compatibility (`BUG-003`):** `colors.gtk.css` now emits
+  `color_background`, `color_foreground`, `color_cursor` alongside `color_00..15`; `colors.rasi`
+  emits zero-padded `color00..15` (rofi uses `@color04`/`@color01`/`@color07`/`@color10`).
+  AGS/rofi compatibility test pins both sets; every other projection byte is unchanged.
+- **Consumer capability audit:** `docs/CONSUMER-AUDIT-2026-10-28.md` maps every artifact to its
+  consumers, token usage, format capability and migration order (read-only; no dotfiles edits).
+
 ## 0.3.0 — 2026-10-28
 
 - **Configurable smart projection mode (`REQ-018`):** `--mode smart` selects light/dark from the

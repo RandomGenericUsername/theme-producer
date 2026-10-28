@@ -364,3 +364,75 @@ def test_missing_image_is_a_config_error(tmp_path: Path, monkeypatch: pytest.Mon
         MatugenEngine().generate(request, EngineConfig(engine="matugen"))
 
     assert calls == []
+
+
+def test_lightness_flags_are_forwarded(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = _install_fake_run(monkeypatch, _payload())
+    request, _ = _image_request(tmp_path)
+    config = EngineConfig(
+        engine="matugen",
+        params={"lightness_dark": 0.5, "lightness_light": -0.25},
+    )
+
+    MatugenEngine().generate(request, config)
+
+    argv = calls[0]["argv"]
+    assert _argv_value(argv, "--lightness-dark") == "0.5"
+    assert _argv_value(argv, "--lightness-light") == "-0.25"
+
+
+def test_lightness_flags_are_forwarded_for_color_sources(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = _install_fake_run(monkeypatch, _payload())
+    request = ThemeRequest(source_kind="color", color="#ff0000")
+    config = EngineConfig(
+        engine="matugen",
+        params={"lightness_dark": 0.5, "lightness_light": 0.25},
+    )
+
+    MatugenEngine().generate(request, config)
+
+    argv = calls[0]["argv"]
+    assert argv[1:4] == ["color", "hex", "#ff0000"]
+    assert _argv_value(argv, "--lightness-dark") == "0.5"
+    assert _argv_value(argv, "--lightness-light") == "0.25"
+
+
+def test_lightness_extremes_are_clamped(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = _install_fake_run(monkeypatch, _payload())
+    request, _ = _image_request(tmp_path)
+    config = EngineConfig(
+        engine="matugen",
+        params={"lightness_dark": 99.0, "lightness_light": -99.0},
+    )
+
+    MatugenEngine().generate(request, config)
+
+    argv = calls[0]["argv"]
+    assert _argv_value(argv, "--lightness-dark") == "1.0"
+    assert _argv_value(argv, "--lightness-light") == "-1.0"
+
+
+def test_invalid_lightness_is_rejected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = _install_fake_run(monkeypatch, _payload())
+    request, _ = _image_request(tmp_path)
+
+    for name in ("lightness_dark", "lightness_light"):
+        with pytest.raises(EngineConfigError, match=name):
+            MatugenEngine().generate(
+                request, EngineConfig(engine="matugen", params={name: "abc"})
+            )
+        with pytest.raises(EngineConfigError, match=name):
+            MatugenEngine().generate(
+                request,
+                EngineConfig(engine="matugen", params={name: float("nan")}),
+            )
+
+    assert calls == []

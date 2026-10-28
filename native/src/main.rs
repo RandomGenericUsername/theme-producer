@@ -47,6 +47,7 @@ const SCHEMES: [&str; 9] = [
 const USAGE: &str = "\
 usage: tpr-native (--image <path> | --color <#rrggbb>)
                   [--scheme <scheme>] [--contrast <float>]
+                  [--lightness-dark <float>] [--lightness-light <float>]
                   [--source-color-index <int>]
                   [--prefer <darkness|lightness|saturation|less-saturation|value|closest-to-fallback>]
                   [--fallback-color <#rrggbb>] [--json] [--version]
@@ -63,7 +64,16 @@ Precedence: when `--prefer` is given it selects the source color and
 `--source-color-index` is ignored. Without `--prefer`, `--source-color-index`
 selects from the ranked candidates exactly as before (index 0 is the default).
 `--fallback-color` is used when extraction yields no candidate color and as the
-target for `closest-to-fallback`; that preference fails without it.";
+target for `closest-to-fallback`; that preference fails without it.
+
+`--lightness-dark` moves the dark scheme's lightness: lightness 1 stays at 1,
+lightness 0 moves to the argument, then the result is clamped. `--lightness-light`
+does the light-scheme counterpart: lightness 0 stays at 0, lightness 1 moves to
+1 + argument, then the result is clamped. Both default to 0 (no change), accept
+[-1, 1] (out-of-range values are clamped), and apply to every scheme role except
+`source_color`; tonal palettes are untouched. The lightness matugen transforms
+was identified by oracle probing as the mean of the gamma-encoded sRGB channels
+(HSI intensity, see `native/README.md`).";
 
 /// How image source colors are chosen from the ranked candidate list.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -108,6 +118,8 @@ struct Options {
     color: Option<String>,
     scheme: String,
     contrast: f64,
+    lightness_dark: f64,
+    lightness_light: f64,
     source_color_index: usize,
     prefer: Option<Prefer>,
     fallback_color: Option<Argb>,
@@ -154,11 +166,11 @@ fn run() -> Result<(), String> {
         "contrast": options.contrast,
         "modes": {
             "dark": {
-                "roles": roles(dark, source),
+                "roles": roles(dark, source, options.lightness_dark, true),
                 "palettes": palettes(&palette),
             },
             "light": {
-                "roles": roles(light, source),
+                "roles": roles(light, source, options.lightness_light, false),
                 "palettes": palettes(&palette),
             },
         },
@@ -178,6 +190,8 @@ where
     let mut color = None;
     let mut scheme = String::from(DEFAULT_SCHEME);
     let mut contrast = 0.0_f64;
+    let mut lightness_dark = 0.0_f64;
+    let mut lightness_light = 0.0_f64;
     let mut source_color_index = 0_usize;
     let mut prefer = None;
     let mut fallback_color = None;
@@ -211,6 +225,14 @@ where
                 if !contrast.is_finite() || !(-1.0..=1.0).contains(&contrast) {
                     return Err(format!("--contrast must be within [-1, 1]; got {contrast}"));
                 }
+            }
+            "--lightness-dark" => {
+                let raw = take_value(&mut args, "--lightness-dark")?;
+                lightness_dark = parse_lightness(&raw, "--lightness-dark")?;
+            }
+            "--lightness-light" => {
+                let raw = take_value(&mut args, "--lightness-light")?;
+                lightness_light = parse_lightness(&raw, "--lightness-light")?;
             }
             "--source-color-index" => {
                 let raw = take_value(&mut args, "--source-color-index")?;
@@ -260,10 +282,23 @@ where
         color,
         scheme,
         contrast,
+        lightness_dark,
+        lightness_light,
         source_color_index,
         prefer,
         fallback_color,
     })
+}
+
+/// Parse a `--lightness-*` argument: a finite float clamped to [-1, 1].
+fn parse_lightness(raw: &str, flag: &str) -> Result<f64, String> {
+    let value = raw
+        .parse::<f64>()
+        .map_err(|_| format!("{flag} expects a number; got {raw:?}"))?;
+    if !value.is_finite() {
+        return Err(format!("{flag} expects a finite number; got {raw:?}"));
+    }
+    Ok(value.clamp(-1.0, 1.0))
 }
 
 fn take_value<I>(args: &mut std::iter::Peekable<I>, flag: &str) -> Result<String, String>
@@ -520,13 +555,57 @@ fn variant_for(scheme: &str) -> Result<Variant, String> {
     }
 }
 
-fn roles(scheme: Scheme, source: Argb) -> Value {
+fn roles(scheme: Scheme, source: Argb, lightness: f64, dark: bool) -> Value {
     let mut roles = Map::new();
     for (name, color) in scheme {
+        let color = affine_lightness(color, lightness, dark);
         roles.insert(name, Value::String(hex(color)));
     }
     roles.insert("source_color".to_string(), Value::String(hex(source)));
     Value::Object(roles)
+}
+
+/// Apply matugen 4.2.0's per-mode lightness transform to one scheme role.
+///
+/// The lightness it transforms was identified by oracle probing (all 50 roles,
+/// five seeds, both modes, `-1..1`): it is the arithmetic mean of the
+/// gamma-encoded sRGB channels, i.e. HSI intensity in `0..=1`. The transform is
+/// affine on that scalar and the color is rebuilt by scaling every sRGB channel
+/// by `target / intensity`, then clamping. matugen truncates the scaled channel
+/// to `u8` (a rounding implementation is one unit high), which this mirrors.
+///
+/// * dark: `target = argument + (1 - argument) * intensity` (1 stays at 1,
+///   0 moves to `argument`).
+/// * light: `target = (1 + argument) * intensity` (0 stays at 0, 1 moves to
+///   `1 + argument`).
+///
+/// A zero argument is an exact identity, and an all-black color (intensity 0)
+/// is left untouched; `source_color` is inserted after this runs.
+fn affine_lightness(color: Argb, argument: f64, dark: bool) -> Argb {
+    if argument == 0.0 {
+        return color;
+    }
+    let intensity =
+        (f64::from(color.red) + f64::from(color.green) + f64::from(color.blue)) / (3.0 * 255.0);
+    if intensity <= 0.0 {
+        return color;
+    }
+    let target = if dark {
+        argument + (1.0 - argument) * intensity
+    } else {
+        (1.0 + argument) * intensity
+    };
+    let scale = target / intensity;
+    Argb::new(
+        255,
+        scaled_channel(color.red, scale),
+        scaled_channel(color.green, scale),
+        scaled_channel(color.blue, scale),
+    )
+}
+
+fn scaled_channel(value: u8, scale: f64) -> u8 {
+    (f64::from(value) * scale).clamp(0.0, 255.0) as u8
 }
 
 fn palettes(palette: &CorePalette) -> Value {
@@ -708,5 +787,162 @@ mod tests {
         )
         .unwrap_err();
         assert!(error.contains("#rrggbb"), "unexpected error: {error}");
+    }
+
+    #[test]
+    fn zero_lightness_is_an_exact_identity() {
+        for hex in ["#ff0000", "#808080", "#1a1110", "#ffffff", "#000000"] {
+            let color = argb(hex);
+            assert_eq!(affine_lightness(color, 0.0, true), color);
+            assert_eq!(affine_lightness(color, 0.0, false), color);
+        }
+    }
+
+    #[test]
+    fn dark_lightness_keeps_white_and_black_bounds() {
+        // 1 stays at 1.
+        assert_eq!(
+            affine_lightness(argb("#ffffff"), 0.5, true),
+            argb("#ffffff")
+        );
+        assert_eq!(
+            affine_lightness(argb("#ffffff"), -0.5, true),
+            argb("#ffffff")
+        );
+        // Clamping: maximum lightness saturates to white.
+        assert_eq!(
+            affine_lightness(argb("#808080"), 1.0, true),
+            argb("#ffffff")
+        );
+        // Zero-intensity colors cannot be scaled.
+        assert_eq!(
+            affine_lightness(argb("#000000"), 0.5, true),
+            argb("#000000")
+        );
+        // The affine may go below zero; channels clamp to black.
+        assert_eq!(
+            affine_lightness(argb("#808080"), -1.0, true),
+            argb("#000000")
+        );
+    }
+
+    #[test]
+    fn dark_lightness_uses_the_srgb_channel_mean() {
+        // intensity = 128/255; target = 0.5 + 0.5 * 128/255; scale = 1.5.
+        assert_eq!(
+            affine_lightness(argb("#808080"), 0.5, true),
+            argb("#bfbfbf")
+        );
+        // A chromatic color keeps its channel ratios: (26,17,16) * ~6.94.
+        assert_eq!(
+            affine_lightness(argb("#1a1110"), 0.5, true),
+            argb("#b5766f")
+        );
+    }
+
+    #[test]
+    fn light_lightness_scales_from_zero_and_clamps() {
+        // 0 stays at 0, so every channel is multiplied by 1 + argument.
+        assert_eq!(
+            affine_lightness(argb("#643219"), 0.5, false),
+            argb("#964b25")
+        );
+        assert_eq!(
+            affine_lightness(argb("#643219"), 1.0, false),
+            argb("#c86432")
+        );
+        assert_eq!(
+            affine_lightness(argb("#ffffff"), 1.0, false),
+            argb("#ffffff")
+        );
+        // -1 collapses everything to black.
+        assert_eq!(
+            affine_lightness(argb("#ffffff"), -1.0, false),
+            argb("#000000")
+        );
+    }
+
+    #[test]
+    fn source_color_is_never_transformed() {
+        let options = parse_args(
+            ["--color", "#ff0000", "--lightness-dark", "0.5"]
+                .into_iter()
+                .map(String::from),
+        )
+        .unwrap();
+        let source = parse_hex("#ff0000").unwrap();
+        let scheme = Scheme::from(DynamicScheme::by_variant(
+            source,
+            &Variant::TonalSpot,
+            true,
+            Some(options.contrast),
+        ));
+        let roles = roles(scheme, source, options.lightness_dark, true);
+        assert_eq!(
+            roles.get("source_color").and_then(Value::as_str),
+            Some("#ff0000")
+        );
+        assert_ne!(
+            roles.get("primary").and_then(Value::as_str),
+            Some("#ffb4a8")
+        );
+    }
+
+    #[test]
+    fn lightness_flags_default_to_zero() {
+        let options = parse_args(["--color", "#ff0000"].into_iter().map(String::from)).unwrap();
+        assert_eq!(options.lightness_dark, 0.0);
+        assert_eq!(options.lightness_light, 0.0);
+    }
+
+    #[test]
+    fn lightness_flags_are_parsed_and_clamped() {
+        let options = parse_args(
+            [
+                "--color",
+                "#ff0000",
+                "--lightness-dark",
+                "2.5",
+                "--lightness-light",
+                "-9",
+            ]
+            .into_iter()
+            .map(String::from),
+        )
+        .unwrap();
+        assert_eq!(options.lightness_dark, 1.0);
+        assert_eq!(options.lightness_light, -1.0);
+    }
+
+    #[test]
+    fn invalid_lightness_values_are_rejected() {
+        for (flag, value) in [
+            ("--lightness-dark", "abc"),
+            ("--lightness-light", "etc"),
+            ("--lightness-dark", "nan"),
+            ("--lightness-light", "inf"),
+        ] {
+            let error = parse_args(
+                ["--color", "#ff0000", flag, value]
+                    .into_iter()
+                    .map(String::from),
+            )
+            .unwrap_err();
+            assert!(error.contains(flag), "missing {flag} in {error}");
+        }
+    }
+
+    #[test]
+    fn lightness_flags_require_a_value() {
+        let error = parse_args(
+            ["--color", "#ff0000", "--lightness-dark"]
+                .into_iter()
+                .map(String::from),
+        )
+        .unwrap_err();
+        assert!(
+            error.contains("requires a value"),
+            "unexpected error: {error}"
+        );
     }
 }

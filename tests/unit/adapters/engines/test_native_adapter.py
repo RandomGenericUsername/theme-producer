@@ -403,3 +403,70 @@ def test_missing_image_is_a_config_error(tmp_path: Path, monkeypatch: pytest.Mon
         NativeEngine().generate(request, EngineConfig(engine="native"))
 
     assert calls == []
+
+
+def test_lightness_flags_are_forwarded(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    request, image = _image_request(tmp_path)
+    calls = _install_fake_run(monkeypatch, _payload(image))
+    config = EngineConfig(
+        engine="native",
+        params={"lightness_dark": 0.5, "lightness_light": -0.25},
+    )
+
+    NativeEngine().generate(request, config)
+
+    argv = calls[0]["argv"]
+    assert _argv_value(argv, "--lightness-dark") == "0.5"
+    assert _argv_value(argv, "--lightness-light") == "-0.25"
+
+
+def test_lightness_defaults_zero_and_is_forwarded(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    request, _ = _image_request(tmp_path)
+    calls = _install_fake_run(monkeypatch, _payload())
+
+    NativeEngine().generate(request, EngineConfig(engine="native"))
+
+    argv = calls[0]["argv"]
+    assert _argv_value(argv, "--lightness-dark") == "0.0"
+    assert _argv_value(argv, "--lightness-light") == "0.0"
+
+
+def test_lightness_extremes_are_clamped(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    request, _ = _image_request(tmp_path)
+    calls = _install_fake_run(monkeypatch, _payload())
+    config = EngineConfig(
+        engine="native",
+        params={"lightness_dark": 99.0, "lightness_light": -99.0},
+    )
+
+    NativeEngine().generate(request, config)
+
+    argv = calls[0]["argv"]
+    assert _argv_value(argv, "--lightness-dark") == "1.0"
+    assert _argv_value(argv, "--lightness-light") == "-1.0"
+
+
+def test_invalid_lightness_is_rejected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = _install_fake_run(monkeypatch, _payload())
+    request, _ = _image_request(tmp_path)
+
+    for name in ("lightness_dark", "lightness_light"):
+        with pytest.raises(EngineConfigError, match=name):
+            NativeEngine().generate(
+                request, EngineConfig(engine="native", params={name: "abc"})
+            )
+        with pytest.raises(EngineConfigError, match=name):
+            NativeEngine().generate(
+                request,
+                EngineConfig(engine="native", params={name: float("nan")}),
+            )
+
+    assert calls == []

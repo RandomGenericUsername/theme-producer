@@ -33,6 +33,14 @@ matugen:
       param_type: float
       default: 0.0
       description: "Contrast adjustment in [-1, 1]"
+    - name: lightness_dark
+      param_type: float
+      default: 0.0
+      description: "Dark-mode lightness shift in [-1, 1] (0 = unchanged)"
+    - name: lightness_light
+      param_type: float
+      default: 0.0
+      description: "Light-mode lightness shift in [-1, 1] (0 = unchanged)"
     - name: source_color_index
       param_type: int
       default: 0
@@ -86,6 +94,14 @@ native:
       param_type: float
       default: 0.0
       description: "Contrast adjustment in [-1, 1]"
+    - name: lightness_dark
+      param_type: float
+      default: 0.0
+      description: "Dark-mode lightness shift in [-1, 1] (0 = unchanged)"
+    - name: lightness_light
+      param_type: float
+      default: 0.0
+      description: "Light-mode lightness shift in [-1, 1] (0 = unchanged)"
     - name: source_color_index
       param_type: int
       default: 0

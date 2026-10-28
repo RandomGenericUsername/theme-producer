@@ -1,7 +1,7 @@
 # Handoff — v0.1.0
 
 Date: 2026-10-27
-Repo: `/home/inumaki/Development/theme-producer`
+Repo: `/home/inumaki/Development/dotfiles/theme-producer`
 Tag: `v0.1.0`
 Branch: `master`
 
@@ -80,7 +80,7 @@ theme.html              dev-only preview
 ## Commands
 
 ```bash
-cd /home/inumaki/Development/theme-producer
+cd /home/inumaki/Development/dotfiles/theme-producer
 make sync
 make gates
 make image IMAGE_ENGINE=podman

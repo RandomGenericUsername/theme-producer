@@ -57,12 +57,19 @@ theme.html              dev-only preview
 | Image-source parity | 56/316 values differ by ±1 (rounding); acceptable, seed parity is exact |
 | `make ci-gates-parity` | exit 0 |
 
-## Cross-repo follow-ups (blocked, by design)
+## Cross-repo status (2026-10-28)
 
-1. **REQ-012 — contracts record.** Add the `tpr` record to the `contracts` repo
-   (`cli-invocation-contract`): argv, env (`THEME__OUTPUT__DIRECTORY`, `THEME__OUTPUT__OVERWRITE`),
-   the 9 artifact names (8 consumers + `theme.json`), exit codes, timeout. Release a contracts tag,
-   then pin it here and add `tests/contract/test_invocation_contract.py`.
+- **contracts v0.4.0** — `tpr` record released and pushed; this repo pins it and the conformance
+  test passes with `tpr-native`.
+- **dotfiles-runtime v0.4.0** — palette producer seam (`TprAdapter`, `THEME__` allowlist, producer
+  fingerprint in the cache key, selector default `csg`); released and pushed.
+- **dotfiles-provision v0.1.22** — tpr pin, three images, settings, template catalog, verify and the
+  runtime producer switch; released and pushed.
+- **dotfiles-v3 pin** — blocked by the in-flight `REQ-008` all-standalone cutover (engine
+  `v0.1.21` requires `owner: standalone`; the composition is still all legacy at `v0.1.19`). One
+  combined pin release follows that cutover: engine `v0.1.22` + runtime `v0.4.0` + tpr `v0.1.0` +
+  assets `v0.6.2`, with `runtime_palette_producer` kept at `csg` until the user flips it.
+
 2. **REQ-014 — dotfiles adoption.** `tickets/spike-001-dotfiles-fit/ticket.md` has the full report.
    Short version:
    - Add a sibling `IColorSchemeGenerator` adapter; do not make `CsgAdapter` configurable.

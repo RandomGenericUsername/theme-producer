@@ -28,12 +28,35 @@ contract.
 - [ ] CSG remains available for rollback for one cycle; its removal is a separate ticket.
 - [ ] No unversioned contract change.
 
+## Current state (2026-10-28)
+
+The cross-repo slices are done and released:
+
+- `contracts v0.4.0` — the `tpr` record + tests, pushed.
+- `dotfiles-runtime v0.4.0` — `TprAdapter`, `THEME__` allowlist, producer fingerprint in the cache
+  key, `RUNTIME__PALETTE__PRODUCER` selector defaulting to `csg`; pushed.
+- `dotfiles-provision v0.1.22` — tpr pin, three images, settings, templates, verify and the runtime
+  producer switch; pushed.
+- `theme-producer v0.1.0` — `cli-invocation-contract v0.4.0` pinned; conformance test green with
+  `tpr-native`.
+
 ## Blocker
 
-Blocked on a cross-repo change. `SPIKE-001` is reported and `v0.1.0` is tagged. Next: a ticket in the
-dotfiles repo (its own harness) implements the sibling adapter, the producer fingerprint in the
-palette hash/invalidation, the producer selector, provisioning pin/build/verify, and the contracts
-pin. This repo stays untouched during adoption.
+The `dotfiles-v3` composition pin is blocked by the in-flight `REQ-008` all-standalone cutover.
+The composition is still engine `v0.1.19` with all seven AGS apps `owner: legacy`
+(`dotfiles/provisioning/apps.yaml:30-38`), while engine `v0.1.21+` requires every entry to be
+`owner: standalone`. Pinning engine `v0.1.22` now would combine the all-standalone topology change
+with the tpr pin and fail the composition gates.
+
+Next: after the REQ-008 v0.1.21 cutover lands in `dotfiles-v3`, make one combined pin release:
+
+- engine `v0.1.22`
+- runtime `v0.4.0`
+- theme-producer `v0.1.0`
+- assets `v0.6.2` (from the REQ-008 cutover)
+
+with `apps.yaml` flipped to standalone, `deploy-coverage` green, and `runtime_palette_producer`
+kept at `csg` until the user flips it.
 
 ## Done-when
 

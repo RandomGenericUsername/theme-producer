@@ -2,14 +2,14 @@
 id: REQ-004
 title: "Executable harness: packaging, gates, CI, hermetic tests"
 kind: requirement
-status: proposed
+status: in-progress
 lane: 2 — openspec-single
 parent: EPIC-001
 links:
   openspec: req-004-repo-harness
   bmad: none
-worktree: none
-branch: none
+worktree: .worktrees/req-004/
+branch: ticket/req-004-repo-harness
 ---
 
 # Executable harness: packaging, gates, CI, hermetic tests

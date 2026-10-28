@@ -12,7 +12,7 @@
   - [req-001-product-brief](./req-001-product-brief/ticket.md) — Product brief | `done`
   - [req-002-spec](./req-002-spec/ticket.md) — Spec (CAP-001..012) | `done`
   - [req-003-architecture-spine](./req-003-architecture-spine/ticket.md) — Architecture spine (AD-1..13) | `done`
-  - [req-004-repo-harness](./req-004-repo-harness/ticket.md) — Executable harness: packaging, gates, CI, hermetic tests | `proposed`
+  - [req-004-repo-harness](./req-004-repo-harness/ticket.md) — Executable harness: packaging, gates, CI, hermetic tests | `in-progress`
   - [req-005-domain-theme-model](./req-005-domain-theme-model/ticket.md) — Theme domain model + alias vocabulary | `proposed`
   - [req-006-settings](./req-006-settings/ticket.md) — Settings via config-assembler-engine | `proposed`
   - [req-007-engines](./req-007-engines/ticket.md) — ThemeEnginePort + matugen engine + engines.yaml | `proposed`

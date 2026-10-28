@@ -46,6 +46,7 @@ def test_default_catalog_loads_matugen_and_native() -> None:
         "scheme_type",
         "contrast",
         "source_color_index",
+        "prefer",
         "timeout",
         "fallback_color",
     ]
@@ -54,9 +55,21 @@ def test_default_catalog_loads_matugen_and_native() -> None:
         "scheme_type": "scheme-tonal-spot",
         "contrast": 0.0,
         "source_color_index": 0,
+        "prefer": "",
         "timeout": 300,
         "fallback_color": "",
     }
+    prefer_choices = (
+        "",
+        "darkness",
+        "lightness",
+        "saturation",
+        "less-saturation",
+        "value",
+        "closest-to-fallback",
+    )
+    assert matugen.parameters[4].name == "prefer"
+    assert matugen.parameters[4].choices == prefer_choices
     assert matugen.parameters[0].choices == ("dark", "light", "smart")
     matugen_schemes = matugen.parameters[1].choices
     assert len(matugen_schemes) == 10
@@ -64,6 +77,17 @@ def test_default_catalog_loads_matugen_and_native() -> None:
     native = catalog["native"]
     assert native.display_name == "Native"
     assert native.min_version == "0.1.0"
+    assert [param.name for param in native.parameters] == [
+        "mode",
+        "scheme_type",
+        "contrast",
+        "source_color_index",
+        "prefer",
+        "timeout",
+        "fallback_color",
+    ]
+    assert native.parameters[4].name == "prefer"
+    assert native.parameters[4].choices == prefer_choices
     native_schemes = native.parameters[1].choices
     assert len(native_schemes) == 9
     assert "scheme-smart" not in native_schemes

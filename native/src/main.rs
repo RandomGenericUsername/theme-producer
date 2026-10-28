@@ -10,11 +10,12 @@ use std::fs;
 use std::panic;
 use std::process::ExitCode;
 
-use material_colors::color::Argb;
+use material_colors::color::{Argb, Lab};
 use material_colors::dynamic_color::{DynamicScheme, Variant};
+use material_colors::hct::Hct;
 use material_colors::image::{AsPixels, FilterType, ImageReader};
 use material_colors::palette::CorePalette;
-use material_colors::quantize::{Quantizer, QuantizerCelebi};
+use material_colors::quantize::{PointProvider, PointProviderLab, Quantizer, QuantizerCelebi};
 use material_colors::scheme::Scheme;
 use material_colors::score::Score;
 use serde_json::{json, Map, Value};
@@ -24,6 +25,9 @@ const ENGINE_NAME: &str = "native";
 const ENGINE_VERSION: &str = "0.1.0";
 const SCHEMA_VERSION: &str = "1";
 const DEFAULT_SCHEME: &str = "scheme-tonal-spot";
+/// matugen 4.2.0 presents four ranked source-color candidates (`0..4`, i.e.
+/// 0-3), so the native helper ranks the same number.
+const CANDIDATE_COUNT: i32 = 4;
 const TONES: [i32; 18] = [
     0, 5, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 95, 98, 99, 100,
 ];
@@ -43,15 +47,70 @@ const SCHEMES: [&str; 9] = [
 const USAGE: &str = "\
 usage: tpr-native (--image <path> | --color <#rrggbb>)
                   [--scheme <scheme>] [--contrast <float>]
-                  [--source-color-index <int>] [--json]
-                  [--version]";
+                  [--source-color-index <int>]
+                  [--prefer <darkness|lightness|saturation|less-saturation|value|closest-to-fallback>]
+                  [--fallback-color <#rrggbb>] [--json] [--version]
 
+Image sources rank four candidate colors. `--prefer` picks one of them:
+  darkness            lowest perceptual lightness (HCT tone)
+  lightness           highest perceptual lightness (HCT tone)
+  saturation          most colorful candidate (largest HSV max-min span)
+  less-saturation     least chromatic candidate (lowest HCT chroma)
+  value               lowest HSV value (matches matugen 4.2.0's oracle behavior)
+  closest-to-fallback nearest candidate to --fallback-color in CIE Lab (CIE76)
+
+Precedence: when `--prefer` is given it selects the source color and
+`--source-color-index` is ignored. Without `--prefer`, `--source-color-index`
+selects from the ranked candidates exactly as before (index 0 is the default).
+`--fallback-color` is used when extraction yields no candidate color and as the
+target for `closest-to-fallback`; that preference fails without it.";
+
+/// How image source colors are chosen from the ranked candidate list.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Prefer {
+    Darkness,
+    Lightness,
+    Saturation,
+    LessSaturation,
+    Value,
+    ClosestToFallback,
+}
+
+impl Prefer {
+    const NAMES: [&'static str; 6] = [
+        "darkness",
+        "lightness",
+        "saturation",
+        "less-saturation",
+        "value",
+        "closest-to-fallback",
+    ];
+
+    fn parse(raw: &str) -> Result<Self, String> {
+        match raw {
+            "darkness" => Ok(Self::Darkness),
+            "lightness" => Ok(Self::Lightness),
+            "saturation" => Ok(Self::Saturation),
+            "less-saturation" => Ok(Self::LessSaturation),
+            "value" => Ok(Self::Value),
+            "closest-to-fallback" => Ok(Self::ClosestToFallback),
+            other => Err(format!(
+                "unknown --prefer {other:?}; expected one of: {}",
+                Self::NAMES.join(", ")
+            )),
+        }
+    }
+}
+
+#[derive(Debug)]
 struct Options {
     image: Option<String>,
     color: Option<String>,
     scheme: String,
     contrast: f64,
     source_color_index: usize,
+    prefer: Option<Prefer>,
+    fallback_color: Option<Argb>,
 }
 
 fn main() -> ExitCode {
@@ -120,6 +179,8 @@ where
     let mut scheme = String::from(DEFAULT_SCHEME);
     let mut contrast = 0.0_f64;
     let mut source_color_index = 0_usize;
+    let mut prefer = None;
+    let mut fallback_color = None;
 
     let mut args = args.peekable();
     while let Some(arg) = args.next() {
@@ -157,6 +218,23 @@ where
                     format!("--source-color-index expects a non-negative int; got {raw:?}")
                 })?;
             }
+            "--prefer" => {
+                let raw = take_value(&mut args, "--prefer")?;
+                if prefer.is_some() {
+                    return Err("--prefer was provided more than once".into());
+                }
+                prefer = Some(Prefer::parse(&raw)?);
+            }
+            "--fallback-color" => {
+                let raw = take_value(&mut args, "--fallback-color")?;
+                if fallback_color.is_some() {
+                    return Err("--fallback-color was provided more than once".into());
+                }
+                fallback_color = Some(
+                    parse_hex(&raw)
+                        .map_err(|_| format!("--fallback-color expects #rrggbb; got {raw:?}"))?,
+                );
+            }
             "--help" | "-h" => {
                 println!("{USAGE}");
                 std::process::exit(0);
@@ -173,12 +251,18 @@ where
         ));
     }
 
+    if prefer == Some(Prefer::ClosestToFallback) && fallback_color.is_none() {
+        return Err("--prefer closest-to-fallback requires --fallback-color <#rrggbb>".to_string());
+    }
+
     Ok(Options {
         image,
         color,
         scheme,
         contrast,
         source_color_index,
+        prefer,
+        fallback_color,
     })
 }
 
@@ -192,7 +276,12 @@ where
 
 fn resolve_source(options: &Options) -> Result<(Argb, Value), String> {
     if let Some(path) = &options.image {
-        return image_source(path, options.source_color_index);
+        return image_source(
+            path,
+            options.source_color_index,
+            options.prefer,
+            options.fallback_color,
+        );
     }
 
     let raw = options
@@ -214,7 +303,12 @@ fn color_source(raw: &str) -> Result<(Argb, Value), String> {
     ))
 }
 
-fn image_source(path: &str, source_color_index: usize) -> Result<(Argb, Value), String> {
+fn image_source(
+    path: &str,
+    source_color_index: usize,
+    prefer: Option<Prefer>,
+    fallback_color: Option<Argb>,
+) -> Result<(Argb, Value), String> {
     let bytes =
         fs::read(path).map_err(|error| format!("could not read image {path:?}: {error}"))?;
     let hash = sha256_hex(&bytes);
@@ -225,16 +319,33 @@ fn image_source(path: &str, source_color_index: usize) -> Result<(Argb, Value), 
     let decoded = panic::catch_unwind(|| ImageReader::read(bytes))
         .map_err(|_| format!("could not decode image {path:?}: not a supported image"))?;
     let mut image = decoded.map_err(|error| format!("could not decode image {path:?}: {error}"))?;
-    image.resize(128, 128, FilterType::Lanczos3);
+    // matugen 4.2.0 downscales to 112x112 with a triangle filter before
+    // quantizing (probed with `--show-source-colors`: the candidate list is
+    // resize-filter-invariant exactly at 112x112 and matches the crate's
+    // `quantize` + `score` on that grid). Using the same grid keeps source-color
+    // selection as close to the oracle as the shared crate allows.
+    image.resize(112, 112, FilterType::Triangle);
 
     let pixels = image.as_pixels();
     let quantized = QuantizerCelebi::quantize(&pixels, 128);
-    let ranked = Score::score(&quantized.color_to_count, None, None, None);
-    let fallback = Argb::new(255, 66, 133, 244);
-    let source = if ranked.is_empty() {
-        fallback
-    } else {
-        ranked[source_color_index.min(ranked.len() - 1)]
+    let ranked = Score::score(
+        &quantized.color_to_count,
+        Some(CANDIDATE_COUNT),
+        fallback_color,
+        None,
+    );
+
+    let source = match prefer {
+        Some(preference) => select_preferred(&ranked, preference, fallback_color)?,
+        None => {
+            if ranked.is_empty() {
+                // `Score::score` returns the fallback (Google Blue by default)
+                // instead of an empty list, so this only guards a future change.
+                fallback_color.unwrap_or_else(default_fallback)
+            } else {
+                ranked[source_color_index.min(ranked.len() - 1)]
+            }
+        }
     };
 
     Ok((
@@ -245,6 +356,140 @@ fn image_source(path: &str, source_color_index: usize) -> Result<(Argb, Value), 
             "hash": hash,
         }),
     ))
+}
+
+/// Google Blue, the `material-colors` `Score` fallback.
+const fn default_fallback() -> Argb {
+    Argb::new(255, 66, 133, 244)
+}
+
+/// Pick one color from `ranked` according to `prefer`.
+///
+/// The metrics mirror matugen 4.2.0's observable behavior on the real-wallpaper
+/// corpus (see `tests/contract/test_native_source_parity.py`):
+///
+/// * `darkness` — lowest HCT tone (perceptual lightness).
+/// * `lightness` — highest HCT tone.
+/// * `saturation` — largest HSV span (`max - min`); matugen's pick matches this
+///   rather than normalized HSV saturation or HCT chroma on the corpus.
+/// * `less-saturation` — smallest HCT chroma./// * `value` — lowest HSV value. matugen's `value` preference selects the
+///   darkest candidate, not the brightest; we mirror the oracle.
+/// * `closest-to-fallback` — nearest candidate in CIE Lab (CIE76). Probing every
+///   observed pick over the corpus narrowed the metric to CIE76.
+fn select_preferred(
+    ranked: &[Argb],
+    prefer: Prefer,
+    fallback_color: Option<Argb>,
+) -> Result<Argb, String> {
+    if ranked.is_empty() {
+        return fallback_color.ok_or_else(|| {
+            "image produced no candidate colors and no --fallback-color was given".to_string()
+        });
+    }
+
+    let first = ranked[0];
+    let picked = match prefer {
+        Prefer::Darkness => ranked.iter().copied().reduce(|best, color| {
+            if hct_tone(color) < hct_tone(best) {
+                color
+            } else {
+                best
+            }
+        }),
+        Prefer::Lightness => ranked.iter().copied().reduce(|best, color| {
+            if hct_tone(color) > hct_tone(best) {
+                color
+            } else {
+                best
+            }
+        }),
+        Prefer::Saturation => ranked.iter().copied().reduce(|best, color| {
+            if hsv_span(color) > hsv_span(best) {
+                color
+            } else {
+                best
+            }
+        }),
+        Prefer::LessSaturation => ranked.iter().copied().reduce(|best, color| {
+            if hct_chroma(color) < hct_chroma(best) {
+                color
+            } else {
+                best
+            }
+        }),
+        Prefer::Value => ranked.iter().copied().reduce(|best, color| {
+            if hsv(color).2 < hsv(best).2 {
+                color
+            } else {
+                best
+            }
+        }),
+        Prefer::ClosestToFallback => {
+            let target = fallback_color.ok_or_else(|| {
+                "--prefer closest-to-fallback requires --fallback-color <#rrggbb>".to_string()
+            })?;
+            let target_lab: Lab = target.into();
+            let mut best = first;
+            let mut best_distance = lab_distance(best, &target_lab);
+            for color in ranked.iter().copied().skip(1) {
+                let distance = lab_distance(color, &target_lab);
+                if distance < best_distance {
+                    best = color;
+                    best_distance = distance;
+                }
+            }
+            Some(best)
+        }
+    };
+
+    picked.ok_or_else(|| "image produced no candidate colors".to_string())
+}
+
+fn hct_tone(color: Argb) -> f64 {
+    let hct: Hct = color.into();
+    hct.get_tone()
+}
+
+/// HSV `max - min` span in 0..=255; the "colorfulness" matugen's saturation
+/// preference ranks by.
+fn hsv_span(color: Argb) -> u8 {
+    let max = color.red.max(color.green).max(color.blue);
+    let min = color.red.min(color.green).min(color.blue);
+    max - min
+}
+
+fn hct_chroma(color: Argb) -> f64 {
+    let hct: Hct = color.into();
+    hct.get_chroma()
+}
+
+/// HSV as `(hue degrees, saturation, value)`.
+fn hsv(color: Argb) -> (f64, f64, f64) {
+    let (red, green, blue) = (
+        f64::from(color.red) / 255.0,
+        f64::from(color.green) / 255.0,
+        f64::from(color.blue) / 255.0,
+    );
+    let max = red.max(green).max(blue);
+    let min = red.min(green).min(blue);
+    let delta = max - min;
+    let hue = if delta == 0.0 {
+        0.0
+    } else if max == red {
+        60.0 * (((green - blue) / delta) % 6.0)
+    } else if max == green {
+        60.0 * ((blue - red) / delta + 2.0)
+    } else {
+        60.0 * ((red - green) / delta + 4.0)
+    };
+    (hue, if max == 0.0 { 0.0 } else { delta / max }, max)
+}
+
+/// Squared CIE76 distance; `PointProviderLab` omits the square root because
+/// only the ordering matters.
+fn lab_distance(color: Argb, other: &Lab) -> f64 {
+    let lab: Lab = color.into();
+    PointProviderLab::distance(&lab, other)
 }
 
 fn parse_hex(raw: &str) -> Result<Argb, String> {
@@ -310,4 +555,158 @@ fn hex(color: Argb) -> String {
 fn sha256_hex(bytes: &[u8]) -> String {
     let digest = Sha256::digest(bytes);
     digest.iter().map(|byte| format!("{byte:02x}")).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn argb(hex: &str) -> Argb {
+        let value = u32::from_str_radix(hex.trim_start_matches('#'), 16).unwrap();
+        Argb::from_u32(0xff00_0000 | value)
+    }
+
+    /// Synthetic ranked list whose metrics are far apart in every dimension:
+    /// yellow is lightest, dark blue is darkest, red is most saturated, gray is
+    /// least chromatic.
+    fn ranked() -> Vec<Argb> {
+        vec![
+            argb("#f9c711"),
+            argb("#ff0000"),
+            argb("#808080"),
+            argb("#123456"),
+        ]
+    }
+
+    #[test]
+    fn darkness_picks_the_lowest_tone() {
+        assert_eq!(
+            select_preferred(&ranked(), Prefer::Darkness, None).unwrap(),
+            argb("#123456")
+        );
+    }
+
+    #[test]
+    fn lightness_picks_the_highest_tone() {
+        assert_eq!(
+            select_preferred(&ranked(), Prefer::Lightness, None).unwrap(),
+            argb("#f9c711")
+        );
+    }
+
+    #[test]
+    fn saturation_picks_the_highest_hsv_saturation() {
+        assert_eq!(
+            select_preferred(&ranked(), Prefer::Saturation, None).unwrap(),
+            argb("#ff0000")
+        );
+    }
+
+    #[test]
+    fn less_saturation_picks_the_lowest_chroma() {
+        assert_eq!(
+            select_preferred(&ranked(), Prefer::LessSaturation, None).unwrap(),
+            argb("#808080")
+        );
+    }
+
+    #[test]
+    fn value_picks_the_lowest_hsv_value() {
+        assert_eq!(
+            select_preferred(&ranked(), Prefer::Value, None).unwrap(),
+            argb("#123456")
+        );
+    }
+
+    #[test]
+    fn closest_to_fallback_uses_cie76_distance() {
+        let ranked = ranked();
+        assert_eq!(
+            select_preferred(&ranked, Prefer::ClosestToFallback, Some(argb("#ff0000"))).unwrap(),
+            argb("#ff0000")
+        );
+        assert_eq!(
+            select_preferred(&ranked, Prefer::ClosestToFallback, Some(argb("#0a0a0a"))).unwrap(),
+            argb("#123456")
+        );
+    }
+
+    #[test]
+    fn closest_to_fallback_requires_a_fallback() {
+        let error = select_preferred(&ranked(), Prefer::ClosestToFallback, None).unwrap_err();
+        assert!(
+            error.contains("closest-to-fallback"),
+            "unexpected error: {error}"
+        );
+        assert!(
+            error.contains("--fallback-color"),
+            "unexpected error: {error}"
+        );
+    }
+
+    #[test]
+    fn empty_ranked_list_uses_the_fallback() {
+        assert_eq!(
+            select_preferred(&[], Prefer::Darkness, Some(argb("#123456"))).unwrap(),
+            argb("#123456")
+        );
+    }
+
+    #[test]
+    fn empty_ranked_list_without_fallback_fails() {
+        let error = select_preferred(&[], Prefer::Lightness, None).unwrap_err();
+        assert!(
+            error.contains("no candidate colors"),
+            "unexpected error: {error}"
+        );
+    }
+
+    #[test]
+    fn unknown_preference_is_rejected_with_the_choices() {
+        let error = Prefer::parse("brightest").unwrap_err();
+        for name in Prefer::NAMES {
+            assert!(error.contains(name), "missing {name} in {error}");
+        }
+    }
+
+    #[test]
+    fn prefer_overrides_the_source_color_index() {
+        let options = parse_args(
+            [
+                "--image",
+                "wall.ppm",
+                "--source-color-index",
+                "3",
+                "--prefer",
+                "lightness",
+            ]
+            .into_iter()
+            .map(String::from),
+        )
+        .unwrap();
+        assert_eq!(options.source_color_index, 3);
+        assert_eq!(options.prefer, Some(Prefer::Lightness));
+
+        let error = parse_args(
+            ["--image", "wall.ppm", "--prefer", "closest-to-fallback"]
+                .into_iter()
+                .map(String::from),
+        )
+        .unwrap_err();
+        assert!(
+            error.contains("--fallback-color"),
+            "unexpected error: {error}"
+        );
+    }
+
+    #[test]
+    fn invalid_fallback_hex_is_rejected() {
+        let error = parse_args(
+            ["--image", "wall.ppm", "--fallback-color", "#12345g"]
+                .into_iter()
+                .map(String::from),
+        )
+        .unwrap_err();
+        assert!(error.contains("#rrggbb"), "unexpected error: {error}");
+    }
 }

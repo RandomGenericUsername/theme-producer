@@ -37,6 +37,18 @@ matugen:
       param_type: int
       default: 0
       description: "Which extracted source color to use (0-3)"
+    - name: prefer
+      param_type: str
+      default: ""
+      choices:
+        - ""
+        - darkness
+        - lightness
+        - saturation
+        - less-saturation
+        - value
+        - closest-to-fallback
+      description: "Which extracted source color to prefer (empty uses source_color_index)"
     - name: timeout
       param_type: int
       default: 300
@@ -78,6 +90,18 @@ native:
       param_type: int
       default: 0
       description: "Which extracted source color to use (0-4)"
+    - name: prefer
+      param_type: str
+      default: ""
+      choices:
+        - ""
+        - darkness
+        - lightness
+        - saturation
+        - less-saturation
+        - value
+        - closest-to-fallback
+      description: "Which extracted source color to prefer (empty uses source_color_index)"
     - name: timeout
       param_type: int
       default: 300

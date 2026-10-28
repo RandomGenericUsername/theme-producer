@@ -80,6 +80,21 @@ NATIVE_PARAMETERS: tuple[EngineParameterDefinition, ...] = (
         description="Which extracted source color to use (0-4)",
     ),
     EngineParameterDefinition(
+        name="prefer",
+        param_type="str",
+        default="",
+        choices=(
+            "",
+            "darkness",
+            "lightness",
+            "saturation",
+            "less-saturation",
+            "value",
+            "closest-to-fallback",
+        ),
+        description="Which extracted source color to prefer (empty uses source_color_index)",
+    ),
+    EngineParameterDefinition(
         name="timeout",
         param_type="int",
         default=300,
@@ -115,6 +130,8 @@ class NativeEngine:
         scheme = str(params["scheme_type"])
         contrast = _clamp_float(params["contrast"], -1.0, 1.0)
         source_color_index = _clamp_int(params["source_color_index"], 0, 4)
+        prefer = _normalize_prefer(params["prefer"])
+        fallback_color = _normalize_fallback(params["fallback_color"])
         timeout = _effective_timeout(config)
 
         argv, color_hash = _build_argv(
@@ -122,6 +139,8 @@ class NativeEngine:
             scheme=scheme,
             contrast=contrast,
             source_color_index=source_color_index,
+            prefer=prefer,
+            fallback_color=fallback_color,
         )
         result = _run(argv, timeout=timeout)
         if result.returncode != 0:
@@ -171,12 +190,40 @@ def _clamp_int(value: Any, low: int, high: int) -> int:
     return max(low, min(high, number))
 
 
+def _normalize_prefer(value: Any) -> str:
+    """Return the preference name, or ``""`` when the index selects the color."""
+    if value is None:
+        return ""
+    if not isinstance(value, str):
+        raise EngineConfigError("prefer", f"must be a string; got {value!r}")
+    return value.strip()
+
+
+def _normalize_fallback(value: Any) -> str:
+    """Return a validated ``#rrggbb`` fallback, or ``""`` when unset."""
+    if value is None:
+        return ""
+    if not isinstance(value, str):
+        raise EngineConfigError("fallback_color", f"must be a string; got {value!r}")
+    fallback = value.strip()
+    if not fallback:
+        return ""
+    if not _COLOR_PATTERN.fullmatch(fallback):
+        raise EngineConfigError(
+            "fallback_color",
+            f"expected #rrggbb or #rrggbbaa; got {fallback!r}",
+        )
+    return fallback[:7].lower()
+
+
 def _build_argv(
     request: ThemeRequest,
     *,
     scheme: str,
     contrast: float,
     source_color_index: int,
+    prefer: str = "",
+    fallback_color: str = "",
 ) -> tuple[list[str], str | None]:
     argv = [BINARY_NAME]
     color_hash: str | None = None
@@ -209,7 +256,14 @@ def _build_argv(
         ]
     )
     if request.source_kind is SourceKind.IMAGE:
-        argv.extend(["--source-color-index", str(source_color_index)])
+        # An explicit index wins over --prefer in the helper, so only forward it
+        # when no preference is configured.
+        if prefer:
+            argv.extend(["--prefer", prefer])
+        else:
+            argv.extend(["--source-color-index", str(source_color_index)])
+        if fallback_color:
+            argv.extend(["--fallback-color", fallback_color])
     argv.append("--json")
     return argv, color_hash
 

@@ -2,7 +2,7 @@
 id: REQ-019
 title: "Scheme policy domain: metrics, rules, resolver"
 kind: requirement
-status: in-progress
+status: done
 lane: 3
 links:
   openspec: none

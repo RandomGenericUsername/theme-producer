@@ -2,13 +2,13 @@
 id: REQ-020
 title: "Scheme policy catalog + metrics adapters"
 kind: requirement
-status: proposed
+status: in-progress
 lane: 3
 links:
   openspec: none
   bmad: architecture-theme-producer
-worktree: none
-branch: none
+worktree: .worktrees/req-020/
+branch: ticket/req-020-scheme-policy-catalog
 ---
 
 # Scheme policy catalog + metrics adapters

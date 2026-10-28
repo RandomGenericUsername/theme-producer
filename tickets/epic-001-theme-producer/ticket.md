@@ -40,7 +40,7 @@ mechanical CSG swap with the runtime's artifact/hash impact named.
 
 ## Children
 
-22/26 complete (21 done + 1 spike reported; REQ-014 blocked, REQ-019..021 pending).
+23/26 complete (22 done + 1 spike reported; REQ-014 blocked, REQ-020/021 pending).
 
   - [x] `OPS-001` — Repo birth + planning substrate (`done`)
   - [x] `REQ-001` — Product brief (`done`)
@@ -64,8 +64,8 @@ mechanical CSG swap with the runtime's artifact/hash impact named.
 - [x] `REQ-017` — Light-mode projections: --mode dark|light (`done`)
 - [x] `REQ-018` — Smart projection mode: --mode smart (configurable) (`done`)
 - [x] `BUG-003` — GTK/rasi legacy tokens missing (AGS/rofi break) (`done`)
-- [ ] `REQ-019` — Scheme policy domain: metrics, rules, resolver (`in-progress`)
-- [ ] `REQ-020` — Scheme policy catalog + metrics adapters (`proposed`)
+- [x] `REQ-019` — Scheme policy domain: metrics, rules, resolver (`done`)
+- [ ] `REQ-020` — Scheme policy catalog + metrics adapters (`in-progress`)
 - [ ] `REQ-021` — Scheme policy integration: scheme-smart resolution (`proposed`)
   - [x] `SPIKE-001` — Dotfiles fit: adapter, hashes, contract, rollout (`reported`)
 

@@ -2,7 +2,7 @@
 id: BUG-002
 title: "Default container image_tag is latest, not the pin"
 kind: bug
-status: in-progress
+status: done
 lane: 1 — XS direct
 severity: medium
 links:

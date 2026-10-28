@@ -2,7 +2,7 @@
 id: BUG-001
 title: "Native engine advertises scheme-smart but rejects it"
 kind: bug
-status: in-progress
+status: done
 lane: 1 — XS direct
 severity: medium
 links:

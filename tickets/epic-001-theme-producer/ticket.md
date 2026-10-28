@@ -40,7 +40,7 @@ mechanical CSG swap with the runtime's artifact/hash impact named.
 
 ## Children
 
-14/16 complete (13 done + 1 spike reported).
+14/18 complete (13 done + 1 spike reported; 2 bugs open).
 
   - [x] `OPS-001` — Repo birth + planning substrate (`done`)
   - [x] `REQ-001` — Product brief (`done`)
@@ -56,7 +56,9 @@ mechanical CSG swap with the runtime's artifact/hash impact named.
   - [x] `REQ-011` — Pinned base + matugen images, install/uninstall (`done`)
   - [ ] `REQ-012` — contracts record + conformance test (blocked) (`proposed`)
   - [x] `REQ-013` — v2 Rust helper on material-colors + oracle parity (`done`)
-  - [ ] `REQ-014` — Dotfiles runtime/provisioning adoption (after spike) (`proposed`)
+  - [ ] `BUG-001` — Native engine advertises scheme-smart but rejects it (`in-progress`)
+- [ ] `BUG-002` — Default container image_tag is latest, not the pin (`in-progress`)
+- [ ] `REQ-014` — Dotfiles runtime/provisioning adoption (after spike) (`proposed`)
   - [x] `SPIKE-001` — Dotfiles fit: adapter, hashes, contract, rollout (`reported`)
 
 ## Exec links

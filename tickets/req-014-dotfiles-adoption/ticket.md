@@ -30,8 +30,10 @@ contract.
 
 ## Blocker
 
-Blocked by `SPIKE-001` and a released `tpr` tag. This is the only ticket allowed to edit the dotfiles
-tree, and it lives in the dotfiles repo's own ticket system.
+Blocked on a cross-repo change. `SPIKE-001` is reported and `v0.1.0` is tagged. Next: a ticket in the
+dotfiles repo (its own harness) implements the sibling adapter, the producer fingerprint in the
+palette hash/invalidation, the producer selector, provisioning pin/build/verify, and the contracts
+pin. This repo stays untouched during adoption.
 
 ## Done-when
 

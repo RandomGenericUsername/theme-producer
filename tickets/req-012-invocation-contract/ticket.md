@@ -29,8 +29,10 @@ runs the installed CLI against the record.
 
 ## Blocker
 
-Blocked until the artifact set is stable (after REQ-008/009) and a `contracts` release exists. Do not
-invent a local contract record.
+Blocked on a cross-repo release. The artifact set is stable as of `v0.1.0` (8 consumer files +
+theme.json). Next: a `contracts` repo ticket adds the `tpr` record, a contracts tag is released, then
+this repo pins it and adds `tests/contract/test_invocation_contract.py`. Do not invent a local
+contract record.
 
 ## Done-when
 

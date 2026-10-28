@@ -2,7 +2,7 @@
 id: REQ-017
 title: "Light-mode projections: --mode dark|light"
 kind: requirement
-status: in-progress
+status: done
 lane: 3
 links:
   openspec: none

@@ -69,7 +69,7 @@ deterministic luminance-threshold policy over the source.
 
 ## Evidence
 
-- `tests/unit/domain/test_smart_mode.py` — white ≈ 1, black ≈ 0, mid gray ≈ 0.5, bright → light,
+- `tests/unit/domain/test_smart_mode.py` — white ≈ 1, black ≈ 0, sRGB 188 ≈ 0.5 linear, bright → light,
   dark → dark, and mean ≈ 0.6 flips light → dark at threshold `0.8`.
 - `tests/unit/cli/test_generate.py` / `test_show.py` — CLI smart mode, settings default, threshold
   flip, invalid threshold, dry-run and container concrete mode.
@@ -78,7 +78,22 @@ deterministic luminance-threshold policy over the source.
 Verify:
 
 ```bash
-cd .worktrees/req-018
+cd .
 uv run pytest -q tests/unit/domain/test_smart_mode.py tests/unit/cli/test_generate.py
 make gates
 ```
+
+## Validation (2026-10-28)
+
+| Source | Mean relative luminance | Threshold | Selected |
+|---|---:|---:|---|
+| bright gradient | 0.7404 | 0.5 | light |
+| bright gradient | 0.7404 | 0.9 | dark |
+| windows-95-dark | 0.1845 | 0.5 | dark |
+| zenitsu-agatsuma | 0.0171 | 0.5 | dark |
+
+- `default_mode = "smart"` in settings → `generate` with no `--mode` selects light for the bright
+  gradient.
+- `THEME__OUTPUT__SMART_THRESHOLD=0.9` flips the bright gradient to dark.
+- The selected mode's `colors.yaml` surface matches `theme.json.modes.<mode>`; container mode
+  receives the concrete `dark`/`light` and writes the same nine files.

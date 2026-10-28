@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0 — 2026-10-28
+
+- **Configurable smart projection mode (`REQ-018`):** `--mode smart` selects light/dark from the
+  source image's mean relative luminance (Pillow, sRGB-linearized), threshold 0.5 by default.
+  `[output] default_mode` and `[output] smart_threshold` are configurable; `--smart-threshold` and
+  `THEME__OUTPUT__SMART_THRESHOLD` override; container/dry-run receive the concrete mode.
+- Dark remains the default; `theme.json` still carries both modes; no artifact changes.
+- Smart is `tpr`'s explicit luminance rule, not matugen's `--mode smart` (which picked dark on the
+  real corpus).
+
 ## 0.2.0 — 2026-10-28
 
 Engine-completion release: native now exposes matugen's source/lightness controls, and projections

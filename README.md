@@ -11,7 +11,7 @@ is one projection among many.
 
 ## Status
 
-`v0.2.0`. The Theme model, both engines (matugen and native), the projection catalog, the CLI and
+`v0.3.0`. The Theme model, both engines (matugen and native), the projection catalog, the CLI and
 the container images are built and gated. The two remaining tickets are cross-repo:
 
 - `REQ-012` — the `tpr` record in the `contracts` repo and its conformance test.
@@ -25,7 +25,7 @@ architecture spine.
 ```bash
 make sync
 make gates
-make image IMAGE_ENGINE=podman          # base + matugen + native at v0.2.0
+make image IMAGE_ENGINE=podman          # base + matugen + native at v0.3.0
 uv run tpr generate wallpaper.png -o /tmp/theme
 uv run tpr generate wallpaper.png --mode smart -o /tmp/theme   # luminance-selected mode
 uv run tpr --output-format json list-engines

@@ -40,7 +40,7 @@ mechanical CSG swap with the runtime's artifact/hash impact named.
 
 ## Children
 
-21/22 complete (20 done + 1 spike reported; REQ-014 blocked).
+21/23 complete (20 done + 1 spike reported; REQ-014 blocked, BUG-003 open).
 
   - [x] `OPS-001` — Repo birth + planning substrate (`done`)
   - [x] `REQ-001` — Product brief (`done`)
@@ -63,6 +63,7 @@ mechanical CSG swap with the runtime's artifact/hash impact named.
 - [x] `REQ-016` — Native lightness controls: lightness_dark / lightness_light (`done`)
 - [x] `REQ-017` — Light-mode projections: --mode dark|light (`done`)
 - [x] `REQ-018` — Smart projection mode: --mode smart (configurable) (`done`)
+- [ ] `BUG-003` — GTK/rasi legacy tokens missing (AGS/rofi break) (`in-progress`)
   - [x] `SPIKE-001` — Dotfiles fit: adapter, hashes, contract, rollout (`reported`)
 
 ## Exec links

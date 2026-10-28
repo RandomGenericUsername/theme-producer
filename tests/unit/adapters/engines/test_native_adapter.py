@@ -214,8 +214,9 @@ def test_unknown_parameter_is_rejected(tmp_path: Path, monkeypatch: pytest.Monke
     assert calls == []
 
 
+@pytest.mark.parametrize("scheme", ["scheme-nope", "scheme-smart"])
 def test_invalid_scheme_choice_is_rejected(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, scheme: str
 ) -> None:
     _install_fake_run(monkeypatch, _payload())
     request, _ = _image_request(tmp_path)
@@ -223,7 +224,7 @@ def test_invalid_scheme_choice_is_rejected(
     with pytest.raises(EngineConfigError, match="invalid choice"):
         NativeEngine().generate(
             request,
-            EngineConfig(engine="native", params={"scheme_type": "scheme-nope"}),
+            EngineConfig(engine="native", params={"scheme_type": scheme}),
         )
 
 

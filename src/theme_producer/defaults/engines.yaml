@@ -69,7 +69,6 @@ native:
         - scheme-rainbow
         - scheme-tonal-spot
         - scheme-vibrant
-        - scheme-smart
       description: "Material color scheme type"
     - name: contrast
       param_type: float

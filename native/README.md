@@ -30,8 +30,9 @@ tpr-native (--image <path> | --color <#rrggbb>)
 - `--scheme`: one of `scheme-tonal-spot`, `scheme-content`,
   `scheme-expressive`, `scheme-fidelity`, `scheme-fruit-salad`,
   `scheme-monochrome`, `scheme-neutral`, `scheme-rainbow`, `scheme-vibrant`.
-  Defaults to `scheme-tonal-spot`. `scheme-smart` is a matugen-only mode; the
-  helper fails with a clear error instead of guessing.
+  Defaults to `scheme-tonal-spot`. `scheme-smart` is a matugen-only mode: it is
+  not in the native catalog, so the CLI rejects it during `--param` validation,
+  and a direct helper invocation fails with a clear error instead of guessing.
 - `--contrast`: `-1..1`, default `0`. The value is passed to
   `DynamicScheme::by_variant(..., Some(contrast))`.
 - `--source-color-index`: image only, default `0`, clamped to the ranked list

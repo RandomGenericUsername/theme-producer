@@ -22,6 +22,7 @@ from theme_producer.adapters.local_processor import LocalProcessor
 from theme_producer.adapters.oci_container_runtime import OciContainerRuntimeAdapter
 from theme_producer.adapters.output import JsonOutput, PlainOutput, RichOutput
 from theme_producer.adapters.projections.registry import ProjectionRegistry
+from theme_producer.adapters.scheme_policy_catalog_loader import YamlSchemePolicyCatalogLoader
 from theme_producer.adapters.settings.config_resolver import AssembledConfigResolver
 from theme_producer.adapters.template_dir_resolver import TemplateDirResolver
 from theme_producer.domain.generation import (
@@ -55,6 +56,9 @@ class CliDependencies:
 
     config_resolver: AssembledConfigResolver
     engine_catalog_loader: YamlEngineCatalogLoader
+    scheme_policy_catalog_loader: YamlSchemePolicyCatalogLoader = field(
+        default_factory=YamlSchemePolicyCatalogLoader
+    )
     engine_registry: dict[str, ThemeEnginePort] = field(default_factory=dict)
     template_dir_resolver: TemplateDirResolver = field(default_factory=TemplateDirResolver)
     template_renderer: JinjaThemeRenderer = field(default_factory=JinjaThemeRenderer)
@@ -182,6 +186,7 @@ def create_dependencies() -> CliDependencies:
     return CliDependencies(
         config_resolver=AssembledConfigResolver(),
         engine_catalog_loader=create_engine_catalog_loader(),
+        scheme_policy_catalog_loader=YamlSchemePolicyCatalogLoader(),
         engine_registry=create_engine_registry(),
         template_dir_resolver=template_dir_resolver,
         template_renderer=JinjaThemeRenderer(resolver=template_dir_resolver),

@@ -1,0 +1,50 @@
+# Scheme policy catalog (schema version 1).
+#
+# A policy is an ordered list of rules; conditions within a rule are ANDed and
+# the first matching rule wins. The policy's `default` is used when no rule
+# matches. Metrics are normalized to [0, 1]; see docs/SCHEME-POLICY.md and
+# adapters/image_metrics.py for the exact formulas.
+#
+# Profiles: balanced (default), vivid, muted, source-faithful.
+version: 1
+default: balanced
+
+policies:
+  balanced:
+    default: scheme-tonal-spot
+    rules:
+      - when:
+          colorfulness: { lt: 0.08 }
+        variant: scheme-monochrome
+      - when:
+          saturation: { lt: 0.15 }
+        variant: scheme-neutral
+      - when:
+          colorfulness: { gte: 0.35 }
+          saturation: { gte: 0.55 }
+        variant: scheme-vibrant
+      - when:
+          hue_diversity: { gte: 0.60 }
+        variant: scheme-expressive
+
+  vivid:
+    default: scheme-vibrant
+    rules:
+      - when: { colorfulness: { lt: 0.10 } }
+        variant: scheme-neutral
+      - when: { contrast: { gte: 0.55 } }
+        variant: scheme-vibrant
+
+  muted:
+    default: scheme-neutral
+    rules:
+      - when: { colorfulness: { gte: 0.35 } }
+        variant: scheme-tonal-spot
+      - when: { hue_diversity: { gte: 0.65 } }
+        variant: scheme-expressive
+
+  source-faithful:
+    default: scheme-content
+    rules:
+      - when: { contrast: { gte: 0.50 } }
+        variant: scheme-fidelity

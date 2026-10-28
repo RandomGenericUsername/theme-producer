@@ -69,6 +69,7 @@ def _convert_to_app_settings(validated: CoreSettingsSchema) -> AppSettings:
         generation=GenerationSettings(
             engine=validated.generation.engine,
             default_params=dict(validated.generation.default_params),
+            scheme_policy=validated.generation.scheme_policy,
         ),
         templates=TemplatesSettings(directory=validated.templates.directory),
         runtime=RuntimeSettings(mode=RuntimeMode(validated.runtime.mode)),
@@ -131,6 +132,7 @@ class AssembledConfigResolver:
             OverrideRule("output.smart_threshold", {OverrideSource.CLI, OverrideSource.ENV}),
             OverrideRule("generation.engine", {OverrideSource.CLI, OverrideSource.ENV}),
             OverrideRule("generation.default_params", {OverrideSource.CLI, OverrideSource.ENV}),
+            OverrideRule("generation.scheme_policy", {OverrideSource.CLI, OverrideSource.ENV}),
             OverrideRule("templates.directory", {OverrideSource.CLI, OverrideSource.ENV}),
             OverrideRule("runtime.mode", {OverrideSource.CLI, OverrideSource.ENV}),
             OverrideRule("container.engine", {OverrideSource.CLI, OverrideSource.ENV}),

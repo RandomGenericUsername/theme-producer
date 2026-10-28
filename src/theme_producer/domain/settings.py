@@ -51,9 +51,16 @@ class OutputSettings:
 class GenerationSettings:
     engine: str
     default_params: dict[str, Any]
+    # Named profile resolved from the scheme-policy catalog when the source
+    # uses the ``scheme-smart`` pseudo-variant.
+    scheme_policy: str = "balanced"
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "default_params", MappingProxyType(self.default_params))
+        if not isinstance(self.scheme_policy, str) or not self.scheme_policy.strip():
+            raise ValueError(
+                f"generation scheme_policy must be a non-empty string; got {self.scheme_policy!r}"
+            )
 
 
 @dataclass(frozen=True)

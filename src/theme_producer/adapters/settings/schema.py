@@ -64,12 +64,20 @@ class OutputSettingsSchema(BaseModel):
 class GenerationSettingsSchema(BaseModel):
     engine: str = "matugen"
     default_params: dict[str, Any] = Field(default_factory=dict)
+    scheme_policy: str = "balanced"
 
     @field_validator("engine")
     @classmethod
     def _validate_engine_not_empty(cls, value: str) -> str:
         if not value.strip():
             raise ValueError("engine must not be empty")
+        return value
+
+    @field_validator("scheme_policy")
+    @classmethod
+    def _validate_scheme_policy_not_empty(cls, value: str) -> str:
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError("scheme_policy must be a non-empty profile name")
         return value
 
 

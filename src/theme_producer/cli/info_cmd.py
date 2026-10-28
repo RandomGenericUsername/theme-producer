@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import typer
 
@@ -19,6 +20,7 @@ from theme_producer.cli._helpers import (
     serialize_settings,
 )
 from theme_producer.cli.options import CONFIG_OPT, ENGINE_OPT, RUNTIME_OPT, TEMPLATES_DIR_OPT
+from theme_producer.domain.exceptions import SchemePolicyError
 from theme_producer.domain.settings import ContainerEngine, RuntimeMode
 from theme_producer.factory import CliDependencies
 
@@ -69,11 +71,13 @@ def info(
             if last_result is not None
             else []
         )
+        policy_report = _scheme_policy_report(deps, settings.generation.scheme_policy)
         payload = {
             "settings_path": (str(last_result.resolved_path) if last_result is not None else None),
             "templates_path": str(templates_path),
             "runtime": RuntimeMode(effective_runtime).value,
             "container_engine": settings.container.engine.value,
+            "scheme_policy": policy_report,
             "engines": [info.to_dict() for info in infos],
             "formats": list(known_format_names()),
             "applied_overrides": applied,
@@ -84,3 +88,39 @@ def info(
         raise
     except Exception as exc:
         fail(deps, exc)
+
+
+def _scheme_policy_report(deps: CliDependencies, profile: str) -> dict[str, Any]:
+    """Report the resolved catalog path, selected profile, and load outcome.
+
+    ``info`` is diagnostic: a broken catalog or an unknown profile is reported
+    in the payload instead of aborting the command, so the user can see the
+    resolved path alongside the error.
+    """
+    report: dict[str, Any] = {
+        "profile": profile,
+        "catalog_path": None,
+        "loaded": False,
+        "profile_found": None,
+        "error": None,
+    }
+    loader = deps.scheme_policy_catalog_loader
+    try:
+        catalog = loader.load()
+    except SchemePolicyError as exc:
+        report["error"] = str(exc)
+        if loader.last_source_path is not None:
+            report["catalog_path"] = str(loader.last_source_path)
+        return report
+
+    report["loaded"] = True
+    if loader.last_source_path is not None:
+        report["catalog_path"] = str(loader.last_source_path)
+    try:
+        catalog.select(profile)
+    except SchemePolicyError as exc:
+        report["profile_found"] = False
+        report["error"] = str(exc)
+    else:
+        report["profile_found"] = True
+    return report

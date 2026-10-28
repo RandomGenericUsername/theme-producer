@@ -1,0 +1,11 @@
+{#- colors.rasi — rofi @define-color semantics + positional aliases -#}
+/* colors.rasi — generated from theme.json */
+{% for name, color in vocabulary.items() %}
+@define-color {{ name }} {{ color.hex }};
+{% endfor %}
+{% for name, color in extra_roles %}
+@define-color {{ name }} {{ color.hex }};
+{% endfor %}
+{% for name, color in legacy.items() %}
+@define-color color{{ loop.index0 }} {{ color.hex }};
+{% endfor %}

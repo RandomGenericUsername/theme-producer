@@ -1,0 +1,15 @@
+{#- colors.gtk.css — GTK3 / AGS / legacy @define-color surface -#}
+/*
+ * colors.gtk.css — generated from theme.json
+ * Stable vocabulary, every Material role, then color_00..15 compatibility
+ * aliases in AliasService legacy order.
+ */
+{% for name, color in vocabulary.items() %}
+@define-color {{ name }} {{ color.hex }};
+{% endfor %}
+{% for name, color in extra_roles %}
+@define-color {{ name }} {{ color.hex }};
+{% endfor %}
+{% for name, color in legacy.items() %}
+@define-color color_{{ '%02d' % loop.index0 }} {{ color.hex }};
+{% endfor %}

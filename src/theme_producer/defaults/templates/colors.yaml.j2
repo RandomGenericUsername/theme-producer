@@ -1,0 +1,15 @@
+{#- colors.yaml — ITR-compatible semantic palette -#}
+# colors.yaml — generated from theme.json
+{% for name, color in vocabulary.items() %}
+{{ name }}: "{{ color.hex }}"
+{% if name == 'foreground' %}
+cursor: "{{ roles['on_surface'].hex }}"
+{% endif %}
+{% endfor %}
+{% for name, color in extra_roles %}
+{{ name }}: "{{ color.hex }}"
+{% endfor %}
+colors:
+{% for name, color in legacy.items() %}
+  - "{{ color.hex }}"
+{% endfor %}

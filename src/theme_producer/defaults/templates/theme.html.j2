@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+{#- theme.html — dev-only standalone Theme preview -#}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Theme preview — {{ mode_name }} — {{ scheme | e }}</title>
+  <style>
+    :root {
+      color-scheme: {{ mode_name }};
+      --page-bg: {{ roles['surface'].hex }};
+      --page-fg: {{ roles['on_surface'].hex }};
+    }
+    body {
+      margin: 0;
+      padding: 2rem;
+      background: var(--page-bg);
+      color: var(--page-fg);
+      font-family: system-ui, sans-serif;
+    }
+    h1, h2 { font-weight: 600; }
+    .meta { color: {{ roles['on_surface_variant'].hex }}; margin-bottom: 2rem; }
+    .roles {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+    .role {
+      border: 1px solid {{ roles['outline_variant'].hex }};
+      border-radius: 0.5rem;
+      overflow: hidden;
+      background: {{ roles['surface_container_low'].hex }};
+    }
+    .swatch { height: 3rem; }
+    .label {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      font-family: ui-monospace, monospace;
+      font-size: 0.75rem;
+    }
+    .palette { margin-bottom: 1.5rem; }
+    .tones {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
+      gap: 0.25rem;
+    }
+    .tone {
+      border-radius: 0.25rem;
+      padding: 0.5rem 0.25rem;
+      font-family: ui-monospace, monospace;
+      font-size: 0.65rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>Theme preview</h1>
+  <p class="meta">
+    mode: <strong>{{ mode_name }}</strong> ·
+    scheme: <strong>{{ scheme | e }}</strong> ·
+    contrast: <strong>{{ contrast }}</strong> ·
+    engine: <strong>{{ generator['engine'] | e }} {{ generator['engine_version'] | e }}</strong>
+  </p>
+
+  <h2>Material roles ({{ role_rows | length }})</h2>
+  <div class="roles">
+{% for name, color in role_rows %}
+    <div class="role">
+      <div class="swatch" style="background: {{ color.hex }}"></div>
+      <div class="label"><span>{{ name }}</span><span>{{ color.hex }}</span></div>
+    </div>
+{% endfor %}
+  </div>
+
+  <h2>Tonal palettes</h2>
+{% for palette_name, tones in palettes %}
+  <section class="palette">
+    <h3>{{ palette_name }}</h3>
+    <div class="tones">
+{% for tone, color in tones %}
+      <div class="tone" style="background: {{ color.hex }}; color: {{ roles['on_surface'].hex }}">{{ tone }}<br>{{ color.hex }}</div>
+{% endfor %}
+    </div>
+  </section>
+{% endfor %}
+</body>
+</html>

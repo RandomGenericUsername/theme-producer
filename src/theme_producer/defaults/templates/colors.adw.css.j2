@@ -1,0 +1,85 @@
+{#- colors.adw.css — libadwaita named colors + CSS custom properties -#}
+/*
+ * colors.adw.css — generated from theme.json
+ *
+ * Both channels are emitted so plain GTK4 (custom properties) and libadwaita
+ * (named colors) resolve the same roles. No color-scheme property is emitted:
+ * it is not valid GTK4 CSS.
+ */
+{% for name, color in vocabulary.items() %}
+@define-color {{ name }} {{ color.hex }};
+{% endfor %}
+{% for name, color in extra_roles %}
+@define-color {{ name }} {{ color.hex }};
+{% endfor %}
+
+/* libadwaita named colors */
+@define-color window_bg_color {{ roles['surface'].hex }};
+@define-color view_bg_color {{ roles['surface'].hex }};
+@define-color dialog_bg_color {{ roles['surface'].hex }};
+@define-color headerbar_bg_color {{ roles['surface_container'].hex }};
+@define-color card_bg_color {{ roles['surface_container_low'].hex }};
+@define-color popover_bg_color {{ roles['surface_container_high'].hex }};
+@define-color sidebar_bg_color {{ roles['surface_container_high'].hex }};
+
+@define-color window_fg_color {{ roles['on_surface'].hex }};
+@define-color view_fg_color {{ roles['on_surface'].hex }};
+@define-color dialog_fg_color {{ roles['on_surface'].hex }};
+@define-color headerbar_fg_color {{ roles['on_surface'].hex }};
+@define-color card_fg_color {{ roles['on_surface'].hex }};
+@define-color popover_fg_color {{ roles['on_surface'].hex }};
+@define-color sidebar_fg_color {{ roles['on_surface'].hex }};
+
+@define-color accent_color {{ roles['primary'].hex }};
+@define-color accent_bg_color {{ roles['primary'].hex }};
+@define-color accent_fg_color {{ roles['on_primary'].hex }};
+@define-color destructive_color {{ roles['error'].hex }};
+@define-color destructive_bg_color {{ roles['error'].hex }};
+@define-color destructive_fg_color {{ roles['on_error'].hex }};
+@define-color success_color {{ roles['tertiary'].hex }};
+@define-color success_bg_color {{ roles['tertiary'].hex }};
+@define-color success_fg_color {{ roles['on_tertiary'].hex }};
+@define-color warning_color {{ roles['secondary'].hex }};
+@define-color warning_bg_color {{ roles['secondary'].hex }};
+@define-color warning_fg_color {{ roles['on_secondary'].hex }};
+@define-color error_color {{ roles['error'].hex }};
+@define-color error_bg_color {{ roles['error'].hex }};
+@define-color error_fg_color {{ roles['on_error'].hex }};
+
+/* libadwaita 1.4+ / GTK 4.16+ custom-property channel */
+:root {
+  --window-bg-color: {{ roles['surface'].hex }};
+  --window-fg-color: {{ roles['on_surface'].hex }};
+  --view-bg-color: {{ roles['surface'].hex }};
+  --view-fg-color: {{ roles['on_surface'].hex }};
+  --dialog-bg-color: {{ roles['surface'].hex }};
+  --dialog-fg-color: {{ roles['on_surface'].hex }};
+  --headerbar-bg-color: {{ roles['surface_container'].hex }};
+  --headerbar-fg-color: {{ roles['on_surface'].hex }};
+  --card-bg-color: {{ roles['surface_container_low'].hex }};
+  --card-fg-color: {{ roles['on_surface'].hex }};
+  --popover-bg-color: {{ roles['surface_container_high'].hex }};
+  --popover-fg-color: {{ roles['on_surface'].hex }};
+  --sidebar-bg-color: {{ roles['surface_container_high'].hex }};
+  --sidebar-fg-color: {{ roles['on_surface'].hex }};
+  --accent-color: {{ roles['primary'].hex }};
+  --accent-bg-color: {{ roles['primary'].hex }};
+  --accent-fg-color: {{ roles['on_primary'].hex }};
+  --destructive-color: {{ roles['error'].hex }};
+  --destructive-bg-color: {{ roles['error'].hex }};
+  --destructive-fg-color: {{ roles['on_error'].hex }};
+  --success-color: {{ roles['tertiary'].hex }};
+  --success-bg-color: {{ roles['tertiary'].hex }};
+  --success-fg-color: {{ roles['on_tertiary'].hex }};
+  --warning-color: {{ roles['secondary'].hex }};
+  --warning-bg-color: {{ roles['secondary'].hex }};
+  --warning-fg-color: {{ roles['on_secondary'].hex }};
+  --error-color: {{ roles['error'].hex }};
+  --error-bg-color: {{ roles['error'].hex }};
+  --error-fg-color: {{ roles['on_error'].hex }};
+}
+
+/* GTK3-compatible positional aliases */
+{% for name, color in legacy.items() %}
+@define-color color_{{ '%02d' % loop.index0 }} {{ color.hex }};
+{% endfor %}

@@ -2,8 +2,41 @@
 
 ## 0.1.0 — 2026-10-27
 
-- Executable harness: hatchling package (`theme-producer`, import package
-  `theme_producer`, console script `tpr`), pinned sibling dependencies, hermetic
-  pytest fixture with a canary test, Makefile gates, CI workflow, and
-  gate-parity check.
-- Minimal CLI: `tpr version` and `tpr --version`.
+First release. The theme producer turns a wallpaper (or a seed color) into a Material You
+**Theme** and renders it to consumer projections.
+
+### Added
+
+- **Theme domain** — 50 Material roles, six tonal palettes × 18 tones, dark and light modes,
+  source/generator metadata, the stable alias vocabulary (`background`, `foreground`, `accent`,
+  `accent-muted`, `surface`, `on_surface`, `error`, `warning`) and the legacy `color0..15` indices.
+- **Canonical `theme.json`** — versioned JSON Schema and a strict writer/round-trip.
+- **Settings** — `config-assembler-engine` five-strategy chain (`THEME` prefix), Pydantic boundary,
+  OverrideRules, and a path-only templates resolver.
+- **Engines behind `ThemeEnginePort`**
+  - `matugen` 4.2.0: pinned external process, `--json hex --dry-run`, isolated config, no templates
+    or hooks; GPL-2.0-or-later used only across a process boundary with license/source notice.
+  - `native`: our own Rust helper on the MIT/Apache-2.0 `material-colors` 0.4.2 crate. Exact parity
+    with matugen on a shared seed color (50 roles + 108 tones, zero deltas).
+- **Projections** — `colors.gtk.css`, `colors.adw.css`, `colors.yaml`, `colors.rasi`,
+  `colors.conf`, `colors.btop.theme` (explicit 48-key table), `theme.html` preview, plus a
+  deliberate ANSI intent projection for `colors.kitty` and `colors.sequences` (hue-anchored, not a
+  luminance ramp).
+- **CLI** — `generate`, `show`, `list-engines`, `install`, `uninstall`, `info`, `dump-config`,
+  `dump-templates`, `version`, `--version`; JSON/rich/plain output; `--param` coercion; local,
+  container and dry-run processors.
+- **Container images** — pinned base + matugen + native; checksummed matugen release; GPL notice
+  and source reference; `make image` smoke-runs all three.
+- **Harness** — mu/CSG ticket system, OpenSpec config, BMAD routing, worktree guard, hermetic tests,
+  gates and CI gate parity.
+
+### Fixed
+
+- The native catalog no longer advertises `scheme-smart` (the helper implements the nine real
+  Material variants; matugen keeps ten).
+- The default container image tag resolves to `v<package version>` instead of `latest`.
+
+### Known follow-ups
+
+- `REQ-012` — the `tpr` record in the `contracts` repo and its conformance test (cross-repo release).
+- `REQ-014` — dotfiles runtime/provisioning adoption (separate repo, after a released tag).

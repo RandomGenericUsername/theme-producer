@@ -11,8 +11,24 @@ is one projection among many.
 
 ## Status
 
-Planning. The ticket tree in `tickets/` is the live plan; `_bmad-output/` holds the brief, spec and
-architecture spine. Implementation lands per ticket behind `make gates`.
+`v0.1.0`. The Theme model, both engines (matugen and native), the projection catalog, the CLI and
+the container images are built and gated. The two remaining tickets are cross-repo:
+
+- `REQ-012` — the `tpr` record in the `contracts` repo and its conformance test.
+- `REQ-014` — dotfiles runtime/provisioning adoption.
+
+The ticket tree in `tickets/` is the live plan; `_bmad-output/` holds the brief, spec and
+architecture spine.
+
+## Quick start
+
+```bash
+make sync
+make gates
+make image IMAGE_ENGINE=podman          # base + matugen + native at v0.1.0
+uv run tpr generate wallpaper.png -o /tmp/theme
+uv run tpr --output-format json list-engines
+```
 
 ## Shapes
 

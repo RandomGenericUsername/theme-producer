@@ -23,6 +23,24 @@ architecture spine. Implementation lands per ticket behind `make gates`.
 - Engines behind `ThemeEnginePort` — v1 `matugen` (pinned, containerized, JSON only), v2 own Rust
   helper on the MIT/Apache `material-colors` crate. A pure-Python engine is a recorded non-goal.
 
+## Container images
+
+The engine runs in a pinned image; the tag is the pin (never `latest` by default).
+
+| Image | Reference | Contents |
+| --- | --- | --- |
+| base | `tpr-base-<container-engine>:v<version>` | `python:3.14-slim` + the frozen `uv` env and the `tpr` console script |
+| matugen | `tpr-matugen-<container-engine>:v<version>` | base + matugen 4.2.0 (sha256-pinned) with its GPL-2.0-or-later text and source reference under `/usr/share/doc/matugen/` |
+
+```sh
+make image IMAGE_ENGINE=podman        # builds both images at v<pyproject version>
+tpr install --container-engine podman # same references, tag from settings.container.image_tag
+podman run --rm tpr-matugen-podman:v0.1.0 matugen --version
+```
+
+`make image` is a declared CI-only job (`image`) because it needs a live engine and network access.
+Set `container.image_tag` in `settings.toml` to the built tag (`v<version>`) when using `tpr install`.
+
 ## Harness
 
 - `tickets/` — epic/req/bug/spike/task/ops items, `INDEX.md`, `LIFECYCLE.md`, router lanes.

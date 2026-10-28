@@ -1,0 +1,24 @@
+# The image build needs only what Dockerfile.base copies (pyproject.toml,
+# uv.lock, README.md, LICENSE, src/). Keep the context small and deterministic.
+.git
+.github
+.venv
+.worktrees
+dist
+build
+tests
+tickets
+openspec
+_bmad
+_bmad-output
+.agents
+.opencode
+scripts
+skills-lock.json
+.python-version
+.pytest_cache
+.ruff_cache
+.coverage
+htmlcov
+**/__pycache__
+**/*.pyc

@@ -5,19 +5,32 @@
 #   2. `make test`     (pytest; skip reasons are printed)
 #   3. `make gates`    (test + lint + hermetic + lock-check + docs-check)
 #   4. `make build`    (sdist + wheel in dist/)
+#   5. `make image`    (build the pinned base + engine images at v<version>)
 #
 # Every target is anchored on $(CURDIR); none assumes a parent checkout.
 
 UV     ?= uv
 PYTHON := $(CURDIR)/.venv/bin/python
+VERSION := $(shell sed -n 's/^version = "\(.*\)"/\1/p' $(CURDIR)/pyproject.toml | head -1)
+
+# AD-8: the image tag is the pin, not `latest`. Names match the CLI's own
+# `engine_qualified_image` scheme (`<prefix>-<suffix>-<engine>:<tag>`), so
+# `tpr install` produces the same references this target builds.
+IMAGE_ENGINE ?= podman
+IMAGE_TAG    ?= v$(VERSION)
+IMAGE_PREFIX ?= tpr
+BASE_IMAGE    = $(IMAGE_PREFIX)-base-$(IMAGE_ENGINE):$(IMAGE_TAG)
+THEME_ENGINES = matugen
+DOCKER_DIR   := $(CURDIR)/src/theme_producer/adapters/docker
 
 # The authoritative gate set. `make gates` runs it for a developer; CI runs one
 # job per member (`.github/workflows/gates.yml`) and `make ci-gates-parity`
 # fails when the two sets differ. Add a gate here AND a job there in one commit.
-# `image` is added by REQ-011 and declared CI-only until then.
+# `image` is declared CI-only: it needs a live container engine and network
+# access to the pinned git dependencies and the matugen release.
 GATES := test lint hermetic lock-check docs-check
 
-.PHONY: help sync install test lint format check gates hermetic lock-check docs-check build ci-gates-parity clean
+.PHONY: help sync install test lint format check gates hermetic lock-check docs-check image build ci-gates-parity clean
 
 help:
 	@echo "sync            Install the env from uv.lock (uv sync --frozen)"
@@ -27,9 +40,10 @@ help:
 	@echo "check           Alias of lint (in-tree name)"
 	@echo "hermetic        Run the suite with empty HOME/XDG and a foreign cwd"
 	@echo "lock-check      uv lock --check (the committed lock is current)"
-	@echo "docs-check      README/CHANGELOG/LICENSE/AGENTS + CLAUDE symlink exist"
+	@echo "docs-check      README/CHANGELOG/LICENSE/AGENTS + CLAUDE symlink + Dockerfiles"
 	@echo "gates           $(GATES)"
 	@echo "ci-gates-parity Workflow jobs equal GATES + declared CI-only jobs"
+	@echo "image           Build $(BASE_IMAGE) + the $(THEME_ENGINES) image, run tpr/matugen --version"
 	@echo "build           Build sdist + wheel into dist/"
 	@echo "install         Install the built package into .venv"
 	@echo "clean           Remove dist/ and local caches"
@@ -76,11 +90,33 @@ docs-check:
 	@test -L CLAUDE.md      || { echo "CLAUDE.md must be a symlink to AGENTS.md"; exit 1; }
 	@test "$$(readlink CLAUDE.md)" = "AGENTS.md" || { echo "CLAUDE.md must point to AGENTS.md"; exit 1; }
 	@grep -q "MIT License" LICENSE || { echo "LICENSE is not the MIT text"; exit 1; }
+	@for d in base $(THEME_ENGINES); do \
+	  test -f "$(DOCKER_DIR)/Dockerfile.$$d" || { echo "missing Dockerfile.$$d"; exit 1; }; \
+	done
+	@! grep -REn "\.\./|src/shared|src/cli-tools" "$(DOCKER_DIR)"/Dockerfile.* \
+	    || { echo "Dockerfile references a path outside this repo"; exit 1; }
 
 gates: $(GATES)
 
 ci-gates-parity:
 	python3 scripts/ci-gates-parity.py
+
+# AD-8: the build context is this repo root; the tag is the pin. The base image
+# is built first; each engine image derives from it through BASE_IMAGE.
+image:
+	@for d in base $(THEME_ENGINES); do \
+	  test -f "$(DOCKER_DIR)/Dockerfile.$$d" || { echo "missing Dockerfile.$$d"; exit 1; }; \
+	done
+	$(IMAGE_ENGINE) build -t "$(BASE_IMAGE)" -f "$(DOCKER_DIR)/Dockerfile.base" "$(CURDIR)"
+	$(IMAGE_ENGINE) run --rm "$(BASE_IMAGE)" tpr version
+	@for engine in $(THEME_ENGINES); do \
+	  image="$(IMAGE_PREFIX)-$$engine-$(IMAGE_ENGINE):$(IMAGE_TAG)"; \
+	  echo "building $$image"; \
+	  $(IMAGE_ENGINE) build -t "$$image" \
+	    --build-arg BASE_IMAGE="$(BASE_IMAGE)" \
+	    -f "$(DOCKER_DIR)/Dockerfile.$$engine" "$(CURDIR)" || exit 1; \
+	  $(IMAGE_ENGINE) run --rm "$$image" matugen --version || exit 1; \
+	done
 
 build:
 	$(UV) build

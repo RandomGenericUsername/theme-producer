@@ -1,0 +1,39 @@
+# matugen v1 engine image, derived from the pinned base image.
+#
+# AD-3/AD-10: matugen runs only as a separate process (argv in, JSON out). Its
+# code is never linked, imported or copied. The GPL-2.0-or-later license text
+# and the exact source reference ship with the image.
+ARG BASE_IMAGE=tpr-base-docker:latest
+FROM ${BASE_IMAGE}
+
+# The release tag and the archive checksum are the pin; a mismatch aborts the
+# build (`sha256sum -c` fails closed) instead of installing unverified bytes.
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends curl ca-certificates; \
+    rm -rf /var/lib/apt/lists/*; \
+    curl -fsSL -o /tmp/matugen.tar.gz \
+        "https://github.com/InioX/matugen/releases/download/v4.2.0/matugen-4.2.0-x86_64.tar.gz"; \
+    echo "a2e3b50e49ed6439999ba3c252ed04fabd98ee4e9d12e5e5dff2e66370569751  /tmp/matugen.tar.gz" \
+        | sha256sum -c -; \
+    tar -xzf /tmp/matugen.tar.gz -C /tmp matugen; \
+    install -m 0755 /tmp/matugen /usr/local/bin/matugen; \
+    rm -f /tmp/matugen.tar.gz /tmp/matugen; \
+    mkdir -p /usr/share/doc/matugen; \
+    curl -fsSL -o /usr/share/doc/matugen/LICENSE \
+        "https://raw.githubusercontent.com/InioX/matugen/v4.2.0/LICENSE"; \
+    printf '%s\n' \
+        "matugen 4.2.0" \
+        "repository: https://github.com/InioX/matugen" \
+        "tag: v4.2.0" \
+        "release: https://github.com/InioX/matugen/releases/tag/v4.2.0" \
+        "archive: https://github.com/InioX/matugen/releases/download/v4.2.0/matugen-4.2.0-x86_64.tar.gz" \
+        "archive sha256: a2e3b50e49ed6439999ba3c252ed04fabd98ee4e9d12e5e5dff2e66370569751" \
+        > /usr/share/doc/matugen/SOURCE; \
+    matugen --version
+
+LABEL org.opencontainers.image.title="theme-producer matugen engine" \
+      org.opencontainers.image.description="Pinned matugen 4.2.0 used as an external process by theme-producer" \
+      org.opencontainers.image.licenses="GPL-2.0-or-later" \
+      org.opencontainers.image.source="https://github.com/InioX/matugen/tree/v4.2.0" \
+      org.opencontainers.image.version="4.2.0"

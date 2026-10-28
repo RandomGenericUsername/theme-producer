@@ -8,7 +8,8 @@ is parsed from the `Makefile` (`GATES`), never copied.
 
 DECLARED DIFFERENCES. A job that is deliberately not a gate is an entry in `CI_ONLY_EXEMPT` with
 a reason; a stale entry (naming a job that no longer exists) fails rather than lingering.
-`image` is not declared yet: REQ-011 adds the job, the Makefile target, and the exemption together.
+`image` (builds the pinned base + matugen images) and `ci-gates-parity` (this check) are
+CI-only jobs, not gates.
 
 The workflow is parsed as YAML with the standard library: this repo's workflow is a flat `jobs:`
 mapping of two-space-indented keys, which is all this check needs. It fails on a missing or
@@ -32,6 +33,7 @@ WORKFLOW = ".github/workflows/gates.yml"
 # Jobs that are deliberately not `make` gates, with the reason they exist.
 CI_ONLY_EXEMPT: dict[str, str] = {
     "ci-gates-parity": "this check: it compares the workflow to GATES and is not itself a gate",
+    "image": "builds and smoke-runs the pinned images; needs a live engine and network, not a gate",
 }
 
 

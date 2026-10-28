@@ -2,7 +2,7 @@
 id: REQ-006
 title: "Settings via config-assembler-engine"
 kind: requirement
-status: in-progress
+status: done
 lane: 2 — openspec-single
 parent: EPIC-001
 links:

@@ -2,7 +2,7 @@
 id: REQ-005
 title: "Theme domain model + alias vocabulary"
 kind: requirement
-status: in-progress
+status: done
 lane: 2 — openspec-single
 parent: EPIC-001
 links:

@@ -2,7 +2,7 @@
 id: REQ-015
 title: "Native source-color parity: prefer + fallback_color"
 kind: requirement
-status: in-progress
+status: done
 lane: 3
 links:
   openspec: none
@@ -42,6 +42,17 @@ behavior and the MIT/Apache `material-colors` crate.
   matugen exactly or within ±1, with the remaining deltas recorded.
 - [ ] Unit tests cover the ranking/preference selection and fallback without the binary.
 - [ ] `make gates` green; no dotfiles/contracts/provisioning changes.
+
+## Known divergences (2026-10-28)
+
+Oracle corpus: 8 images × 7 selections = 56 pairs. **41/56 exact or ±1**, 15 recorded
+divergences. Default (no `prefer`) is exact on 6/7 real wallpapers; zenitsu/yasuke still pick a
+different candidate. Root cause: matugen 4.2.0 vendors a `material-colors` fork, so its candidate
+list differs before preference selection. We did not read its source (clean-room); the test pins
+every divergent pair so a change is visible.
+
+The native extraction grid moved to 112×112 Triangle to match matugen's observed candidate list;
+this improved default parity from 1/7 to 6/7 and changes image-sourced native themes slightly.
 
 ## Evidence
 

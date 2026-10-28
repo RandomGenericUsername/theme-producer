@@ -2,7 +2,7 @@
 id: REQ-004
 title: "Executable harness: packaging, gates, CI, hermetic tests"
 kind: requirement
-status: in-progress
+status: done
 lane: 2 — openspec-single
 parent: EPIC-001
 links:

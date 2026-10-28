@@ -40,13 +40,13 @@ mechanical CSG swap with the runtime's artifact/hash impact named.
 
 ## Children
 
-4/16 done.
+5/16 done.
 
   - [x] `OPS-001` — Repo birth + planning substrate (`done`)
   - [x] `REQ-001` — Product brief (`done`)
   - [x] `REQ-002` — Spec (CAP-001..012) (`done`)
   - [x] `REQ-003` — Architecture spine (AD-1..13) (`done`)
-  - [ ] `REQ-004` — Executable harness: packaging, gates, CI, hermetic tests (`proposed`)
+  - [x] `REQ-004` — Executable harness: packaging, gates, CI, hermetic tests (`done`)
   - [ ] `REQ-005` — Theme domain model + alias vocabulary (`proposed`)
   - [ ] `REQ-006` — Settings via config-assembler-engine (`proposed`)
   - [ ] `REQ-007` — ThemeEnginePort + matugen engine + engines.yaml (`proposed`)

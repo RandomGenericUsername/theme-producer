@@ -48,6 +48,7 @@ class TestCoreSettingsSchema:
         assert schema.output.smart_threshold == 0.7
         assert schema.generation.engine == "matugen"
         assert schema.generation.default_params == {"quality": "high"}
+        assert schema.generation.scheme_policy == "balanced"
         assert schema.templates.directory == "/tmp/templates"
         assert schema.runtime.mode == "local"
         assert schema.container.engine == "docker"
@@ -67,6 +68,7 @@ class TestCoreSettingsSchema:
         assert schema.output.smart_threshold == 0.5
         assert schema.generation.engine == "matugen"
         assert schema.generation.default_params == {}
+        assert schema.generation.scheme_policy == "balanced"
         assert schema.templates.directory == ""
         assert schema.runtime.mode == "local"
         assert schema.container.engine == "podman"
@@ -127,6 +129,16 @@ class TestGenerationSettingsSchema:
     def test_default_params_accepts_arbitrary_values(self) -> None:
         schema = GenerationSettingsSchema(default_params={"contrast": 0.5, "scheme_type": "tonal"})
         assert schema.default_params == {"contrast": 0.5, "scheme_type": "tonal"}
+
+    def test_default_scheme_policy_is_balanced(self) -> None:
+        assert GenerationSettingsSchema().scheme_policy == "balanced"
+
+    def test_named_scheme_policy_is_kept(self) -> None:
+        assert GenerationSettingsSchema(scheme_policy="vivid").scheme_policy == "vivid"
+
+    def test_empty_scheme_policy_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="scheme_policy must be a non-empty"):
+            GenerationSettingsSchema(scheme_policy="  ")
 
 
 class TestTemplatesSettingsSchema:

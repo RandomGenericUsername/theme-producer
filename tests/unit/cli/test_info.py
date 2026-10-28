@@ -36,6 +36,11 @@ def test_info_reports_resolved_settings_templates_engines_formats(
     assert payload["settings"]["container"]["image_tag"] == f"v{get_version()}"
     assert payload["settings"]["output"]["default_mode"] == "dark"
     assert payload["settings"]["output"]["smart_threshold"] == 0.5
+    assert payload["scheme_policy"]["profile"] == "balanced"
+    assert payload["scheme_policy"]["loaded"] is True
+    assert payload["scheme_policy"]["profile_found"] is True
+    assert payload["scheme_policy"]["catalog_path"].endswith("scheme-policies.yaml")
+    assert payload["scheme_policy"]["error"] is None
 
 
 def test_info_reports_applied_overrides(
@@ -59,3 +64,58 @@ def test_info_reports_applied_overrides(
     assert overrides["output.smart_threshold"]["coerced_value"] == 0.8
     assert payload["settings"]["output"]["default_mode"] == "smart"
     assert payload["settings"]["output"]["smart_threshold"] == 0.8
+
+
+def test_info_reports_a_custom_policy_catalog_and_profile(
+    runner: CliRunner,
+    fake_engine: FakeEngine,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    catalog = tmp_path / "custom-policies.yaml"
+    catalog.write_text(
+        """
+version: 1
+default: custom
+policies:
+  custom:
+    default: scheme-neutral
+    rules:
+      - when: { contrast: { gte: 0.4 } }
+        variant: scheme-vibrant
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("THEME_SCHEME_POLICIES_CONFIG_FILE_PATH", str(catalog))
+    monkeypatch.setenv("THEME__GENERATION__SCHEME_POLICY", "custom")
+
+    result = invoke(runner, make_deps(fake_engine), ["info"], monkeypatch)
+
+    assert result.exit_code == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["settings"]["generation"]["scheme_policy"] == "custom"
+    assert payload["scheme_policy"] == {
+        "profile": "custom",
+        "catalog_path": str(catalog.resolve()),
+        "loaded": True,
+        "profile_found": True,
+        "error": None,
+    }
+
+
+def test_info_reports_an_unknown_profile_without_failing(
+    runner: CliRunner,
+    fake_engine: FakeEngine,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("THEME__GENERATION__SCHEME_POLICY", "missing")
+
+    result = invoke(runner, make_deps(fake_engine), ["info"], monkeypatch)
+
+    assert result.exit_code == 0, result.stderr
+    payload = json.loads(result.stdout)
+    report = payload["scheme_policy"]
+    assert report["profile"] == "missing"
+    assert report["loaded"] is True
+    assert report["profile_found"] is False
+    assert "unknown scheme policy" in report["error"]

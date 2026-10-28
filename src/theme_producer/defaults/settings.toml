@@ -10,6 +10,7 @@ smart_threshold = 0.5
 [generation]
 engine = "matugen"
 default_params = {}
+scheme_policy = "balanced"
 
 [templates]
 directory = ""

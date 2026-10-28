@@ -87,6 +87,7 @@ def serialize_settings(
         "",
         "[generation]",
         f"engine = {_toml_value(settings.generation.engine)}",
+        f"scheme_policy = {_toml_value(settings.generation.scheme_policy)}",
     ]
     _write_params(lines, settings.generation.default_params)
     lines.extend(

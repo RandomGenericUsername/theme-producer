@@ -50,6 +50,7 @@ def test_resolve_returns_domain_settings(tmp_path: Path) -> None:
     assert settings.output.verbosity is Verbosity.NORMAL
     assert settings.output.default_mode == "dark"
     assert settings.output.smart_threshold == 0.5
+    assert settings.generation.scheme_policy == "balanced"
 
 
 def test_empty_image_tag_resolves_to_version_pin(tmp_path: Path) -> None:
@@ -139,6 +140,11 @@ def test_cli_overrides_beat_env_overrides(tmp_path: Path, monkeypatch: pytest.Mo
             lambda s: dict(s.generation.default_params) == {"a": "one", "b": "two"},
         ),
         (
+            "THEME__GENERATION__SCHEME_POLICY",
+            "vivid",
+            lambda s: s.generation.scheme_policy == "vivid",
+        ),
+        (
             "THEME__TEMPLATES__DIRECTORY",
             "/custom/templates",
             lambda s: s.templates.directory == "/custom/templates",
@@ -210,6 +216,7 @@ def test_resolver_uses_theme_schema_and_policy() -> None:
         "output.smart_threshold",
         "generation.engine",
         "generation.default_params",
+        "generation.scheme_policy",
         "templates.directory",
         "runtime.mode",
         "container.engine",
@@ -304,12 +311,34 @@ def test_cli_overrides_output_default_mode_and_threshold(tmp_path: Path) -> None
     assert applied["output.smart_threshold"].coerced_value == 0.75
 
 
+def test_cli_overrides_generation_scheme_policy(tmp_path: Path) -> None:
+    config = _write_config(tmp_path / "settings.toml")
+    resolver = AssembledConfigResolver()
+
+    settings = resolver.resolve(
+        explicit_path=str(config),
+        cli_overrides={"generation.scheme_policy": "source-faithful"},
+    )
+
+    assert settings.generation.scheme_policy == "source-faithful"
+    assert resolver.last_result is not None
+    applied = {override.field_path: override for override in resolver.last_result.applied_overrides}
+    assert applied["generation.scheme_policy"].source == "cli"
+    assert applied["generation.scheme_policy"].coerced_value == "source-faithful"
+
+
 @pytest.mark.parametrize(
     ("field_path", "value", "key", "match"),
     [
         ("output.default_mode", "sepia", "output.default_mode", "Invalid output default mode"),
         ("output.smart_threshold", "1.5", "output.smart_threshold", "smart threshold"),
         ("output.smart_threshold", "-0.1", "output.smart_threshold", "smart threshold"),
+        (
+            "generation.scheme_policy",
+            "   ",
+            "generation.scheme_policy",
+            "scheme_policy must be a non-empty",
+        ),
     ],
 )
 def test_invalid_projection_settings_are_reported_with_field_key(

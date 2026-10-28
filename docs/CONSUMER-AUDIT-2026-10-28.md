@@ -48,9 +48,10 @@ The producer-side compatibility fixes are in `BUG-003` and stay in `theme-produc
 | GTK3 / GTK4 apps | `colors.gtk.css` / `colors.adw.css` pointers | open: named colors + CSS custom properties | app styles can use roles incrementally; no in-repo app styles to change |
 | AGS platform | applies `~/.config/ags/colors.css` | n/a | none |
 
-## Blocking compatibility gaps in `tpr`
+## Compatibility gaps in `tpr` (fixed in v0.3.1)
 
-These are producer bugs, not consumer design choices.
+These were producer bugs, not consumer design choices. `BUG-003` fixed them in `v0.3.1`; the
+compatibility test now pins both alias sets.
 
 1. **GTK CSS lacks `color_background`, `color_foreground`, `color_cursor`.**
    - Live CSG emits them (`color-scheme-generator/.../colors.gtk.css.j2:1-3`; live

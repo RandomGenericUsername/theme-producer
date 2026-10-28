@@ -2,7 +2,7 @@
 id: BUG-003
 title: "GTK/rasi legacy tokens missing: AGS and rofi break on a tpr palette"
 kind: bug
-status: in-progress
+status: done
 lane: 1
 severity: high
 links:

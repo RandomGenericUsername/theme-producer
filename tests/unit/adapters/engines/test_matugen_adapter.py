@@ -268,6 +268,94 @@ def test_is_available_uses_path(monkeypatch: pytest.MonkeyPatch) -> None:
     assert engine.is_available() is True
 
 
+def test_prefer_and_fallback_are_forwarded_for_images(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = _install_fake_run(monkeypatch, _payload())
+    request, _ = _image_request(tmp_path)
+    config = EngineConfig(
+        engine="matugen",
+        params={
+            "prefer": "lightness",
+            "fallback_color": "#AABBCC",
+            "source_color_index": 2,
+        },
+    )
+
+    MatugenEngine().generate(request, config)
+
+    argv = calls[0]["argv"]
+    assert _argv_value(argv, "--prefer") == "lightness"
+    assert _argv_value(argv, "--fallback-color") == "#aabbcc"
+    # matugen gives the explicit index precedence, so only forward one.
+    assert "--source-color-index" not in argv
+    assert _argv_value(argv, "--base16-backend") == "wal"
+
+
+def test_fallback_is_forwarded_without_a_preference(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = _install_fake_run(monkeypatch, _payload())
+    request, _ = _image_request(tmp_path)
+    config = EngineConfig(engine="matugen", params={"fallback_color": "#123456"})
+
+    MatugenEngine().generate(request, config)
+
+    argv = calls[0]["argv"]
+    assert _argv_value(argv, "--source-color-index") == "0"
+    assert _argv_value(argv, "--fallback-color") == "#123456"
+    assert "--prefer" not in argv
+
+
+def test_color_source_ignores_prefer_and_fallback(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = _install_fake_run(monkeypatch, _payload())
+    request = ThemeRequest(source_kind="color", color="#ff0000")
+    config = EngineConfig(
+        engine="matugen",
+        params={"prefer": "darkness", "fallback_color": "#123456"},
+    )
+
+    MatugenEngine().generate(request, config)
+
+    argv = calls[0]["argv"]
+    assert argv[1:4] == ["color", "hex", "#ff0000"]
+    assert "--prefer" not in argv
+    assert "--fallback-color" not in argv
+    assert "--source-color-index" not in argv
+
+
+def test_invalid_fallback_color_is_rejected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = _install_fake_run(monkeypatch, _payload())
+    request, _ = _image_request(tmp_path)
+
+    with pytest.raises(EngineConfigError, match="fallback_color"):
+        MatugenEngine().generate(
+            request,
+            EngineConfig(engine="matugen", params={"fallback_color": "#12345"}),
+        )
+
+    assert calls == []
+
+
+def test_unknown_preference_is_rejected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = _install_fake_run(monkeypatch, _payload())
+    request, _ = _image_request(tmp_path)
+
+    with pytest.raises(EngineConfigError, match="invalid choice"):
+        MatugenEngine().generate(
+            request,
+            EngineConfig(engine="matugen", params={"prefer": "brightest"}),
+        )
+
+    assert calls == []
+
+
 def test_missing_image_is_a_config_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     calls = _install_fake_run(monkeypatch, _payload())
     request = ThemeRequest(source_kind="image", image_path=tmp_path / "absent.png")

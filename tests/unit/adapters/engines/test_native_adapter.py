@@ -291,6 +291,110 @@ def test_is_available_uses_path(monkeypatch: pytest.MonkeyPatch) -> None:
     assert engine.is_available() is True
 
 
+def test_prefer_and_fallback_are_forwarded_for_images(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    request, image = _image_request(tmp_path)
+    calls = _install_fake_run(monkeypatch, _payload(image))
+    config = EngineConfig(
+        engine="native",
+        params={
+            "prefer": "closest-to-fallback",
+            "fallback_color": "#AABBCC",
+            "source_color_index": 3,
+        },
+    )
+
+    NativeEngine().generate(request, config)
+
+    argv = calls[0]["argv"]
+    assert _argv_value(argv, "--prefer") == "closest-to-fallback"
+    assert _argv_value(argv, "--fallback-color") == "#aabbcc"
+    # --prefer takes precedence over --source-color-index in the helper.
+    assert "--source-color-index" not in argv
+
+
+def test_fallback_is_forwarded_without_a_preference(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    request, image = _image_request(tmp_path)
+    calls = _install_fake_run(monkeypatch, _payload(image))
+    config = EngineConfig(engine="native", params={"fallback_color": "#123456"})
+
+    NativeEngine().generate(request, config)
+
+    argv = calls[0]["argv"]
+    assert _argv_value(argv, "--source-color-index") == "0"
+    assert _argv_value(argv, "--fallback-color") == "#123456"
+    assert "--prefer" not in argv
+
+
+def test_color_source_ignores_prefer_and_fallback(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = _install_fake_run(monkeypatch, _payload())
+    request = ThemeRequest(source_kind="color", color="#ff0000")
+    config = EngineConfig(
+        engine="native",
+        params={"prefer": "darkness", "fallback_color": "#123456"},
+    )
+
+    NativeEngine().generate(request, config)
+
+    argv = calls[0]["argv"]
+    assert "--prefer" not in argv
+    assert "--fallback-color" not in argv
+    assert "--source-color-index" not in argv
+
+
+def test_invalid_fallback_color_is_rejected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = _install_fake_run(monkeypatch, _payload())
+    request, _ = _image_request(tmp_path)
+
+    with pytest.raises(EngineConfigError, match="fallback_color"):
+        NativeEngine().generate(
+            request,
+            EngineConfig(engine="native", params={"fallback_color": "not-a-color"}),
+        )
+
+    assert calls == []
+
+
+@pytest.mark.parametrize(
+    "prefer",
+    ["darkness", "lightness", "saturation", "less-saturation", "value", "closest-to-fallback"],
+)
+def test_every_catalog_preference_is_a_valid_choice(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, prefer: str
+) -> None:
+    request, image = _image_request(tmp_path)
+    calls = _install_fake_run(monkeypatch, _payload(image))
+
+    NativeEngine().generate(
+        request,
+        EngineConfig(engine="native", params={"prefer": prefer, "fallback_color": "#000000"}),
+    )
+
+    assert _argv_value(calls[0]["argv"], "--prefer") == prefer
+
+
+def test_unknown_preference_is_rejected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = _install_fake_run(monkeypatch, _payload())
+    request, _ = _image_request(tmp_path)
+
+    with pytest.raises(EngineConfigError, match="invalid choice"):
+        NativeEngine().generate(
+            request,
+            EngineConfig(engine="native", params={"prefer": "brightest"}),
+        )
+
+    assert calls == []
+
+
 def test_missing_image_is_a_config_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     calls = _install_fake_run(monkeypatch, _payload())
     request = ThemeRequest(source_kind="image", image_path=tmp_path / "absent.png")

@@ -8,6 +8,7 @@ import pytest
 from typer.testing import CliRunner
 
 from tests.unit.cli.conftest import FakeEngine, invoke, make_deps
+from theme_producer.adapters.version_provider import get_version
 
 
 def test_dump_config_prints_resolved_toml(
@@ -22,6 +23,7 @@ def test_dump_config_prints_resolved_toml(
     assert payload["runtime"]["mode"] == "local"
     assert payload["generation"]["engine"] == "matugen"
     assert payload["container"]["engine"] == "podman"
+    assert payload["container"]["image_tag"] == f"v{get_version()}"
 
 
 def test_dump_config_writes_a_file_and_refuses_overwrite(

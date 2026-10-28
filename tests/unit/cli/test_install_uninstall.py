@@ -7,9 +7,11 @@ import pytest
 from typer.testing import CliRunner
 
 from tests.unit.cli.conftest import FakeContainerRuntime, FakeEngine, invoke, make_deps
+from theme_producer.adapters.version_provider import get_version
 
-BASE_IMAGE = "tpr-base-podman:latest"
-MATUGEN_IMAGE = "tpr-matugen-podman:latest"
+IMAGE_TAG = f"v{get_version()}"
+BASE_IMAGE = f"tpr-base-podman:{IMAGE_TAG}"
+MATUGEN_IMAGE = f"tpr-matugen-podman:{IMAGE_TAG}"
 
 
 def _fake_dockerfiles(tmp_path: Path) -> Path:
@@ -36,6 +38,7 @@ def test_install_dry_run_plans_base_then_engine_without_building(
     payload = json.loads(result.stdout)
     assert [item["image"] for item in payload["results"]] == [BASE_IMAGE, MATUGEN_IMAGE]
     assert {item["status"] for item in payload["results"]} == {"would-build"}
+    assert "latest" not in {item["image"] for item in payload["results"]}
     assert runtime.builds == []
 
 

@@ -6,6 +6,7 @@ import pytest
 
 import theme_producer
 from theme_producer.adapters.settings.config_resolver import AssembledConfigResolver
+from theme_producer.adapters.version_provider import get_version
 from theme_producer.domain.settings import ContainerEngine, RuntimeMode
 
 _DEFAULT_SETTINGS = Path(theme_producer.__file__).resolve().parent / "defaults" / "settings.toml"
@@ -126,6 +127,7 @@ def test_package_default_fallback_when_no_file_found() -> None:
     assert settings.output.directory == Path("/tmp/theme-producer")
     assert settings.runtime.mode is RuntimeMode.LOCAL
     assert settings.container.engine is ContainerEngine.PODMAN
+    assert settings.container.image_tag == f"v{get_version()}"
     assert settings.templates.directory == ""
     assert resolver.last_result is not None
     assert resolver.last_result.resolved_path == _DEFAULT_SETTINGS.resolve()

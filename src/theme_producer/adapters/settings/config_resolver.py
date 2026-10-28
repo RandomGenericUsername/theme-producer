@@ -34,6 +34,7 @@ from config_assembler_engine.errors import (
 
 from theme_producer.adapters.settings.errors import ConfigResolutionError
 from theme_producer.adapters.settings.schema import CoreSettingsSchema
+from theme_producer.adapters.version_provider import get_version
 from theme_producer.domain.settings import (
     AppliedOverride,
     AppSettings,
@@ -47,6 +48,11 @@ from theme_producer.domain.settings import (
     TemplatesSettings,
     Verbosity,
 )
+
+
+def _resolve_image_tag(image_tag: str) -> str:
+    """Pin an empty tag to ``v<package version>``; keep explicit tags verbatim."""
+    return image_tag or f"v{get_version()}"
 
 
 def _convert_to_app_settings(validated: CoreSettingsSchema) -> AppSettings:
@@ -67,7 +73,7 @@ def _convert_to_app_settings(validated: CoreSettingsSchema) -> AppSettings:
         container=ContainerSettings(
             engine=ContainerEngine(validated.container.engine),
             image_prefix=validated.container.image_prefix,
-            image_tag=validated.container.image_tag,
+            image_tag=_resolve_image_tag(validated.container.image_tag),
             timeout_seconds=validated.container.timeout_seconds,
             memory_limit=validated.container.memory_limit,
         ),

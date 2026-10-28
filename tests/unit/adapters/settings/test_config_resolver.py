@@ -7,6 +7,7 @@ import pytest
 from theme_producer.adapters.settings.config_resolver import AssembledConfigResolver
 from theme_producer.adapters.settings.errors import ConfigResolutionError
 from theme_producer.adapters.settings.schema import CoreSettingsSchema
+from theme_producer.adapters.version_provider import get_version
 from theme_producer.domain.settings import (
     AppSettings,
     ContainerEngine,
@@ -47,6 +48,24 @@ def test_resolve_returns_domain_settings(tmp_path: Path) -> None:
     assert settings.runtime.mode is RuntimeMode.LOCAL
     assert settings.container.engine is ContainerEngine.DOCKER
     assert settings.output.verbosity is Verbosity.NORMAL
+
+
+def test_empty_image_tag_resolves_to_version_pin(tmp_path: Path) -> None:
+    config = _write_config(tmp_path / "settings.toml")
+    config.write_text(config.read_text() + 'image_tag = ""\n', encoding="utf-8")
+
+    settings = AssembledConfigResolver().resolve(explicit_path=str(config))
+
+    assert settings.container.image_tag == f"v{get_version()}"
+
+
+def test_explicit_image_tag_is_kept(tmp_path: Path) -> None:
+    config = _write_config(tmp_path / "settings.toml")
+    config.write_text(config.read_text() + 'image_tag = "v9.9.9"\n', encoding="utf-8")
+
+    settings = AssembledConfigResolver().resolve(explicit_path=str(config))
+
+    assert settings.container.image_tag == "v9.9.9"
 
 
 def test_last_result_reports_path_and_applied_overrides(tmp_path: Path) -> None:

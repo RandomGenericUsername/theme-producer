@@ -48,6 +48,8 @@ def test_resolve_returns_domain_settings(tmp_path: Path) -> None:
     assert settings.runtime.mode is RuntimeMode.LOCAL
     assert settings.container.engine is ContainerEngine.DOCKER
     assert settings.output.verbosity is Verbosity.NORMAL
+    assert settings.output.default_mode == "dark"
+    assert settings.output.smart_threshold == 0.5
 
 
 def test_empty_image_tag_resolves_to_version_pin(tmp_path: Path) -> None:
@@ -119,6 +121,16 @@ def test_cli_overrides_beat_env_overrides(tmp_path: Path, monkeypatch: pytest.Mo
             "THEME__OUTPUT__APPLY_TO_TERMINAL",
             "false",
             lambda s: s.output.apply_to_terminal is False,
+        ),
+        (
+            "THEME__OUTPUT__DEFAULT_MODE",
+            "smart",
+            lambda s: s.output.default_mode == "smart",
+        ),
+        (
+            "THEME__OUTPUT__SMART_THRESHOLD",
+            "0.8",
+            lambda s: s.output.smart_threshold == 0.8,
         ),
         ("THEME__GENERATION__ENGINE", "native", lambda s: s.generation.engine == "native"),
         (
@@ -194,6 +206,8 @@ def test_resolver_uses_theme_schema_and_policy() -> None:
         "output.overwrite",
         "output.verbosity",
         "output.apply_to_terminal",
+        "output.default_mode",
+        "output.smart_threshold",
         "generation.engine",
         "generation.default_params",
         "templates.directory",
@@ -268,3 +282,48 @@ def test_invalid_env_override_is_wrapped(tmp_path: Path, monkeypatch: pytest.Mon
 
     assert excinfo.value.key == "container.engine"
     assert "Invalid container engine 'containerd'" in excinfo.value.reason
+
+
+def test_cli_overrides_output_default_mode_and_threshold(tmp_path: Path) -> None:
+    config = _write_config(tmp_path / "settings.toml")
+    resolver = AssembledConfigResolver()
+
+    settings = resolver.resolve(
+        explicit_path=str(config),
+        cli_overrides={
+            "output.default_mode": "smart",
+            "output.smart_threshold": "0.75",
+        },
+    )
+
+    assert settings.output.default_mode == "smart"
+    assert settings.output.smart_threshold == 0.75
+    assert resolver.last_result is not None
+    applied = {override.field_path: override for override in resolver.last_result.applied_overrides}
+    assert applied["output.default_mode"].source == "cli"
+    assert applied["output.smart_threshold"].coerced_value == 0.75
+
+
+@pytest.mark.parametrize(
+    ("field_path", "value", "key", "match"),
+    [
+        ("output.default_mode", "sepia", "output.default_mode", "Invalid output default mode"),
+        ("output.smart_threshold", "1.5", "output.smart_threshold", "smart threshold"),
+        ("output.smart_threshold", "-0.1", "output.smart_threshold", "smart threshold"),
+    ],
+)
+def test_invalid_projection_settings_are_reported_with_field_key(
+    tmp_path: Path,
+    field_path: str,
+    value: str,
+    key: str,
+    match: str,
+) -> None:
+    config = _write_config(tmp_path / "settings.toml")
+
+    with pytest.raises(ConfigResolutionError, match=match) as excinfo:
+        AssembledConfigResolver().resolve(
+            explicit_path=str(config), cli_overrides={field_path: value}
+        )
+
+    assert excinfo.value.key == key

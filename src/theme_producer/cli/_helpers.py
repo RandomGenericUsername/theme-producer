@@ -21,13 +21,13 @@ from theme_producer.domain.generation import (
     EngineInfo,
     EngineNotRegisteredError,
     GenerationRequest,
-    UnknownModeError,
 )
 from theme_producer.domain.settings import (
     AppSettings,
     ContainerEngine,
     RuntimeMode,
 )
+from theme_producer.domain.smart_mode import resolve_projection_mode
 from theme_producer.factory import (
     CliDependencies,
     create_container_runtime,
@@ -125,6 +125,8 @@ def build_request(
     settings: AppSettings,
     dry_run: bool = False,
     mode: ModeName | str = ModeName.DARK,
+    smart_threshold: object = 0.5,
+    seed_color: str | None = None,
 ) -> GenerationRequest:
     return GenerationRequest(
         image_path=image_path,
@@ -135,18 +137,15 @@ def build_request(
         overwrite=settings.output.overwrite,
         runtime=settings.runtime.mode,
         dry_run=dry_run,
-        mode=resolve_mode(mode),
+        # Resolve smart before the request is built so local, container, and
+        # dry-run processors all receive a concrete dark/light mode.
+        mode=resolve_projection_mode(
+            mode,
+            image_path=image_path,
+            seed_color=seed_color,
+            threshold=smart_threshold,
+        ),
     )
-
-
-def resolve_mode(value: ModeName | str) -> ModeName:
-    """Validate the projection ``--mode`` and return the canonical enum."""
-    try:
-        return ModeName(str(value).strip().lower())
-    except (TypeError, ValueError) as exc:
-        raise UnknownModeError(
-            f"unknown projection mode {value!r}; known modes: dark, light"
-        ) from exc
 
 
 def output_adapter(deps: CliDependencies) -> OutputPort:

@@ -82,6 +82,8 @@ def serialize_settings(
         f"overwrite = {_toml_value(settings.output.overwrite)}",
         f"verbosity = {_toml_value(settings.output.verbosity.value)}",
         f"apply_to_terminal = {_toml_value(settings.output.apply_to_terminal)}",
+        f"default_mode = {_toml_value(settings.output.default_mode)}",
+        f"smart_threshold = {_toml_value(settings.output.smart_threshold)}",
         "",
         "[generation]",
         f"engine = {_toml_value(settings.generation.engine)}",

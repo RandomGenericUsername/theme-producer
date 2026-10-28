@@ -47,13 +47,24 @@ ENGINE_OPT: ContainerEngine | None = typer.Option(
     case_sensitive=False,
 )
 
-PROJECTION_MODE_OPT: str = typer.Option(
-    "dark",
+PROJECTION_MODE_OPT: str | None = typer.Option(
+    None,
     "--mode",
     help=(
-        "Output projection mode: dark or light (default: dark). Selects the mode rendered "
-        "into the consumer files; theme.json always carries both. Distinct from "
-        "`--param mode=...`, which sets the engine's default mode."
+        "Output projection mode: dark, light, or smart (default: "
+        "settings.output.default_mode, packaged dark). Selects the mode rendered into the "
+        "consumer files; theme.json always carries both. Smart picks light when the source's "
+        "mean relative luminance >= the smart threshold. Distinct from `--param mode=...`, "
+        "which sets the engine's default mode."
     ),
     case_sensitive=False,
+)
+
+SMART_THRESHOLD_OPT: float | None = typer.Option(
+    None,
+    "--smart-threshold",
+    help=(
+        "Luminance threshold in [0, 1] for --mode smart (default: "
+        "settings.output.smart_threshold, packaged 0.5)."
+    ),
 )

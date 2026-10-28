@@ -34,6 +34,8 @@ def test_info_reports_resolved_settings_templates_engines_formats(
     assert payload["applied_overrides"] == []
     assert payload["settings"]["runtime"]["mode"] == "local"
     assert payload["settings"]["container"]["image_tag"] == f"v{get_version()}"
+    assert payload["settings"]["output"]["default_mode"] == "dark"
+    assert payload["settings"]["output"]["smart_threshold"] == 0.5
 
 
 def test_info_reports_applied_overrides(
@@ -42,14 +44,18 @@ def test_info_reports_applied_overrides(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("THEME__OUTPUT__OVERWRITE", "true")
+    monkeypatch.setenv("THEME__OUTPUT__DEFAULT_MODE", "smart")
+    monkeypatch.setenv("THEME__OUTPUT__SMART_THRESHOLD", "0.8")
 
     result = invoke(runner, make_deps(fake_engine), ["info"], monkeypatch)
 
     assert result.exit_code == 0, result.stderr
     payload = json.loads(result.stdout)
-    overrides = {
-        override["field_path"]: override for override in payload["applied_overrides"]
-    }
+    overrides = {override["field_path"]: override for override in payload["applied_overrides"]}
     assert overrides["output.overwrite"]["raw_value"] == "true"
     assert overrides["output.overwrite"]["source"] == "env"
     assert payload["settings"]["output"]["overwrite"] is True
+    assert overrides["output.default_mode"]["source"] == "env"
+    assert overrides["output.smart_threshold"]["coerced_value"] == 0.8
+    assert payload["settings"]["output"]["default_mode"] == "smart"
+    assert payload["settings"]["output"]["smart_threshold"] == 0.8

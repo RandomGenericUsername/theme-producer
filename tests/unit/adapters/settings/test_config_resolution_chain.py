@@ -125,6 +125,8 @@ def test_package_default_fallback_when_no_file_found() -> None:
 
     assert settings.generation.engine == "matugen"
     assert settings.output.directory == Path("/tmp/theme-producer")
+    assert settings.output.default_mode == "dark"
+    assert settings.output.smart_threshold == 0.5
     assert settings.runtime.mode is RuntimeMode.LOCAL
     assert settings.container.engine is ContainerEngine.PODMAN
     assert settings.container.image_tag == f"v{get_version()}"

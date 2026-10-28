@@ -6,7 +6,15 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from tests.unit.cli.conftest import FakeEngine, invoke, make_deps, make_image
+from tests.unit.cli.conftest import (
+    FakeContainerRuntime,
+    FakeEngine,
+    invoke,
+    load_theme,
+    make_deps,
+    make_image,
+    make_solid_image,
+)
 from theme_producer.domain.models import Theme
 
 
@@ -72,6 +80,7 @@ def test_generate_defaults_to_all_non_dev_projections(
     )
 
     assert result.exit_code == 0, result.stderr
+    assert json.loads(result.stdout)["mode"] == "dark"
     files = sorted(path.name for path in output.iterdir())
     assert files == sorted(
         [
@@ -420,3 +429,200 @@ def test_generate_dry_run_prints_the_selected_mode(
     assert payload["mode"] == "light"
     assert "--mode light" in payload["plan"]
     assert not fake_engine.calls
+
+
+def test_generate_smart_bright_image_selects_light(
+    runner: CliRunner,
+    fake_engine: FakeEngine,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    image = make_solid_image(tmp_path / "bright.png", (240, 240, 240))
+    output = tmp_path / "out"
+
+    result = invoke(
+        runner,
+        make_deps(fake_engine),
+        ["generate", str(image), "--mode", "smart", "--format", "yaml", "-o", str(output)],
+        monkeypatch,
+    )
+
+    assert result.exit_code == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["mode"] == "light"
+    theme_payload = json.loads((output / "theme.json").read_text(encoding="utf-8"))
+    assert set(theme_payload["modes"]) == {"dark", "light"}
+    light_surface = theme_payload["modes"]["light"]["roles"]["surface"]
+    yaml_text = (output / "colors.yaml").read_text(encoding="utf-8")
+    assert f'background: "{light_surface}"' in yaml_text
+
+
+def test_generate_uses_output_default_mode_from_settings(
+    runner: CliRunner,
+    fake_engine: FakeEngine,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    image = make_image(tmp_path / "wall.png")
+    config = tmp_path / "settings.toml"
+    config.write_text(
+        f'[output]\ndirectory = "{tmp_path / "out"}"\ndefault_mode = "light"\n',
+        encoding="utf-8",
+    )
+
+    result = invoke(
+        runner,
+        make_deps(fake_engine),
+        ["generate", str(image), "--config", str(config), "--format", "yaml"],
+        monkeypatch,
+    )
+
+    assert result.exit_code == 0, result.stderr
+    assert json.loads(result.stdout)["mode"] == "light"
+
+
+def test_generate_smart_dry_run_prints_concrete_mode(
+    runner: CliRunner,
+    fake_engine: FakeEngine,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    bright = make_solid_image(tmp_path / "bright.png", (240, 240, 240))
+    dark = make_solid_image(tmp_path / "dark.png", (10, 10, 10))
+    deps = make_deps(fake_engine)
+
+    bright_result = invoke(
+        runner,
+        deps,
+        ["generate", str(bright), "--mode", "smart", "--format", "yaml", "--dry-run"],
+        monkeypatch,
+    )
+    assert bright_result.exit_code == 0, bright_result.stderr
+    bright_payload = json.loads(bright_result.stdout)
+    assert bright_payload["mode"] == "light"
+    assert "--mode light" in bright_payload["plan"]
+    assert "--mode smart" not in bright_payload["plan"]
+
+    dark_result = invoke(
+        runner,
+        deps,
+        ["generate", str(dark), "--mode", "smart", "--format", "yaml", "--dry-run"],
+        monkeypatch,
+    )
+    assert dark_result.exit_code == 0, dark_result.stderr
+    dark_payload = json.loads(dark_result.stdout)
+    assert dark_payload["mode"] == "dark"
+    assert "--mode dark" in dark_payload["plan"]
+
+
+def test_generate_smart_threshold_flips_the_decision(
+    runner: CliRunner,
+    fake_engine: FakeEngine,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Mean relative luminance ~0.6.
+    image = make_solid_image(tmp_path / "mean-06.png", (203, 203, 203))
+    deps = make_deps(fake_engine)
+
+    light = invoke(
+        runner,
+        deps,
+        [
+            "generate",
+            str(image),
+            "--mode",
+            "smart",
+            "--smart-threshold",
+            "0.5",
+            "--format",
+            "yaml",
+            "--dry-run",
+        ],
+        monkeypatch,
+    )
+    assert light.exit_code == 0, light.stderr
+    assert json.loads(light.stdout)["mode"] == "light"
+
+    dark = invoke(
+        runner,
+        deps,
+        [
+            "generate",
+            str(image),
+            "--mode",
+            "smart",
+            "--smart-threshold",
+            "0.8",
+            "--format",
+            "yaml",
+            "--dry-run",
+        ],
+        monkeypatch,
+    )
+    assert dark.exit_code == 0, dark.stderr
+    assert json.loads(dark.stdout)["mode"] == "dark"
+
+
+def test_generate_invalid_smart_threshold_is_a_typed_error(
+    runner: CliRunner,
+    fake_engine: FakeEngine,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    image = make_solid_image(tmp_path / "bright.png", (240, 240, 240))
+
+    result = invoke(
+        runner,
+        make_deps(fake_engine),
+        ["generate", str(image), "--mode", "smart", "--smart-threshold", "1.5"],
+        monkeypatch,
+    )
+
+    assert result.exit_code == 1
+    payload = json.loads(result.stderr)
+    assert payload["error"]["type"] == "InvalidSmartThresholdError"
+    assert "[0, 1]" in payload["error"]["message"]
+    assert not fake_engine.calls
+
+
+def test_generate_smart_container_receives_the_concrete_mode(
+    runner: CliRunner,
+    fake_engine: FakeEngine,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    image = make_solid_image(tmp_path / "bright.png", (240, 240, 240))
+    output = tmp_path / "out"
+    runtime = FakeContainerRuntime(
+        images={"tpr-matugen-podman:latest"},
+        run_stdout=json.dumps(
+            {
+                "success": True,
+                "command": "generate",
+                "engine": "matugen",
+                "theme": load_theme().to_dict(),
+                "output_files": ["/output/theme.json"],
+                "duration": 0.1,
+            }
+        ),
+    )
+    config = tmp_path / "settings.toml"
+    config.write_text(
+        f'[output]\ndirectory = "{output}"\n'
+        '[runtime]\nmode = "container"\n'
+        '[container]\nengine = "podman"\nimage_tag = "latest"\n',
+        encoding="utf-8",
+    )
+
+    result = invoke(
+        runner,
+        make_deps(fake_engine, container_runtime=runtime),
+        ["generate", str(image), "--mode", "smart", "--config", str(config)],
+        monkeypatch,
+    )
+
+    assert result.exit_code == 0, result.stderr
+    command = runtime.runs[0]["command"]
+    assert command[command.index("--mode") + 1] == "light"
+    assert "smart" not in command

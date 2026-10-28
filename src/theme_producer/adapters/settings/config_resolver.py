@@ -63,6 +63,8 @@ def _convert_to_app_settings(validated: CoreSettingsSchema) -> AppSettings:
             overwrite=validated.output.overwrite,
             verbosity=Verbosity(validated.output.verbosity),
             apply_to_terminal=validated.output.apply_to_terminal,
+            default_mode=validated.output.default_mode,
+            smart_threshold=validated.output.smart_threshold,
         ),
         generation=GenerationSettings(
             engine=validated.generation.engine,
@@ -125,6 +127,8 @@ class AssembledConfigResolver:
             OverrideRule("output.overwrite", {OverrideSource.CLI, OverrideSource.ENV}),
             OverrideRule("output.verbosity", {OverrideSource.CLI, OverrideSource.ENV}),
             OverrideRule("output.apply_to_terminal", {OverrideSource.CLI, OverrideSource.ENV}),
+            OverrideRule("output.default_mode", {OverrideSource.CLI, OverrideSource.ENV}),
+            OverrideRule("output.smart_threshold", {OverrideSource.CLI, OverrideSource.ENV}),
             OverrideRule("generation.engine", {OverrideSource.CLI, OverrideSource.ENV}),
             OverrideRule("generation.default_params", {OverrideSource.CLI, OverrideSource.ENV}),
             OverrideRule("templates.directory", {OverrideSource.CLI, OverrideSource.ENV}),

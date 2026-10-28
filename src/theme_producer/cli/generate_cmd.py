@@ -22,6 +22,7 @@ from theme_producer.cli.options import (
     ENGINE_OPT,
     PROJECTION_MODE_OPT,
     RUNTIME_OPT,
+    SMART_THRESHOLD_OPT,
     TEMPLATES_DIR_OPT,
 )
 from theme_producer.domain.settings import ContainerEngine, RuntimeMode
@@ -44,7 +45,8 @@ def generate(
     param: list[str] = typer.Option(  # noqa: B008
         [], "--param", help="Engine parameter override K=V"
     ),
-    mode: str = PROJECTION_MODE_OPT,
+    mode: str | None = PROJECTION_MODE_OPT,
+    smart_threshold: float | None = SMART_THRESHOLD_OPT,
     output_dir: Path | None = typer.Option(None, "--output-dir", "-o", help="Output directory"),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Print the resolved plan without generating"
@@ -79,6 +81,12 @@ def generate(
         if effective_templates is None and settings.templates.directory:
             effective_templates = settings.templates.directory
 
+        effective_mode = mode if mode is not None else settings.output.default_mode
+        effective_threshold = (
+            smart_threshold
+            if smart_threshold is not None
+            else settings.output.smart_threshold
+        )
         request = build_request(
             image_path=image,
             engine=engine_name,
@@ -87,7 +95,8 @@ def generate(
             output_dir=resolved_output,
             settings=settings,
             dry_run=dry_run,
-            mode=mode,
+            mode=effective_mode,
+            smart_threshold=effective_threshold,
         )
         processor = create_processor(
             deps,

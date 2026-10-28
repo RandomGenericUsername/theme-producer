@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from tests.unit.cli.conftest import FakeEngine, invoke, make_image
+from tests.unit.cli.conftest import FakeEngine, invoke, make_image, make_solid_image
 from theme_producer.domain.models import Theme
 
 
@@ -38,6 +38,7 @@ def test_local_generate_writes_theme_json_and_all_eight_projections(
     assert result.exit_code == 0, result.stderr
     payload = json.loads(result.stdout)
     assert payload["success"] is True
+    assert payload["mode"] == "dark"  # packaged default is unchanged
     expected = {
         "theme.json",
         "colors.gtk.css",
@@ -108,6 +109,46 @@ def test_local_generate_light_renders_light_roles_and_keeps_theme_json_modes(
     # The selected mode does not replace the Theme: both modes stay canonical.
     assert theme.dark.roles
     assert theme.light.roles
+    assert {path.name for path in output.iterdir()} == {
+        "theme.json",
+        "colors.gtk.css",
+        "colors.adw.css",
+        "colors.yaml",
+        "colors.rasi",
+        "colors.conf",
+        "colors.btop.theme",
+        "colors.kitty",
+        "colors.sequences",
+    }
+
+
+def test_local_generate_smart_bright_image_renders_light_without_new_artifacts(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from theme_producer.factory import create_dependencies
+
+    runner = CliRunner()
+    deps = create_dependencies()
+    deps.engine_registry = {"matugen": FakeEngine()}
+    image = make_solid_image(tmp_path / "bright.png", (240, 240, 240))
+    output = tmp_path / "output-smart"
+
+    result = invoke(
+        runner,
+        deps,
+        ["generate", str(image), "--mode", "smart", "-o", str(output)],
+        monkeypatch,
+    )
+
+    assert result.exit_code == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["mode"] == "light"
+
+    theme_payload = json.loads((output / "theme.json").read_text(encoding="utf-8"))
+    assert set(theme_payload["modes"]) == {"dark", "light"}
+    light_surface = theme_payload["modes"]["light"]["roles"]["surface"]
+    assert f'background: "{light_surface}"' in (output / "colors.yaml").read_text(encoding="utf-8")
     assert {path.name for path in output.iterdir()} == {
         "theme.json",
         "colors.gtk.css",

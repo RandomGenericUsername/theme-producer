@@ -14,6 +14,11 @@ can render light mode.
   exact and 2500/2500 within ±1.
 - `--mode dark|light` on `generate`/`show` (`REQ-017`): the same eight consumer filenames render the
   selected mode; `theme.json` still carries both; dark output is byte-identical to 0.1.0.
+- `--mode smart` on `generate`/`show` (`REQ-018`): resolves to `light` when the source's mean
+  relative luminance is at least the threshold, otherwise `dark`. Configurable with
+  `[output] default_mode` / `smart_threshold`, `THEME__OUTPUT__*`, and `--smart-threshold`; smart is
+  resolved before the container invocation and dry-run prints the concrete mode. Pillow is a
+  runtime dependency for image luminance. See `docs/SMART-MODE.md`.
 - Native extraction moved to 112×112 Triangle to match matugen's observed candidate list; default
   source-color parity improved from 1/7 to 6/7 real wallpapers.
 
@@ -22,8 +27,9 @@ can render light mode.
 - Native image-source selection still diverges from matugen on some wallpapers (zenitsu/yasuke)
   because matugen 4.2.0 vendors its own `material-colors` fork. 41/56 oracle pairs are exact or ±1;
   the rest are pinned as known divergences. Use `engine = "matugen"` for exact visuals.
-- `scheme-smart` and `--mode smart` are not implemented in native; runtime light/dark switching is
-  not wired (the producer can render either mode, the runtime still consumes the dark set).
+- `scheme-smart` is not implemented in native (it is not advertised); `--mode smart` is an
+  independent `tpr` projection policy. Runtime light/dark switching is not wired (the producer can
+  render either mode, the runtime still consumes the dark set).
 - `theme.json` carries both modes; only the eight consumer files are mode-selected.
 
 ## 0.1.0 — 2026-10-27

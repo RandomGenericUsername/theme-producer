@@ -24,6 +24,8 @@ class TestCoreSettingsSchema:
                 "overwrite": True,
                 "verbosity": 2,
                 "apply_to_terminal": False,
+                "default_mode": "smart",
+                "smart_threshold": 0.7,
             },
             "generation": {"engine": "matugen", "default_params": {"quality": "high"}},
             "templates": {"directory": "/tmp/templates"},
@@ -42,6 +44,8 @@ class TestCoreSettingsSchema:
         assert schema.output.default_formats == ["json"]
         assert schema.output.verbosity == 2
         assert schema.output.apply_to_terminal is False
+        assert schema.output.default_mode == "smart"
+        assert schema.output.smart_threshold == 0.7
         assert schema.generation.engine == "matugen"
         assert schema.generation.default_params == {"quality": "high"}
         assert schema.templates.directory == "/tmp/templates"
@@ -59,6 +63,8 @@ class TestCoreSettingsSchema:
         assert schema.output.overwrite is False
         assert schema.output.verbosity == 1
         assert schema.output.apply_to_terminal is True
+        assert schema.output.default_mode == "dark"
+        assert schema.output.smart_threshold == 0.5
         assert schema.generation.engine == "matugen"
         assert schema.generation.default_params == {}
         assert schema.templates.directory == ""
@@ -87,6 +93,27 @@ class TestOutputSettingsSchema:
     def test_verbosity_out_of_range_rejected(self, verbosity: int) -> None:
         with pytest.raises(ValidationError):
             OutputSettingsSchema(directory="/out", verbosity=verbosity)
+
+    @pytest.mark.parametrize("mode", ["dark", "light", "smart", " SMART "])
+    def test_default_mode_accepts_projection_modes(self, mode: str) -> None:
+        assert OutputSettingsSchema(directory="/out", default_mode=mode).default_mode == (
+            mode.strip().lower()
+        )
+
+    def test_invalid_default_mode_raises_clear_message(self) -> None:
+        with pytest.raises(ValidationError, match="Invalid output default mode 'sepia'"):
+            OutputSettingsSchema(directory="/out", default_mode="sepia")
+
+    @pytest.mark.parametrize("value", [0.0, 0.5, 1.0, "0.25"])
+    def test_smart_threshold_accepts_range(self, value: object) -> None:
+        assert OutputSettingsSchema(directory="/out", smart_threshold=value).smart_threshold == (
+            float(value)  # type: ignore[arg-type]
+        )
+
+    @pytest.mark.parametrize("value", [-0.1, 1.1, "nan", "inf"])
+    def test_smart_threshold_rejects_out_of_range(self, value: object) -> None:
+        with pytest.raises(ValidationError, match=r"smart threshold must be a number in \[0, 1\]"):
+            OutputSettingsSchema(directory="/out", smart_threshold=value)
 
 
 class TestGenerationSettingsSchema:

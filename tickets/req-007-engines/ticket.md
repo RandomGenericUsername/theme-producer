@@ -2,14 +2,14 @@
 id: REQ-007
 title: "ThemeEnginePort + matugen engine + engines.yaml"
 kind: requirement
-status: proposed
+status: in-progress
 lane: 3 — ticket-multi
 parent: EPIC-001
 links:
   openspec: req-007-engines
   bmad: none
-worktree: none
-branch: none
+worktree: .worktrees/req-007/
+branch: ticket/req-007-engines
 ---
 
 # ThemeEnginePort + matugen engine + engines.yaml

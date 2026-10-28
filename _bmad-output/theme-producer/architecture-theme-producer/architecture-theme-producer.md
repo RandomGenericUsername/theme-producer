@@ -102,7 +102,8 @@ Verify: strategy-chain tests; hermetic canary; `tpr info` prints resolved path +
 ## AD-8 — One pinned image per engine; tag is the pin
 
 Base image + `Dockerfile.<engine>` via `oci-runtime`; repository root is the build context; image
-reference `<prefix>-<engine>-<engine>:<tag>`; `install`/`uninstall` manage them. The matugen image
+reference `<prefix>-<theme-engine>-<container-engine>:<tag>` (e.g. `tpr-matugen-podman:v0.1.0`);
+`install`/`uninstall` manage them. The matugen image
 pins the 4.2.0 release **and its checksum**; the Rust image pins the crate and toolchain.
 
 Why: CSG AD-5/AD-7; reproducible engine behavior; GPL isolation.

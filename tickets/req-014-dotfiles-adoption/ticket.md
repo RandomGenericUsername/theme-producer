@@ -40,6 +40,19 @@ The cross-repo slices are done and released:
 - `theme-producer v0.1.0` — `cli-invocation-contract v0.4.0` pinned; conformance test green with
   `tpr-native`.
 
+## Container validation (2026-10-28)
+
+`docs/CONTAINER-VALIDATION-2026-10-28.md` records the real-wallpaper run:
+
+- Host matugen absent; both `tpr-matugen-podman:v0.1.0` and `tpr-native-podman:v0.1.0` ran via
+  `--runtime container --container-engine podman`.
+- Seven wallpapers (six real files + the currently applied one), both engines: all exit 0, 9 files,
+  50 roles, 6×18 palettes, 16 distinct ANSI colors, hue anchors exact, schema-valid `theme.json`.
+- 8K wallpaper ~15 s including container startup; no host matugen cache/config created.
+- Finding: same-seed parity is exact, but image-source selection can diverge (zenitsu: matugen
+  `#f9c711` vs native `#f13802`). For the first cutover keep `engine = "matugen"`; native needs its
+  source-color preference aligned before it can be a visual drop-in.
+
 ## Blocker
 
 The `dotfiles-v3` composition pin is blocked by the in-flight `REQ-008` all-standalone cutover.

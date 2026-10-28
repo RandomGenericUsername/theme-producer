@@ -2,7 +2,7 @@
 id: REQ-012
 title: "contracts record + conformance test (blocked)"
 kind: requirement
-status: proposed
+status: done
 lane: 3 — ticket-multi
 parent: EPIC-001
 links:

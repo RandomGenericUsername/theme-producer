@@ -89,6 +89,18 @@ MATUGEN_PARAMETERS: tuple[EngineParameterDefinition, ...] = (
         description="Contrast adjustment in [-1, 1]",
     ),
     EngineParameterDefinition(
+        name="lightness_dark",
+        param_type="float",
+        default=0.0,
+        description="Dark-mode lightness shift in [-1, 1] (0 = unchanged)",
+    ),
+    EngineParameterDefinition(
+        name="lightness_light",
+        param_type="float",
+        default=0.0,
+        description="Light-mode lightness shift in [-1, 1] (0 = unchanged)",
+    ),
+    EngineParameterDefinition(
         name="source_color_index",
         param_type="int",
         default=0,
@@ -144,7 +156,13 @@ class MatugenEngine:
         params = ParameterResolutionService.resolve_all(MATUGEN_PARAMETERS, config.params)
         mode = str(params["mode"])
         scheme = str(params["scheme_type"])
-        contrast = _clamp_float(params["contrast"], -1.0, 1.0)
+        contrast = _clamp_float(params["contrast"], -1.0, 1.0, "contrast")
+        lightness_dark = _clamp_float(
+            params["lightness_dark"], -1.0, 1.0, "lightness_dark"
+        )
+        lightness_light = _clamp_float(
+            params["lightness_light"], -1.0, 1.0, "lightness_light"
+        )
         source_color_index = _clamp_int(params["source_color_index"], 0, 3)
         prefer = _normalize_prefer(params["prefer"])
         fallback_color = _normalize_fallback(params["fallback_color"])
@@ -156,6 +174,8 @@ class MatugenEngine:
             mode=mode,
             scheme=scheme,
             contrast=contrast,
+            lightness_dark=lightness_dark,
+            lightness_light=lightness_light,
             source_color_index=source_color_index,
             prefer=prefer,
             fallback_color=fallback_color,
@@ -223,11 +243,13 @@ def _effective_timeout(config: EngineConfig) -> int:
     return max(1, timeout)
 
 
-def _clamp_float(value: Any, low: float, high: float) -> float:
+def _clamp_float(value: Any, low: float, high: float, name: str) -> float:
     try:
         number = float(value)
     except (TypeError, ValueError) as exc:
-        raise EngineConfigError("contrast", f"must be a number; got {value!r}") from exc
+        raise EngineConfigError(name, f"must be a number; got {value!r}") from exc
+    if number != number:  # NaN
+        raise EngineConfigError(name, f"must be a number; got {value!r}")
     return max(low, min(high, number))
 
 
@@ -314,10 +336,18 @@ def _build_argv(
     mode: str,
     scheme: str,
     contrast: float,
+    lightness_dark: float = 0.0,
+    lightness_light: float = 0.0,
     source_color_index: int,
     prefer: str = "",
     fallback_color: str = "",
 ) -> list[str]:
+    lightness = [
+        "--lightness-dark",
+        str(lightness_dark),
+        "--lightness-light",
+        str(lightness_light),
+    ]
     if not _is_color_source(argv_source):
         argv = [
             BINARY_NAME,
@@ -332,6 +362,7 @@ def _build_argv(
             scheme,
             "--contrast",
             str(contrast),
+            *lightness,
         ]
         # matugen gives --source-color-index precedence over --prefer, so the
         # index is only forwarded when no preference is configured.
@@ -357,6 +388,7 @@ def _build_argv(
         scheme,
         "--contrast",
         str(contrast),
+        *lightness,
     ]
 
 

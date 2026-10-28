@@ -22,6 +22,7 @@ container image builds the same lockfile in a `rust:1.99-slim` stage.
 ```text
 tpr-native (--image <path> | --color <#rrggbb>)
            [--scheme <scheme>] [--contrast <float>]
+           [--lightness-dark <float>] [--lightness-light <float>]
            [--source-color-index <int>] [--json]
            [--version]
 ```
@@ -35,9 +36,32 @@ tpr-native (--image <path> | --color <#rrggbb>)
   and a direct helper invocation fails with a clear error instead of guessing.
 - `--contrast`: `-1..1`, default `0`. The value is passed to
   `DynamicScheme::by_variant(..., Some(contrast))`.
+- `--lightness-dark` / `--lightness-light`: `-1..1`, default `0`, applied after
+  scheme generation to every role in the corresponding mode (out-of-range
+  values are clamped). See [Lightness controls](#lightness-controls).
 - `--source-color-index`: image only, default `0`, clamped to the ranked list
   (0..4 when the image yields that many suitable colors).
 - `--json`: always emits JSON on stdout; accepted for compatibility.
+
+## Lightness controls
+
+matugen 4.2.0 exposes `--lightness-dark` / `--lightness-light`; `tpr-native`
+reproduces them. The transformed scalar was identified by oracle probing (five
+seeds, both modes, `-1, -0.5, 0, 0.5, 1`, all 50 roles) — not by reading
+matugen's GPL source: it is the **mean of the gamma-encoded sRGB channels**
+(HSI intensity, `(r + g + b) / 3` in `0..1`), not HCT tone or CIE L*.
+
+* dark: `target = argument + (1 - argument) * intensity` — lightness 1 stays at
+  1, 0 moves to `argument`.
+* light: `target = (1 + argument) * intensity` — lightness 0 stays at 0, 1
+  moves to `1 + argument`.
+
+Each sRGB channel is then scaled by `target / intensity`, clamped to
+`0..=255`, and truncated to `u8` exactly like matugen. An all-black color has no
+intensity and is left unchanged; `source_color` is echoed verbatim; tonal
+palettes are not transformed. `tests/contract/test_native_lightness.py` pins
+this against the oracle: 2489/2500 role comparisons are byte-exact and the
+remaining 11 differ by one unit (matugen's float32 rounding).
 
 ## Output
 

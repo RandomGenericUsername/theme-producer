@@ -45,6 +45,8 @@ def test_default_catalog_loads_matugen_and_native() -> None:
         "mode",
         "scheme_type",
         "contrast",
+        "lightness_dark",
+        "lightness_light",
         "source_color_index",
         "prefer",
         "timeout",
@@ -54,6 +56,8 @@ def test_default_catalog_loads_matugen_and_native() -> None:
         "mode": "dark",
         "scheme_type": "scheme-tonal-spot",
         "contrast": 0.0,
+        "lightness_dark": 0.0,
+        "lightness_light": 0.0,
         "source_color_index": 0,
         "prefer": "",
         "timeout": 300,
@@ -68,8 +72,12 @@ def test_default_catalog_loads_matugen_and_native() -> None:
         "value",
         "closest-to-fallback",
     )
-    assert matugen.parameters[4].name == "prefer"
-    assert matugen.parameters[4].choices == prefer_choices
+    assert matugen.parameters[6].name == "prefer"
+    assert matugen.parameters[6].choices == prefer_choices
+    assert matugen.parameters[3].name == "lightness_dark"
+    assert matugen.parameters[3].param_type == "float"
+    assert matugen.parameters[4].name == "lightness_light"
+    assert matugen.parameters[4].param_type == "float"
     assert matugen.parameters[0].choices == ("dark", "light", "smart")
     matugen_schemes = matugen.parameters[1].choices
     assert len(matugen_schemes) == 10
@@ -81,13 +89,30 @@ def test_default_catalog_loads_matugen_and_native() -> None:
         "mode",
         "scheme_type",
         "contrast",
+        "lightness_dark",
+        "lightness_light",
         "source_color_index",
         "prefer",
         "timeout",
         "fallback_color",
     ]
-    assert native.parameters[4].name == "prefer"
-    assert native.parameters[4].choices == prefer_choices
+    assert {param.name: param.default for param in native.parameters} == {
+        "mode": "dark",
+        "scheme_type": "scheme-tonal-spot",
+        "contrast": 0.0,
+        "lightness_dark": 0.0,
+        "lightness_light": 0.0,
+        "source_color_index": 0,
+        "prefer": "",
+        "timeout": 300,
+        "fallback_color": "",
+    }
+    assert native.parameters[6].name == "prefer"
+    assert native.parameters[6].choices == prefer_choices
+    assert native.parameters[3].name == "lightness_dark"
+    assert native.parameters[3].param_type == "float"
+    assert native.parameters[4].name == "lightness_light"
+    assert native.parameters[4].param_type == "float"
     native_schemes = native.parameters[1].choices
     assert len(native_schemes) == 9
     assert "scheme-smart" not in native_schemes

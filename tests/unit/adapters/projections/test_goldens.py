@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from theme_producer.adapters.projections.registry import OPEN_PROJECTIONS, ProjectionRegistry
+from theme_producer.adapters.projections.registry import ALL_PROJECTIONS, ProjectionRegistry
 from theme_producer.adapters.theme_json import ThemeJsonWriter
 from theme_producer.domain.models import Theme
 
@@ -20,19 +20,19 @@ def load_theme() -> Theme:
 
 @pytest.mark.parametrize(
     "projection",
-    OPEN_PROJECTIONS,
-    ids=[projection.name for projection in OPEN_PROJECTIONS],
+    ALL_PROJECTIONS,
+    ids=[projection.name for projection in ALL_PROJECTIONS],
 )
 def test_projection_matches_golden(tmp_path: Path, projection) -> None:
     output = ProjectionRegistry().render(projection, load_theme(), tmp_path)
     golden = GOLDEN_DIR / projection.filename
 
     assert golden.is_file(), f"missing golden snapshot: {golden}"
-    assert output.read_text(encoding="utf-8") == golden.read_text(encoding="utf-8")
+    assert output.read_bytes() == golden.read_bytes()
 
 
 def test_golden_directory_covers_every_projection() -> None:
-    expected = {projection.filename for projection in OPEN_PROJECTIONS}
+    expected = {projection.filename for projection in ALL_PROJECTIONS}
     actual = {path.name for path in GOLDEN_DIR.iterdir() if path.is_file()}
 
     assert actual == expected

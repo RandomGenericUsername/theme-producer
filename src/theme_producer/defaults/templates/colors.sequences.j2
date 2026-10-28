@@ -1,0 +1,7 @@
+{#- colors.sequences — OSC 4/10/11/12; the ANSI projection post-processes the bytes -#}
+{% for color in colors %}
+]4;{{ loop.index0 }};{{ color.hex }}\
+{% endfor %}
+]10;{{ foreground.hex }}\
+]11;{{ background.hex }}\
+]12;{{ cursor.hex }}\

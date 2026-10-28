@@ -1,0 +1,9 @@
+{#- colors.kitty — deliberate ANSI table, no metadata or comments -#}
+background {{ background.hex }}
+foreground {{ foreground.hex }}
+cursor {{ cursor.hex }}
+{% for color in colors %}
+color{{ loop.index0 }} {{ color.hex }}
+{% endfor %}
+selection_background {{ selection_background.hex }}
+selection_foreground {{ selection_foreground.hex }}

@@ -9,7 +9,7 @@ from theme_producer.adapters.jinja_renderer import (
     TemplateNotFoundError,
     TemplateRenderError,
 )
-from theme_producer.adapters.projections.registry import OPEN_PROJECTIONS
+from theme_producer.adapters.projections.registry import ALL_PROJECTIONS
 from theme_producer.adapters.template_catalog_loader import (
     MissingTemplateError,
     TemplateCatalogError,
@@ -77,10 +77,10 @@ def test_catalog_path_for_unknown_entry_raises(tmp_path: Path) -> None:
 
 
 def test_shipped_catalog_is_one_to_one(tmp_path: Path) -> None:
-    catalog = TemplateCatalogLoader().load([projection.template for projection in OPEN_PROJECTIONS])
+    catalog = TemplateCatalogLoader().load([projection.template for projection in ALL_PROJECTIONS])
 
-    assert set(catalog.templates) == {projection.template for projection in OPEN_PROJECTIONS}
-    assert len(catalog.templates) == len(OPEN_PROJECTIONS)
+    assert set(catalog.templates) == {projection.template for projection in ALL_PROJECTIONS}
+    assert len(catalog.templates) == len(ALL_PROJECTIONS)
 
 
 def test_renderer_rejects_unknown_template(tmp_path: Path) -> None:

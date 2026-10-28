@@ -7,8 +7,10 @@ import pytest
 
 from theme_producer.adapters.jinja_renderer import JinjaThemeRenderer
 from theme_producer.adapters.projections.registry import (
+    ALL_PROJECTIONS,
     CAPABILITY_TABLE,
     DEV_PROJECTIONS,
+    FIXED_PROJECTIONS,
     OPEN_PROJECTIONS,
     PROJECTION_VOCABULARY,
     RUNTIME_PROJECTIONS,
@@ -32,6 +34,11 @@ EXPECTED_PROJECTIONS = (
     ("html", "theme.html", "open", True),
 )
 
+EXPECTED_FIXED_PROJECTIONS = (
+    ("kitty", "colors.kitty", "fixed", False),
+    ("sequences", "colors.sequences", "fixed", False),
+)
+
 
 def load_theme() -> Theme:
     return Theme.from_dict(json.loads(FIXTURE.read_text(encoding="utf-8")))
@@ -44,15 +51,25 @@ def test_open_projection_table_is_pinned() -> None:
     )
 
 
-def test_capability_table_is_all_open_for_req_008() -> None:
-    assert set(CAPABILITY_TABLE) == {name for name, *_rest in EXPECTED_PROJECTIONS}
-    assert set(CAPABILITY_TABLE.values()) == {"open"}
+def test_fixed_ansi_projection_table_is_pinned() -> None:
+    assert (
+        tuple((p.name, p.filename, p.capability, p.dev_only) for p in FIXED_PROJECTIONS)
+        == EXPECTED_FIXED_PROJECTIONS
+    )
+    assert ALL_PROJECTIONS == OPEN_PROJECTIONS + FIXED_PROJECTIONS
+
+
+def test_capability_table_covers_open_and_fixed() -> None:
+    assert set(CAPABILITY_TABLE) == {name for name, *_rest in EXPECTED_PROJECTIONS} | {
+        name for name, *_rest in EXPECTED_FIXED_PROJECTIONS
+    }
+    assert set(CAPABILITY_TABLE.values()) == {"open", "fixed"}
 
 
 def test_dev_and_runtime_sets_are_disjoint_and_complete() -> None:
-    assert DEV_PROJECTIONS == tuple(p for p in OPEN_PROJECTIONS if p.dev_only)
-    assert RUNTIME_PROJECTIONS == tuple(p for p in OPEN_PROJECTIONS if not p.dev_only)
-    assert set(DEV_PROJECTIONS) | set(RUNTIME_PROJECTIONS) == set(OPEN_PROJECTIONS)
+    assert DEV_PROJECTIONS == tuple(p for p in ALL_PROJECTIONS if p.dev_only)
+    assert RUNTIME_PROJECTIONS == tuple(p for p in ALL_PROJECTIONS if not p.dev_only)
+    assert set(DEV_PROJECTIONS) | set(RUNTIME_PROJECTIONS) == set(ALL_PROJECTIONS)
     assert [p.filename for p in DEV_PROJECTIONS] == ["theme.html"]
 
 
@@ -62,11 +79,11 @@ def test_registry_renders_every_projection(tmp_path: Path) -> None:
 
     rendered = registry.render_all(theme, tmp_path)
 
-    assert set(rendered) == {projection.filename for projection in OPEN_PROJECTIONS}
+    assert set(rendered) == {projection.filename for projection in ALL_PROJECTIONS}
     for filename, path in rendered.items():
         assert path == tmp_path / filename
         assert path.is_file()
-        assert path.read_text(encoding="utf-8")
+        assert path.read_bytes()
 
 
 def test_render_runtime_excludes_dev_preview(tmp_path: Path) -> None:
@@ -111,7 +128,7 @@ def test_unregistered_projection_metadata_raises(tmp_path: Path) -> None:
 def test_registry_exposes_projection_port_implementations(tmp_path: Path) -> None:
     registry = ProjectionRegistry()
 
-    for projection in OPEN_PROJECTIONS:
+    for projection in ALL_PROJECTIONS:
         renderer = registry.renderer_for(projection.name)
         assert isinstance(renderer, ProjectionPort)
         output = renderer.render(load_theme(), tmp_path / projection.name)

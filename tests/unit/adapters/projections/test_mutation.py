@@ -40,9 +40,9 @@ def test_inverse_primary_mutation_only_changes_dependent_projections(tmp_path: P
     changed = {name for name in before if before[name] != after[name]}
     unchanged = {name for name in before if before[name] == after[name]}
 
-    # btop's 48-key table does not reference inverse_primary.
-    assert unchanged == {"colors.btop.theme"}
-    assert changed == set(before) - {"colors.btop.theme"}
+    # btop's 48-key table and the fixed ANSI table do not reference inverse_primary.
+    assert unchanged == {"colors.btop.theme", "colors.kitty", "colors.sequences"}
+    assert changed == set(before) - {"colors.btop.theme", "colors.kitty", "colors.sequences"}
 
     # Every dependent open projection carries the new role value.
     for filename in changed:

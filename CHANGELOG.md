@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.2.0 — 2026-10-28
+
+Engine-completion release: native now exposes matugen's source/lightness controls, and projections
+can render light mode.
+
+### Added
+
+- `prefer` (`darkness`, `lightness`, `saturation`, `less-saturation`, `value`,
+  `closest-to-fallback`) and `fallback_color` on both engines (`REQ-015`).
+- `lightness_dark` / `lightness_light` on both engines (`REQ-016`). The native transform uses HSI
+  intensity (mean gamma-encoded sRGB) and matugen's truncation; oracle parity is 2489/2500 roles
+  exact and 2500/2500 within ±1.
+- `--mode dark|light` on `generate`/`show` (`REQ-017`): the same eight consumer filenames render the
+  selected mode; `theme.json` still carries both; dark output is byte-identical to 0.1.0.
+- Native extraction moved to 112×112 Triangle to match matugen's observed candidate list; default
+  source-color parity improved from 1/7 to 6/7 real wallpapers.
+
+### Known limitations
+
+- Native image-source selection still diverges from matugen on some wallpapers (zenitsu/yasuke)
+  because matugen 4.2.0 vendors its own `material-colors` fork. 41/56 oracle pairs are exact or ±1;
+  the rest are pinned as known divergences. Use `engine = "matugen"` for exact visuals.
+- `scheme-smart` and `--mode smart` are not implemented in native; runtime light/dark switching is
+  not wired (the producer can render either mode, the runtime still consumes the dark set).
+- `theme.json` carries both modes; only the eight consumer files are mode-selected.
+
 ## 0.1.0 — 2026-10-27
 
 First release. The theme producer turns a wallpaper (or a seed color) into a Material You

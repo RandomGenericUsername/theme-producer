@@ -1,0 +1,318 @@
+"""Registry of open Theme projections and their capability table.
+
+Projections are pure: this module builds one context from the theme's dark mode
+and hands it to the Jinja renderer. Templates never read each other and never
+read the filesystem. The light mode stays in ``theme.json``; runtime light/dark
+switching is explicitly out of scope for the producer (product brief, Scope).
+"""
+
+from __future__ import annotations
+
+from collections.abc import Iterable, Mapping
+from dataclasses import dataclass
+from pathlib import Path
+from types import MappingProxyType
+from typing import Any
+
+from theme_producer.adapters.jinja_renderer import JinjaThemeRenderer
+from theme_producer.adapters.projections.btop import BtopRow, build_btop_rows
+from theme_producer.adapters.template_catalog_loader import (
+    TemplateCatalog,
+    TemplateCatalogLoader,
+)
+from theme_producer.domain.enums import TONE_ORDER, MaterialRole, PaletteName
+from theme_producer.domain.models import Color, Mode, Theme
+from theme_producer.domain.services import AliasService
+from theme_producer.ports.projection import Capability, Projection, ProjectionPort
+
+__all__ = [
+    "CAPABILITY_TABLE",
+    "DEV_PROJECTIONS",
+    "LEGACY_ALIAS_COUNT",
+    "OPEN_PROJECTIONS",
+    "PROJECTION_VOCABULARY",
+    "RUNTIME_PROJECTIONS",
+    "ProjectionContext",
+    "ProjectionRegistry",
+    "TemplateProjection",
+    "build_projection_context",
+]
+
+#: The stable projection vocabulary. ``background`` deliberately resolves to
+#: Material ``surface`` (REQ-008 mapping), while ``foreground`` tracks
+#: ``on_surface`` and ``accent`` tracks ``primary``.
+PROJECTION_VOCABULARY: Mapping[str, MaterialRole] = MappingProxyType(
+    {
+        "background": MaterialRole.SURFACE,
+        "foreground": MaterialRole.ON_SURFACE,
+        "accent": MaterialRole.PRIMARY,
+        "accent-muted": MaterialRole.SECONDARY,
+        "surface": MaterialRole.SURFACE,
+        "on_surface": MaterialRole.ON_SURFACE,
+        "error": MaterialRole.ERROR,
+        "warning": MaterialRole.TERTIARY,
+    }
+)
+
+LEGACY_ALIAS_COUNT = 16
+
+OPEN_PROJECTIONS: tuple[Projection, ...] = (
+    Projection(
+        name="gtk",
+        filename="colors.gtk.css",
+        capability="open",
+        template="colors.gtk.css.j2",
+    ),
+    Projection(
+        name="adw",
+        filename="colors.adw.css",
+        capability="open",
+        template="colors.adw.css.j2",
+    ),
+    Projection(
+        name="yaml",
+        filename="colors.yaml",
+        capability="open",
+        template="colors.yaml.j2",
+    ),
+    Projection(
+        name="rasi",
+        filename="colors.rasi",
+        capability="open",
+        template="colors.rasi.j2",
+    ),
+    Projection(
+        name="conf",
+        filename="colors.conf",
+        capability="open",
+        template="colors.conf.j2",
+    ),
+    Projection(
+        name="btop",
+        filename="colors.btop.theme",
+        capability="open",
+        template="colors.btop.theme.j2",
+    ),
+    Projection(
+        name="html",
+        filename="theme.html",
+        capability="open",
+        template="theme.html.j2",
+        dev_only=True,
+    ),
+)
+
+#: Capability contract data: every shipped projection is an open/semantic one.
+#: REQ-009 adds the ``fixed`` ANSI projections (kitty, sequences).
+CAPABILITY_TABLE: Mapping[str, Capability] = MappingProxyType(
+    {projection.name: projection.capability for projection in OPEN_PROJECTIONS}
+)
+
+RUNTIME_PROJECTIONS: tuple[Projection, ...] = tuple(
+    projection for projection in OPEN_PROJECTIONS if not projection.dev_only
+)
+DEV_PROJECTIONS: tuple[Projection, ...] = tuple(
+    projection for projection in OPEN_PROJECTIONS if projection.dev_only
+)
+
+for _projection in OPEN_PROJECTIONS:  # pragma: no cover - import-time guard
+    if _projection.template.removesuffix(".j2") != _projection.filename:
+        raise RuntimeError(
+            f"projection {_projection.name!r} template/filename drift: "
+            f"{_projection.template!r} != {_projection.filename!r}"
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class ProjectionContext:
+    """Typed view of everything a projection template may consume."""
+
+    theme: Theme
+    mode: Mode
+    mode_name: str
+    scheme: str
+    contrast: float
+    source: Mapping[str, Any]
+    generator: Mapping[str, Any]
+    vocabulary: tuple[tuple[str, Color], ...]
+    roles: tuple[tuple[str, Color], ...]
+    extra_roles: tuple[tuple[str, Color], ...]
+    legacy: tuple[tuple[str, Color], ...]
+    palettes: tuple[tuple[str, tuple[tuple[int, Color], ...]], ...]
+    btop: tuple[BtopRow, ...]
+
+    def as_jinja_context(self) -> dict[str, Any]:
+        """Return the mapping passed to Jinja.
+
+        ``role_names`` and ``vocabulary_names`` keep duplicate suppression in
+        templates declarative when a vocabulary alias shares a role name.
+        """
+        vocabulary_names = frozenset(name for name, _color in self.vocabulary)
+        return {
+            "theme": self.theme,
+            "mode": self.mode,
+            "mode_name": self.mode_name,
+            "scheme": self.scheme,
+            "contrast": self.contrast,
+            "source": self.source,
+            "generator": self.generator,
+            "vocabulary": dict(self.vocabulary),
+            "vocabulary_names": vocabulary_names,
+            "roles": dict(self.roles),
+            "role_rows": self.roles,
+            "extra_roles": self.extra_roles,
+            "legacy": dict(self.legacy),
+            "legacy_rows": self.legacy,
+            "palettes": self.palettes,
+            "btop": self.btop,
+        }
+
+
+def build_projection_context(theme: Theme) -> ProjectionContext:
+    """Build the deterministic dark-mode context shared by all projections."""
+    mode = theme.dark
+    alias_service = AliasService()
+
+    vocabulary = tuple((name, mode.roles[role]) for name, role in PROJECTION_VOCABULARY.items())
+    roles = tuple((role.value, mode.roles[role]) for role in MaterialRole)
+    extra_roles = tuple((name, color) for name, color in roles if name not in PROJECTION_VOCABULARY)
+    legacy = tuple(
+        (f"color{index}", mode.roles[alias_service.resolve(f"color{index}")])
+        for index in range(LEGACY_ALIAS_COUNT)
+    )
+    palettes = tuple(
+        (
+            palette_name.value,
+            tuple((tone, mode.palettes[palette_name].tones[tone]) for tone in TONE_ORDER),
+        )
+        for palette_name in PaletteName
+    )
+
+    return ProjectionContext(
+        theme=theme,
+        mode=mode,
+        mode_name=mode.mode.value,
+        scheme=theme.scheme,
+        contrast=theme.contrast,
+        source=theme.source.to_dict(),
+        generator=theme.generator.to_dict(),
+        vocabulary=vocabulary,
+        roles=roles,
+        extra_roles=extra_roles,
+        legacy=legacy,
+        palettes=palettes,
+        btop=build_btop_rows(mode),
+    )
+
+
+class TemplateProjection:
+    """A registered projection bound to the Jinja renderer.
+
+    This is the concrete :class:`~theme_producer.ports.ProjectionPort`
+    implementation: one metadata record plus a pure ``Theme -> file`` render.
+    """
+
+    def __init__(self, projection: Projection, renderer: JinjaThemeRenderer) -> None:
+        self._projection = projection
+        self._renderer = renderer
+
+    @property
+    def metadata(self) -> Projection:
+        """The static projection record."""
+        return self._projection
+
+    def render(self, theme: Theme, output_dir: Path) -> Path:
+        """Render this projection into ``output_dir`` and return its path."""
+        context = build_projection_context(theme)
+        return self._renderer.render(
+            self._projection.template,
+            context.as_jinja_context(),
+            Path(output_dir),
+        )
+
+
+class ProjectionRegistry:
+    """Render the open projection catalog from one Theme."""
+
+    def __init__(
+        self,
+        *,
+        templates_dir: Path | None = None,
+        renderer: JinjaThemeRenderer | None = None,
+        catalog_loader: TemplateCatalogLoader | None = None,
+    ) -> None:
+        self._templates_dir = Path(templates_dir) if templates_dir is not None else None
+        self._renderer = renderer or JinjaThemeRenderer(templates_dir=self._templates_dir)
+        self._catalog_loader = catalog_loader or TemplateCatalogLoader()
+        self._catalog: TemplateCatalog | None = None
+        self._projection_renderers: dict[str, TemplateProjection] = {
+            projection.name: TemplateProjection(projection, self._renderer)
+            for projection in OPEN_PROJECTIONS
+        }
+
+    @property
+    def projections(self) -> tuple[Projection, ...]:
+        """All open projections, including dev-only previews."""
+        return OPEN_PROJECTIONS
+
+    @property
+    def runtime_projections(self) -> tuple[Projection, ...]:
+        """Open projections that are part of the runtime artifact contract."""
+        return RUNTIME_PROJECTIONS
+
+    def catalog(self) -> TemplateCatalog:
+        """Validate and return the 1:1 template catalog for every projection."""
+        if self._catalog is None:
+            self._catalog = self._catalog_loader.load(
+                (projection.template for projection in OPEN_PROJECTIONS),
+                explicit_dir=self._templates_dir,
+            )
+        return self._catalog
+
+    def _resolve(self, projection: Projection | str) -> Projection:
+        if isinstance(projection, Projection):
+            if projection not in OPEN_PROJECTIONS:
+                raise KeyError(f"projection {projection.name!r} is not registered")
+            return projection
+        for candidate in OPEN_PROJECTIONS:
+            if candidate.name == projection:
+                return candidate
+        known = ", ".join(item.name for item in OPEN_PROJECTIONS)
+        raise KeyError(f"unknown projection {projection!r}; known projections: {known}")
+
+    def renderer_for(self, projection: Projection | str) -> ProjectionPort:
+        """Return the ``ProjectionPort`` implementation for one projection."""
+        resolved = self._resolve(projection)
+        return self._projection_renderers[resolved.name]
+
+    def render(
+        self,
+        projection: Projection | str,
+        theme: Theme,
+        output_dir: Path,
+    ) -> Path:
+        """Render one projection into ``output_dir``."""
+        self.catalog()
+        return self.renderer_for(projection).render(theme, Path(output_dir))
+
+    def _render_many(
+        self,
+        projections: Iterable[Projection],
+        theme: Theme,
+        output_dir: Path,
+    ) -> dict[str, Path]:
+        self.catalog()
+        rendered: dict[str, Path] = {}
+        for projection in projections:
+            rendered[projection.filename] = self._projection_renderers[projection.name].render(
+                theme, Path(output_dir)
+            )
+        return rendered
+
+    def render_all(self, theme: Theme, output_dir: Path) -> dict[str, Path]:
+        """Render every open projection, including dev-only previews."""
+        return self._render_many(OPEN_PROJECTIONS, theme, output_dir)
+
+    def render_runtime(self, theme: Theme, output_dir: Path) -> dict[str, Path]:
+        """Render the runtime projections only (no dev preview)."""
+        return self._render_many(RUNTIME_PROJECTIONS, theme, output_dir)

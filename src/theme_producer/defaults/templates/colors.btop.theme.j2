@@ -1,0 +1,5 @@
+{#- colors.btop.theme — 48 documented keys from the capability table -#}
+# colors.btop.theme — generated from theme.json
+{% for row in btop %}
+theme[{{ row.key }}]="{{ row.color.hex }}"
+{% endfor %}

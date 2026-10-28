@@ -1,0 +1,443 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://theme-producer.local/schemas/theme.schema.json",
+  "title": "Theme Producer canonical theme.json",
+  "description": "Versioned canonical Theme artifact. One source, one generator identity, and both dark and light modes with all 50 Material roles and six 18-tone palettes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generator",
+    "source",
+    "scheme",
+    "contrast",
+    "modes"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1"
+    },
+    "generator": {
+      "$ref": "#/definitions/generator"
+    },
+    "source": {
+      "$ref": "#/definitions/source"
+    },
+    "scheme": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contrast": {
+      "type": "number",
+      "minimum": -1,
+      "maximum": 1
+    },
+    "modes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dark",
+        "light"
+      ],
+      "properties": {
+        "dark": {
+          "$ref": "#/definitions/mode"
+        },
+        "light": {
+          "$ref": "#/definitions/mode"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "hex_color": {
+      "type": "string",
+      "pattern": "^#[0-9a-f]{6}$"
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "engine",
+        "engine_version",
+        "schema_version"
+      ],
+      "properties": {
+        "engine": {
+          "type": "string",
+          "minLength": 1
+        },
+        "engine_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schema_version": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "path",
+        "hash"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "image",
+            "color",
+            "json"
+          ]
+        },
+        "path": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "hash": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      }
+    },
+    "palette": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "0",
+        "5",
+        "10",
+        "15",
+        "20",
+        "25",
+        "30",
+        "35",
+        "40",
+        "50",
+        "60",
+        "70",
+        "80",
+        "90",
+        "95",
+        "98",
+        "99",
+        "100"
+      ],
+      "properties": {
+        "0": {
+          "$ref": "#/definitions/hex_color"
+        },
+        "5": {
+          "$ref": "#/definitions/hex_color"
+        },
+        "10": {
+          "$ref": "#/definitions/hex_color"
+        },
+        "15": {
+          "$ref": "#/definitions/hex_color"
+        },
+        "20": {
+          "$ref": "#/definitions/hex_color"
+        },
+        "25": {
+          "$ref": "#/definitions/hex_color"
+        },
+        "30": {
+          "$ref": "#/definitions/hex_color"
+        },
+        "35": {
+          "$ref": "#/definitions/hex_color"
+        },
+        "40": {
+          "$ref": "#/definitions/hex_color"
+        },
+        "50": {
+          "$ref": "#/definitions/hex_color"
+        },
+        "60": {
+          "$ref": "#/definitions/hex_color"
+        },
+        "70": {
+          "$ref": "#/definitions/hex_color"
+        },
+        "80": {
+          "$ref": "#/definitions/hex_color"
+        },
+        "90": {
+          "$ref": "#/definitions/hex_color"
+        },
+        "95": {
+          "$ref": "#/definitions/hex_color"
+        },
+        "98": {
+          "$ref": "#/definitions/hex_color"
+        },
+        "99": {
+          "$ref": "#/definitions/hex_color"
+        },
+        "100": {
+          "$ref": "#/definitions/hex_color"
+        }
+      }
+    },
+    "mode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "roles",
+        "palettes"
+      ],
+      "properties": {
+        "roles": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "background",
+            "error",
+            "error_container",
+            "inverse_on_surface",
+            "inverse_primary",
+            "inverse_surface",
+            "on_background",
+            "on_error",
+            "on_error_container",
+            "on_primary",
+            "on_primary_container",
+            "on_primary_fixed",
+            "on_primary_fixed_variant",
+            "on_secondary",
+            "on_secondary_container",
+            "on_secondary_fixed",
+            "on_secondary_fixed_variant",
+            "on_surface",
+            "on_surface_variant",
+            "on_tertiary",
+            "on_tertiary_container",
+            "on_tertiary_fixed",
+            "on_tertiary_fixed_variant",
+            "outline",
+            "outline_variant",
+            "primary",
+            "primary_container",
+            "primary_fixed",
+            "primary_fixed_dim",
+            "scrim",
+            "secondary",
+            "secondary_container",
+            "secondary_fixed",
+            "secondary_fixed_dim",
+            "shadow",
+            "source_color",
+            "surface",
+            "surface_bright",
+            "surface_container",
+            "surface_container_high",
+            "surface_container_highest",
+            "surface_container_low",
+            "surface_container_lowest",
+            "surface_dim",
+            "surface_tint",
+            "surface_variant",
+            "tertiary",
+            "tertiary_container",
+            "tertiary_fixed",
+            "tertiary_fixed_dim"
+          ],
+          "properties": {
+            "background": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "error": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "error_container": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "inverse_on_surface": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "inverse_primary": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "inverse_surface": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "on_background": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "on_error": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "on_error_container": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "on_primary": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "on_primary_container": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "on_primary_fixed": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "on_primary_fixed_variant": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "on_secondary": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "on_secondary_container": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "on_secondary_fixed": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "on_secondary_fixed_variant": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "on_surface": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "on_surface_variant": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "on_tertiary": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "on_tertiary_container": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "on_tertiary_fixed": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "on_tertiary_fixed_variant": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "outline": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "outline_variant": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "primary": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "primary_container": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "primary_fixed": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "primary_fixed_dim": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "scrim": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "secondary": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "secondary_container": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "secondary_fixed": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "secondary_fixed_dim": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "shadow": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "source_color": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "surface": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "surface_bright": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "surface_container": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "surface_container_high": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "surface_container_highest": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "surface_container_low": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "surface_container_lowest": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "surface_dim": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "surface_tint": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "surface_variant": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "tertiary": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "tertiary_container": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "tertiary_fixed": {
+              "$ref": "#/definitions/hex_color"
+            },
+            "tertiary_fixed_dim": {
+              "$ref": "#/definitions/hex_color"
+            }
+          }
+        },
+        "palettes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "primary",
+            "secondary",
+            "tertiary",
+            "neutral",
+            "neutral_variant",
+            "error"
+          ],
+          "properties": {
+            "primary": {
+              "$ref": "#/definitions/palette"
+            },
+            "secondary": {
+              "$ref": "#/definitions/palette"
+            },
+            "tertiary": {
+              "$ref": "#/definitions/palette"
+            },
+            "neutral": {
+              "$ref": "#/definitions/palette"
+            },
+            "neutral_variant": {
+              "$ref": "#/definitions/palette"
+            },
+            "error": {
+              "$ref": "#/definitions/palette"
+            }
+          }
+        }
+      }
+    }
+  }
+}

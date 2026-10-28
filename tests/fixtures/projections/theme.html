@@ -1,0 +1,409 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Theme preview — dark — scheme-tonal-spot</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --page-bg: #000000;
+      --page-fg: #fbd0aa;
+    }
+    body {
+      margin: 0;
+      padding: 2rem;
+      background: var(--page-bg);
+      color: var(--page-fg);
+      font-family: system-ui, sans-serif;
+    }
+    h1, h2 { font-weight: 600; }
+    .meta { color: #000000; margin-bottom: 2rem; }
+    .roles {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+    .role {
+      border: 1px solid #000000;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      background: #fbd0aa;
+    }
+    .swatch { height: 3rem; }
+    .label {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      font-family: ui-monospace, monospace;
+      font-size: 0.75rem;
+    }
+    .palette { margin-bottom: 1.5rem; }
+    .tones {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
+      gap: 0.25rem;
+    }
+    .tone {
+      border-radius: 0.25rem;
+      padding: 0.5rem 0.25rem;
+      font-family: ui-monospace, monospace;
+      font-size: 0.65rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>Theme preview</h1>
+  <p class="meta">
+    mode: <strong>dark</strong> ·
+    scheme: <strong>scheme-tonal-spot</strong> ·
+    contrast: <strong>0.0</strong> ·
+    engine: <strong>matugen 4.2.0</strong>
+  </p>
+
+  <h2>Material roles (50)</h2>
+  <div class="roles">
+    <div class="role">
+      <div class="swatch" style="background: #000000"></div>
+      <div class="label"><span>background</span><span>#000000</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #26201a"></div>
+      <div class="label"><span>error</span><span>#26201a</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #4d4034"></div>
+      <div class="label"><span>error_container</span><span>#4d4034</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #806a57"></div>
+      <div class="label"><span>inverse_on_surface</span><span>#806a57</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #cdaa8a"></div>
+      <div class="label"><span>inverse_primary</span><span>#cdaa8a</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #fbd0aa"></div>
+      <div class="label"><span>inverse_surface</span><span>#fbd0aa</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #000000"></div>
+      <div class="label"><span>on_background</span><span>#000000</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #26201a"></div>
+      <div class="label"><span>on_error</span><span>#26201a</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #4d4034"></div>
+      <div class="label"><span>on_error_container</span><span>#4d4034</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #806a57"></div>
+      <div class="label"><span>on_primary</span><span>#806a57</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #cdaa8a"></div>
+      <div class="label"><span>on_primary_container</span><span>#cdaa8a</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #fbd0aa"></div>
+      <div class="label"><span>on_primary_fixed</span><span>#fbd0aa</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #000000"></div>
+      <div class="label"><span>on_primary_fixed_variant</span><span>#000000</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #26201a"></div>
+      <div class="label"><span>on_secondary</span><span>#26201a</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #4d4034"></div>
+      <div class="label"><span>on_secondary_container</span><span>#4d4034</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #806a57"></div>
+      <div class="label"><span>on_secondary_fixed</span><span>#806a57</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #cdaa8a"></div>
+      <div class="label"><span>on_secondary_fixed_variant</span><span>#cdaa8a</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #fbd0aa"></div>
+      <div class="label"><span>on_surface</span><span>#fbd0aa</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #000000"></div>
+      <div class="label"><span>on_surface_variant</span><span>#000000</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #26201a"></div>
+      <div class="label"><span>on_tertiary</span><span>#26201a</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #4d4034"></div>
+      <div class="label"><span>on_tertiary_container</span><span>#4d4034</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #806a57"></div>
+      <div class="label"><span>on_tertiary_fixed</span><span>#806a57</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #cdaa8a"></div>
+      <div class="label"><span>on_tertiary_fixed_variant</span><span>#cdaa8a</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #fbd0aa"></div>
+      <div class="label"><span>outline</span><span>#fbd0aa</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #000000"></div>
+      <div class="label"><span>outline_variant</span><span>#000000</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #26201a"></div>
+      <div class="label"><span>primary</span><span>#26201a</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #4d4034"></div>
+      <div class="label"><span>primary_container</span><span>#4d4034</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #806a57"></div>
+      <div class="label"><span>primary_fixed</span><span>#806a57</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #cdaa8a"></div>
+      <div class="label"><span>primary_fixed_dim</span><span>#cdaa8a</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #fbd0aa"></div>
+      <div class="label"><span>scrim</span><span>#fbd0aa</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #000000"></div>
+      <div class="label"><span>secondary</span><span>#000000</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #26201a"></div>
+      <div class="label"><span>secondary_container</span><span>#26201a</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #4d4034"></div>
+      <div class="label"><span>secondary_fixed</span><span>#4d4034</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #806a57"></div>
+      <div class="label"><span>secondary_fixed_dim</span><span>#806a57</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #cdaa8a"></div>
+      <div class="label"><span>shadow</span><span>#cdaa8a</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #fbd0aa"></div>
+      <div class="label"><span>source_color</span><span>#fbd0aa</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #000000"></div>
+      <div class="label"><span>surface</span><span>#000000</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #26201a"></div>
+      <div class="label"><span>surface_bright</span><span>#26201a</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #4d4034"></div>
+      <div class="label"><span>surface_container</span><span>#4d4034</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #806a57"></div>
+      <div class="label"><span>surface_container_high</span><span>#806a57</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #cdaa8a"></div>
+      <div class="label"><span>surface_container_highest</span><span>#cdaa8a</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #fbd0aa"></div>
+      <div class="label"><span>surface_container_low</span><span>#fbd0aa</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #000000"></div>
+      <div class="label"><span>surface_container_lowest</span><span>#000000</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #26201a"></div>
+      <div class="label"><span>surface_dim</span><span>#26201a</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #4d4034"></div>
+      <div class="label"><span>surface_tint</span><span>#4d4034</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #806a57"></div>
+      <div class="label"><span>surface_variant</span><span>#806a57</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #cdaa8a"></div>
+      <div class="label"><span>tertiary</span><span>#cdaa8a</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #fbd0aa"></div>
+      <div class="label"><span>tertiary_container</span><span>#fbd0aa</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #000000"></div>
+      <div class="label"><span>tertiary_fixed</span><span>#000000</span></div>
+    </div>
+    <div class="role">
+      <div class="swatch" style="background: #26201a"></div>
+      <div class="label"><span>tertiary_fixed_dim</span><span>#26201a</span></div>
+    </div>
+  </div>
+
+  <h2>Tonal palettes</h2>
+  <section class="palette">
+    <h3>primary</h3>
+    <div class="tones">
+      <div class="tone" style="background: #000000; color: #fbd0aa">0<br>#000000</div>
+      <div class="tone" style="background: #0c0a08; color: #fbd0aa">5<br>#0c0a08</div>
+      <div class="tone" style="background: #191511; color: #fbd0aa">10<br>#191511</div>
+      <div class="tone" style="background: #261f19; color: #fbd0aa">15<br>#261f19</div>
+      <div class="tone" style="background: #332a22; color: #fbd0aa">20<br>#332a22</div>
+      <div class="tone" style="background: #3f342a; color: #fbd0aa">25<br>#3f342a</div>
+      <div class="tone" style="background: #4c3f33; color: #fbd0aa">30<br>#4c3f33</div>
+      <div class="tone" style="background: #59493b; color: #fbd0aa">35<br>#59493b</div>
+      <div class="tone" style="background: #665444; color: #fbd0aa">40<br>#665444</div>
+      <div class="tone" style="background: #7f6955; color: #fbd0aa">50<br>#7f6955</div>
+      <div class="tone" style="background: #997e66; color: #fbd0aa">60<br>#997e66</div>
+      <div class="tone" style="background: #b29377; color: #fbd0aa">70<br>#b29377</div>
+      <div class="tone" style="background: #cca888; color: #fbd0aa">80<br>#cca888</div>
+      <div class="tone" style="background: #e5bd99; color: #fbd0aa">90<br>#e5bd99</div>
+      <div class="tone" style="background: #f2c7a1; color: #fbd0aa">95<br>#f2c7a1</div>
+      <div class="tone" style="background: #f9cda6; color: #fbd0aa">98<br>#f9cda6</div>
+      <div class="tone" style="background: #fccfa8; color: #fbd0aa">99<br>#fccfa8</div>
+      <div class="tone" style="background: #ffd2aa; color: #fbd0aa">100<br>#ffd2aa</div>
+    </div>
+  </section>
+  <section class="palette">
+    <h3>secondary</h3>
+    <div class="tones">
+      <div class="tone" style="background: #000000; color: #fbd0aa">0<br>#000000</div>
+      <div class="tone" style="background: #0d0b09; color: #fbd0aa">5<br>#0d0b09</div>
+      <div class="tone" style="background: #191511; color: #fbd0aa">10<br>#191511</div>
+      <div class="tone" style="background: #26201a; color: #fbd0aa">15<br>#26201a</div>
+      <div class="tone" style="background: #332a22; color: #fbd0aa">20<br>#332a22</div>
+      <div class="tone" style="background: #40352b; color: #fbd0aa">25<br>#40352b</div>
+      <div class="tone" style="background: #4c3f33; color: #fbd0aa">30<br>#4c3f33</div>
+      <div class="tone" style="background: #594a3c; color: #fbd0aa">35<br>#594a3c</div>
+      <div class="tone" style="background: #665444; color: #fbd0aa">40<br>#665444</div>
+      <div class="tone" style="background: #7f6955; color: #fbd0aa">50<br>#7f6955</div>
+      <div class="tone" style="background: #997e66; color: #fbd0aa">60<br>#997e66</div>
+      <div class="tone" style="background: #b29377; color: #fbd0aa">70<br>#b29377</div>
+      <div class="tone" style="background: #cca888; color: #fbd0aa">80<br>#cca888</div>
+      <div class="tone" style="background: #e5bd99; color: #fbd0aa">90<br>#e5bd99</div>
+      <div class="tone" style="background: #f2c8a2; color: #fbd0aa">95<br>#f2c8a2</div>
+      <div class="tone" style="background: #facea7; color: #fbd0aa">98<br>#facea7</div>
+      <div class="tone" style="background: #fcd0a9; color: #fbd0aa">99<br>#fcd0a9</div>
+      <div class="tone" style="background: #ffd2aa; color: #fbd0aa">100<br>#ffd2aa</div>
+    </div>
+  </section>
+  <section class="palette">
+    <h3>tertiary</h3>
+    <div class="tones">
+      <div class="tone" style="background: #000101; color: #fbd0aa">0<br>#000101</div>
+      <div class="tone" style="background: #0d0b09; color: #fbd0aa">5<br>#0d0b09</div>
+      <div class="tone" style="background: #1a1612; color: #fbd0aa">10<br>#1a1612</div>
+      <div class="tone" style="background: #26201a; color: #fbd0aa">15<br>#26201a</div>
+      <div class="tone" style="background: #332b23; color: #fbd0aa">20<br>#332b23</div>
+      <div class="tone" style="background: #40352b; color: #fbd0aa">25<br>#40352b</div>
+      <div class="tone" style="background: #4d4034; color: #fbd0aa">30<br>#4d4034</div>
+      <div class="tone" style="background: #594a3c; color: #fbd0aa">35<br>#594a3c</div>
+      <div class="tone" style="background: #665545; color: #fbd0aa">40<br>#665545</div>
+      <div class="tone" style="background: #806a56; color: #fbd0aa">50<br>#806a56</div>
+      <div class="tone" style="background: #997f67; color: #fbd0aa">60<br>#997f67</div>
+      <div class="tone" style="background: #b39478; color: #fbd0aa">70<br>#b39478</div>
+      <div class="tone" style="background: #cca989; color: #fbd0aa">80<br>#cca989</div>
+      <div class="tone" style="background: #e6be9a; color: #fbd0aa">90<br>#e6be9a</div>
+      <div class="tone" style="background: #f2c8a2; color: #fbd0aa">95<br>#f2c8a2</div>
+      <div class="tone" style="background: #facea8; color: #fbd0aa">98<br>#facea8</div>
+      <div class="tone" style="background: #fdd0a9; color: #fbd0aa">99<br>#fdd0a9</div>
+      <div class="tone" style="background: #ffd3ab; color: #fbd0aa">100<br>#ffd3ab</div>
+    </div>
+  </section>
+  <section class="palette">
+    <h3>neutral</h3>
+    <div class="tones">
+      <div class="tone" style="background: #010102; color: #fbd0aa">0<br>#010102</div>
+      <div class="tone" style="background: #0d0c0a; color: #fbd0aa">5<br>#0d0c0a</div>
+      <div class="tone" style="background: #1a1613; color: #fbd0aa">10<br>#1a1613</div>
+      <div class="tone" style="background: #27211b; color: #fbd0aa">15<br>#27211b</div>
+      <div class="tone" style="background: #342b24; color: #fbd0aa">20<br>#342b24</div>
+      <div class="tone" style="background: #40362c; color: #fbd0aa">25<br>#40362c</div>
+      <div class="tone" style="background: #4d4035; color: #fbd0aa">30<br>#4d4035</div>
+      <div class="tone" style="background: #5a4b3d; color: #fbd0aa">35<br>#5a4b3d</div>
+      <div class="tone" style="background: #675546; color: #fbd0aa">40<br>#675546</div>
+      <div class="tone" style="background: #806a57; color: #fbd0aa">50<br>#806a57</div>
+      <div class="tone" style="background: #9a7f68; color: #fbd0aa">60<br>#9a7f68</div>
+      <div class="tone" style="background: #b39479; color: #fbd0aa">70<br>#b39479</div>
+      <div class="tone" style="background: #cda98a; color: #fbd0aa">80<br>#cda98a</div>
+      <div class="tone" style="background: #e6be9b; color: #fbd0aa">90<br>#e6be9b</div>
+      <div class="tone" style="background: #f3c9a3; color: #fbd0aa">95<br>#f3c9a3</div>
+      <div class="tone" style="background: #fbcfa8; color: #fbd0aa">98<br>#fbcfa8</div>
+      <div class="tone" style="background: #fdd1aa; color: #fbd0aa">99<br>#fdd1aa</div>
+      <div class="tone" style="background: #ffd3ac; color: #fbd0aa">100<br>#ffd3ac</div>
+    </div>
+  </section>
+  <section class="palette">
+    <h3>neutral_variant</h3>
+    <div class="tones">
+      <div class="tone" style="background: #010202; color: #fbd0aa">0<br>#010202</div>
+      <div class="tone" style="background: #0e0c0b; color: #fbd0aa">5<br>#0e0c0b</div>
+      <div class="tone" style="background: #1a1713; color: #fbd0aa">10<br>#1a1713</div>
+      <div class="tone" style="background: #27211c; color: #fbd0aa">15<br>#27211c</div>
+      <div class="tone" style="background: #342c24; color: #fbd0aa">20<br>#342c24</div>
+      <div class="tone" style="background: #41362d; color: #fbd0aa">25<br>#41362d</div>
+      <div class="tone" style="background: #4d4135; color: #fbd0aa">30<br>#4d4135</div>
+      <div class="tone" style="background: #5a4b3e; color: #fbd0aa">35<br>#5a4b3e</div>
+      <div class="tone" style="background: #675646; color: #fbd0aa">40<br>#675646</div>
+      <div class="tone" style="background: #806b57; color: #fbd0aa">50<br>#806b57</div>
+      <div class="tone" style="background: #9a8068; color: #fbd0aa">60<br>#9a8068</div>
+      <div class="tone" style="background: #b39579; color: #fbd0aa">70<br>#b39579</div>
+      <div class="tone" style="background: #cdaa8a; color: #fbd0aa">80<br>#cdaa8a</div>
+      <div class="tone" style="background: #e6bf9b; color: #fbd0aa">90<br>#e6bf9b</div>
+      <div class="tone" style="background: #f3c9a4; color: #fbd0aa">95<br>#f3c9a4</div>
+      <div class="tone" style="background: #fbcfa9; color: #fbd0aa">98<br>#fbcfa9</div>
+      <div class="tone" style="background: #fdd2ab; color: #fbd0aa">99<br>#fdd2ab</div>
+      <div class="tone" style="background: #ffd4ac; color: #fbd0aa">100<br>#ffd4ac</div>
+    </div>
+  </section>
+  <section class="palette">
+    <h3>error</h3>
+    <div class="tones">
+      <div class="tone" style="background: #010203; color: #fbd0aa">0<br>#010203</div>
+      <div class="tone" style="background: #0e0d0c; color: #fbd0aa">5<br>#0e0d0c</div>
+      <div class="tone" style="background: #1b1714; color: #fbd0aa">10<br>#1b1714</div>
+      <div class="tone" style="background: #28221d; color: #fbd0aa">15<br>#28221d</div>
+      <div class="tone" style="background: #342c25; color: #fbd0aa">20<br>#342c25</div>
+      <div class="tone" style="background: #41372e; color: #fbd0aa">25<br>#41372e</div>
+      <div class="tone" style="background: #4e4136; color: #fbd0aa">30<br>#4e4136</div>
+      <div class="tone" style="background: #5b4c3f; color: #fbd0aa">35<br>#5b4c3f</div>
+      <div class="tone" style="background: #675647; color: #fbd0aa">40<br>#675647</div>
+      <div class="tone" style="background: #816b58; color: #fbd0aa">50<br>#816b58</div>
+      <div class="tone" style="background: #9a8069; color: #fbd0aa">60<br>#9a8069</div>
+      <div class="tone" style="background: #b4957a; color: #fbd0aa">70<br>#b4957a</div>
+      <div class="tone" style="background: #cdaa8b; color: #fbd0aa">80<br>#cdaa8b</div>
+      <div class="tone" style="background: #e7bf9c; color: #fbd0aa">90<br>#e7bf9c</div>
+      <div class="tone" style="background: #f4caa5; color: #fbd0aa">95<br>#f4caa5</div>
+      <div class="tone" style="background: #fbd0aa; color: #fbd0aa">98<br>#fbd0aa</div>
+      <div class="tone" style="background: #fed2ab; color: #fbd0aa">99<br>#fed2ab</div>
+      <div class="tone" style="background: #ffd4ad; color: #fbd0aa">100<br>#ffd4ad</div>
+    </div>
+  </section>
+</body>
+</html>

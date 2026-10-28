@@ -1,0 +1,10 @@
+{#- colors.conf — Hyprland rgb() variables -#}
+{% for name, color in vocabulary.items() %}
+${{ name }} = rgb({{ color.hex[1:] }})
+{% endfor %}
+{% for name, color in extra_roles %}
+${{ name }} = rgb({{ color.hex[1:] }})
+{% endfor %}
+{% for name, color in legacy.items() %}
+$color{{ loop.index0 }} = rgb({{ color.hex[1:] }})
+{% endfor %}

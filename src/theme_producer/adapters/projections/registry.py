@@ -27,6 +27,7 @@ from theme_producer.adapters.template_catalog_loader import (
     TemplateCatalogLoader,
 )
 from theme_producer.domain.enums import TONE_ORDER, MaterialRole, PaletteName
+from theme_producer.domain.generation import UnknownFormatError
 from theme_producer.domain.models import Color, Mode, Theme
 from theme_producer.domain.services import AliasService
 from theme_producer.ports.projection import Capability, Projection, ProjectionPort
@@ -36,6 +37,7 @@ __all__ = [
     "CAPABILITY_TABLE",
     "DEV_PROJECTIONS",
     "FIXED_PROJECTIONS",
+    "FORMAT_NAMES",
     "LEGACY_ALIAS_COUNT",
     "OPEN_PROJECTIONS",
     "PROJECTION_VOCABULARY",
@@ -44,6 +46,9 @@ __all__ = [
     "ProjectionRegistry",
     "TemplateProjection",
     "build_projection_context",
+    "default_format_names",
+    "known_format_names",
+    "projections_for_formats",
 ]
 
 #: The stable projection vocabulary. ``background`` deliberately resolves to
@@ -136,6 +141,87 @@ for _projection in ALL_PROJECTIONS:  # pragma: no cover - import-time guard
             f"projection {_projection.name!r} template/filename drift: "
             f"{_projection.template!r} != {_projection.filename!r}"
         )
+
+#: Consumer-facing ``--format`` names, in stable display order. ``json`` is
+#: special: it selects only the canonical ``theme.json`` artifact and therefore
+#: has no projection record. The rest map to the filenames consumers already
+#: know (``gtk.css``, ``btop.theme``, ...), not to internal projection names.
+FORMAT_NAMES: tuple[str, ...] = (
+    "json",
+    "yaml",
+    "conf",
+    "gtk.css",
+    "adw.css",
+    "sequences",
+    "rasi",
+    "kitty",
+    "btop.theme",
+    "html",
+)
+
+_PROJECTION_BY_FORMAT: Mapping[str, Projection] = MappingProxyType(
+    {
+        "yaml": next(p for p in ALL_PROJECTIONS if p.name == "yaml"),
+        "conf": next(p for p in ALL_PROJECTIONS if p.name == "conf"),
+        "gtk.css": next(p for p in ALL_PROJECTIONS if p.name == "gtk"),
+        "adw.css": next(p for p in ALL_PROJECTIONS if p.name == "adw"),
+        "sequences": next(p for p in ALL_PROJECTIONS if p.name == "sequences"),
+        "rasi": next(p for p in ALL_PROJECTIONS if p.name == "rasi"),
+        "kitty": next(p for p in ALL_PROJECTIONS if p.name == "kitty"),
+        "btop.theme": next(p for p in ALL_PROJECTIONS if p.name == "btop"),
+        "html": next(p for p in ALL_PROJECTIONS if p.name == "html"),
+    }
+)
+
+
+_FORMAT_BY_PROJECTION_NAME: Mapping[str, str] = MappingProxyType(
+    {projection.name: name for name, projection in _PROJECTION_BY_FORMAT.items()}
+)
+
+
+def known_format_names() -> tuple[str, ...]:
+    """Return every accepted ``--format``/default-format value."""
+    return FORMAT_NAMES
+
+
+def default_format_names() -> tuple[str, ...]:
+    """Return the formats used when settings define none.
+
+    The default is every non-dev projection; ``theme.json`` is written
+    unconditionally by the processor and is not repeated here.
+    """
+    return tuple(
+        _FORMAT_BY_PROJECTION_NAME[projection.name]
+        for projection in RUNTIME_PROJECTIONS
+        if projection.name in _FORMAT_BY_PROJECTION_NAME
+    )
+
+
+def projections_for_formats(formats: Iterable[str]) -> tuple[Projection, ...]:
+    """Resolve consumer format names to projection records.
+
+    ``json`` contributes no projection (``theme.json`` is always written).
+    Unknown names raise :class:`UnknownFormatError` naming the accepted values.
+    Duplicate names are collapsed while preserving the caller's order.
+    """
+    selected: list[Projection] = []
+    seen: set[str] = set()
+    for raw in formats:
+        name = str(raw).strip()
+        if name == "json":
+            continue
+        try:
+            projection = _PROJECTION_BY_FORMAT[name]
+        except KeyError:
+            known = ", ".join(FORMAT_NAMES)
+            raise UnknownFormatError(
+                f"unknown output format {name!r}; known formats: {known}"
+            ) from None
+        if projection.name in seen:
+            continue
+        seen.add(projection.name)
+        selected.append(projection)
+    return tuple(selected)
 
 
 @dataclass(frozen=True, slots=True)

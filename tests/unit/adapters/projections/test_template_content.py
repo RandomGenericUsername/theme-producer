@@ -74,7 +74,8 @@ def test_gtk_has_vocabulary_every_role_and_legacy_aliases(rendered, theme: Theme
         assert f"color_{index:02d}" in defines
         assert defines[f"color_{index:02d}"] == role_hex(theme, LEGACY_COLOR_ORDER[index])
     assert len(defines) == len(set(defines))
-    assert len(defines) == 8 + 46 + 16
+    # vocabulary (8) + extra roles (46) + legacy color_00..15 (16) + CSG aliases (3)
+    assert len(defines) == 8 + 46 + 16 + 3
 
     assert defines["background"] == role_hex(theme, MaterialRole.SURFACE)
     assert defines["foreground"] == role_hex(theme, MaterialRole.ON_SURFACE)
@@ -167,8 +168,8 @@ def test_rasi_has_vocabulary_roles_and_legacy_aliases(rendered, theme: Theme) ->
     for role in MaterialRole:
         assert role.value in defines
     for index in range(16):
-        assert f"color{index}" in defines
-        assert defines[f"color{index}"] == role_hex(theme, LEGACY_COLOR_ORDER[index])
+        assert f"color{index:02d}" in defines
+        assert defines[f"color{index:02d}"] == role_hex(theme, LEGACY_COLOR_ORDER[index])
     assert len(defines) == len(set(defines))
     assert defines["background"] == role_hex(theme, MaterialRole.SURFACE)
     assert defines["foreground"] == role_hex(theme, MaterialRole.ON_SURFACE)

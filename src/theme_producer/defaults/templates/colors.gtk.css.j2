@@ -10,6 +10,9 @@
 {% for name, color in extra_roles %}
 @define-color {{ name }} {{ color.hex }};
 {% endfor %}
+@define-color color_background {{ vocabulary['surface'].hex }};
+@define-color color_foreground {{ vocabulary['on_surface'].hex }};
+@define-color color_cursor {{ vocabulary['on_surface'].hex }};
 {% for name, color in legacy.items() %}
 @define-color color_{{ '%02d' % loop.index0 }} {{ color.hex }};
 {% endfor %}

@@ -7,5 +7,5 @@
 @define-color {{ name }} {{ color.hex }};
 {% endfor %}
 {% for name, color in legacy.items() %}
-@define-color color{{ loop.index0 }} {{ color.hex }};
+@define-color color{{ '%02d' % loop.index0 }} {{ color.hex }};
 {% endfor %}

@@ -65,7 +65,7 @@ class TestCoreSettingsSchema:
         assert schema.runtime.mode == "local"
         assert schema.container.engine == "podman"
         assert schema.container.image_prefix == "tpr"
-        assert schema.container.image_tag == "latest"
+        assert schema.container.image_tag == ""
         assert schema.container.timeout_seconds == 300
         assert schema.container.memory_limit == "512m"
 
@@ -136,6 +136,9 @@ class TestContainerSettingsSchema:
     def test_memory_limit_rejects_invalid_shapes(self, value: str) -> None:
         with pytest.raises(ValidationError, match="Invalid memory limit"):
             ContainerSettingsSchema(memory_limit=value)
+
+    def test_empty_image_tag_is_accepted(self) -> None:
+        assert ContainerSettingsSchema(image_tag="").image_tag == ""
 
     def test_negative_timeout_rejected(self) -> None:
         with pytest.raises(ValidationError, match="Timeout must be non-negative"):

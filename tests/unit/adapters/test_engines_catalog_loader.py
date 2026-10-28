@@ -58,8 +58,15 @@ def test_default_catalog_loads_matugen_and_native() -> None:
         "fallback_color": "",
     }
     assert matugen.parameters[0].choices == ("dark", "light", "smart")
-    assert catalog["native"].display_name == "Native"
-    assert catalog["native"].min_version == "0.1.0"
+    matugen_schemes = matugen.parameters[1].choices
+    assert len(matugen_schemes) == 10
+    assert "scheme-smart" in matugen_schemes
+    native = catalog["native"]
+    assert native.display_name == "Native"
+    assert native.min_version == "0.1.0"
+    native_schemes = native.parameters[1].choices
+    assert len(native_schemes) == 9
+    assert "scheme-smart" not in native_schemes
 
 
 def test_explicit_path_wins(tmp_path: Path) -> None:

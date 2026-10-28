@@ -18,6 +18,6 @@ mode = "local"
 [container]
 engine = "podman"
 image_prefix = "tpr"
-image_tag = "latest"
+image_tag = ""
 timeout_seconds = 300
 memory_limit = "512m"

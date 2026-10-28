@@ -28,7 +28,7 @@ def _settings(output_dir: Path) -> AppSettings:
         generation=GenerationSettings(engine="matugen", default_params={}),
         templates=TemplatesSettings(),
         runtime=RuntimeSettings(mode=RuntimeMode.CONTAINER),
-        container=ContainerSettings(engine=ContainerEngine.PODMAN),
+        container=ContainerSettings(engine=ContainerEngine.PODMAN, image_tag="latest"),
     )
 
 

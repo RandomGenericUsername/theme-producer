@@ -209,6 +209,40 @@ def test_generate_coerces_params_and_validates_choices(
     assert "invalid choice" in error["error"]["message"].lower()
 
 
+def test_generate_rejects_native_scheme_smart_at_param_validation(
+    runner: CliRunner,
+    fake_engine: FakeEngine,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    image = make_image(tmp_path / "wall.png")
+    deps = make_deps(fake_engine)
+    deps.engine_registry["native"] = fake_engine
+
+    result = invoke(
+        runner,
+        deps,
+        [
+            "generate",
+            str(image),
+            "--engine",
+            "native",
+            "--param",
+            "scheme_type=scheme-smart",
+            "-o",
+            str(tmp_path / "out"),
+        ],
+        monkeypatch,
+    )
+
+    assert result.exit_code == 1
+    error = json.loads(result.stderr)
+    assert error["error"]["type"] == "EngineConfigError"
+    assert "invalid choice" in error["error"]["message"].lower()
+    assert "scheme-smart" in error["error"]["message"]
+    assert not fake_engine.calls
+
+
 def test_generate_drops_malformed_params(
     runner: CliRunner,
     fake_engine: FakeEngine,

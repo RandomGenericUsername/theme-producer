@@ -64,7 +64,6 @@ NATIVE_PARAMETERS: tuple[EngineParameterDefinition, ...] = (
             "scheme-rainbow",
             "scheme-tonal-spot",
             "scheme-vibrant",
-            "scheme-smart",
         ),
         description="Material color scheme type",
     ),

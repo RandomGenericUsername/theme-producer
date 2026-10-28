@@ -35,13 +35,14 @@ The engine runs in a pinned image; the tag is the pin (never `latest` by default
 
 ```sh
 make image IMAGE_ENGINE=podman        # builds base, matugen, and native at v<pyproject version>
-tpr install --container-engine podman # same references, tag from settings.container.image_tag
+tpr install --container-engine podman # same references, tag resolves to v<version>
 podman run --rm tpr-matugen-podman:v0.1.0 matugen --version
 podman run --rm tpr-native-podman:v0.1.0 tpr-native --version
 ```
 
 `make image` is a declared CI-only job (`image`) because it needs a live engine and network access.
-Set `container.image_tag` in `settings.toml` to the built tag (`v<version>`) when using `tpr install`.
+An empty `container.image_tag` (the packaged default) resolves to `v<package version>`, so
+`tpr install` plans the same tags `make image` builds. Set it explicitly to override the pin.
 
 ## Harness
 

@@ -94,7 +94,8 @@ class ContainerSettingsSchema(BaseModel):
         return value
 
     image_prefix: str = "tpr"
-    image_tag: str = "latest"
+    # Empty means "resolve to v<package version>" in the config resolver.
+    image_tag: str = ""
     timeout_seconds: int = 300
     memory_limit: str = "512m"
 

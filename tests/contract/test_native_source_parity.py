@@ -238,6 +238,25 @@ if NATIVE is None:
         "tpr-native is missing; run `cd native && cargo build --release --locked` "
         "and add native/target/release to PATH"
     )
+elif NATIVE is not None:
+    # A checkout can carry an old native/target/release/tpr-native from before
+    # the selection controls landed. Fail-closed as a skip with the exact fix
+    # instead of 57 oracle failures that look like a parity regression.
+    try:
+        _help = subprocess.run(
+            [NATIVE, "--help"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=False,
+        ).stdout
+    except (OSError, subprocess.SubprocessError):
+        _help = ""
+    if "--prefer" not in _help or "--fallback-color" not in _help:
+        _SKIP_REASONS.append(
+            "tpr-native is stale (missing --prefer/--fallback-color); rebuild "
+            "`cd native && cargo build --release --locked`"
+        )
 if MATUGEN is None and not HAS_MATUGEN_IMAGE:
     _SKIP_REASONS.append(
         "matugen is missing; install matugen 4.2.0 on PATH, or build/load "

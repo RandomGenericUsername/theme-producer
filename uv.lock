@@ -30,6 +30,11 @@ wheels = [
 ]
 
 [[package]]
+name = "cli-invocation-contract"
+version = "0.4.0"
+source = { git = "https://github.com/RandomGenericUsername/contracts?tag=v0.4.0#ae3af8bea8eff5ae6fe6fac31b2148e31e2667ae" }
+
+[[package]]
 name = "cli-output"
 version = "0.1.0"
 source = { git = "https://github.com/RandomGenericUsername/cli-output?tag=v0.1.0#ddae372786fd6053730133e82cf542a17e9a5ae5" }
@@ -585,6 +590,7 @@ name = "theme-producer"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "cli-invocation-contract" },
     { name = "cli-output" },
     { name = "config-assembler-engine" },
     { name = "jinja2" },
@@ -604,6 +610,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "cli-invocation-contract", git = "https://github.com/RandomGenericUsername/contracts?tag=v0.4.0" },
     { name = "cli-output", git = "https://github.com/RandomGenericUsername/cli-output?tag=v0.1.0" },
     { name = "config-assembler-engine", git = "https://github.com/RandomGenericUsername/config-assembler-engine?tag=v0.1.0" },
     { name = "jinja2", specifier = ">=3.1" },

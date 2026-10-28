@@ -2,14 +2,14 @@
 id: REQ-008
 title: "Canonical theme.json + open projections"
 kind: requirement
-status: proposed
+status: in-progress
 lane: 3 — ticket-multi
 parent: EPIC-001
 links:
   openspec: req-008-projections
   bmad: none
-worktree: none
-branch: none
+worktree: .worktrees/req-008/
+branch: ticket/req-008-projections
 ---
 
 # Canonical theme.json + open projections

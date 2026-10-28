@@ -2,7 +2,7 @@
 id: REQ-016
 title: "Native lightness controls: lightness_dark / lightness_light"
 kind: requirement
-status: in-progress
+status: done
 lane: 3
 links:
   openspec: none

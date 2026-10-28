@@ -40,7 +40,7 @@ mechanical CSG swap with the runtime's artifact/hash impact named.
 
 ## Children
 
-18/20 complete (17 done + 1 spike reported; REQ-014 blocked, REQ-016 in progress).
+19/20 complete (18 done + 1 spike reported; REQ-014 blocked).
 
   - [x] `OPS-001` — Repo birth + planning substrate (`done`)
   - [x] `REQ-001` — Product brief (`done`)
@@ -60,7 +60,7 @@ mechanical CSG swap with the runtime's artifact/hash impact named.
 - [x] `BUG-002` — Default container image_tag is latest, not the pin (`done`)
 - [ ] `REQ-014` — Dotfiles runtime/provisioning adoption (after spike) (`proposed`)
 - [x] `REQ-015` — Native source-color parity: prefer + fallback_color (`done`)
-- [ ] `REQ-016` — Native lightness controls: lightness_dark / lightness_light (`in-progress`)
+- [x] `REQ-016` — Native lightness controls: lightness_dark / lightness_light (`done`)
   - [x] `SPIKE-001` — Dotfiles fit: adapter, hashes, contract, rollout (`reported`)
 
 ## Exec links

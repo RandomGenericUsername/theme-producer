@@ -7,7 +7,7 @@
 
 ## Epics
 
-- [epic-001-theme-producer](./epic-001-theme-producer/ticket.md) — Theme producer (successor to CSG) | `in-progress` | 18/20 complete (17 done + 1 spike reported; REQ-014 blocked, REQ-016 in progress) | done-when: a pinned `tpr` release produces a schema-valid Theme + eight projections; adoption spike reports a mechanical CSG swap; gates + image smoke green | exec: bmad brief+spec+spine
+- [epic-001-theme-producer](./epic-001-theme-producer/ticket.md) — Theme producer (successor to CSG) | `in-progress` | 19/20 complete (18 done + 1 spike reported; REQ-014 blocked) | done-when: a pinned `tpr` release produces a schema-valid Theme + eight projections; adoption spike reports a mechanical CSG swap; gates + image smoke green | exec: bmad brief+spec+spine
   - [ops-001-repo-birth](./ops-001-repo-birth/ticket.md) — Repo birth + planning substrate | `done`
   - [req-001-product-brief](./req-001-product-brief/ticket.md) — Product brief | `done`
   - [req-002-spec](./req-002-spec/ticket.md) — Spec (CAP-001..012) | `done`
@@ -26,7 +26,7 @@
   - [bug-002-image-tag-latest](./bug-002-image-tag-latest/ticket.md) — Default container image_tag is latest, not the pin | `done` | severity: medium
   - [req-014-dotfiles-adoption](./req-014-dotfiles-adoption/ticket.md) — Dotfiles runtime/provisioning adoption (after spike) | `proposed`
   - [req-015-native-source-parity](./req-015-native-source-parity/ticket.md) — Native source-color parity: prefer + fallback_color | `done` | known: 41/56 exact, 15 recorded deltas
-  - [req-016-native-lightness-controls](./req-016-native-lightness-controls/ticket.md) — Native lightness controls: lightness_dark / lightness_light | `in-progress`
+  - [req-016-native-lightness-controls](./req-016-native-lightness-controls/ticket.md) — Native lightness controls: lightness_dark / lightness_light | `done` | 2500/2500 within ±1
   - [spike-001-dotfiles-fit](./spike-001-dotfiles-fit/ticket.md) — Dotfiles fit: adapter, hashes, contract, rollout | `reported` | timebox 4h
 
 ## Standalone requirements

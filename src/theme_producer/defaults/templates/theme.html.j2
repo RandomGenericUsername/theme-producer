@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-{#- theme.html — dev-only standalone Theme preview -#}
+{#- theme.html — dev-only standalone Theme preview; shows dark and light side by side -#}
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Theme preview — {{ mode_name }} — {{ scheme | e }}</title>
+  <title>Theme preview — dark + light — {{ scheme | e }}</title>
   <style>
     :root {
       color-scheme: {{ mode_name }};
@@ -17,8 +17,10 @@
       color: var(--page-fg);
       font-family: system-ui, sans-serif;
     }
-    h1, h2 { font-weight: 600; }
+    h1, h2, h3 { font-weight: 600; }
     .meta { color: {{ roles['on_surface_variant'].hex }}; margin-bottom: 2rem; }
+    .mode { margin-bottom: 3rem; }
+    .mode h2 { border-bottom: 1px solid {{ roles['outline_variant'].hex }}; padding-bottom: 0.5rem; }
     .roles {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
@@ -58,31 +60,37 @@
 <body>
   <h1>Theme preview</h1>
   <p class="meta">
-    mode: <strong>{{ mode_name }}</strong> ·
+    projection mode: <strong>{{ mode_name }}</strong> ·
     scheme: <strong>{{ scheme | e }}</strong> ·
     contrast: <strong>{{ contrast }}</strong> ·
     engine: <strong>{{ generator['engine'] | e }} {{ generator['engine_version'] | e }}</strong>
   </p>
 
-  <h2>Material roles ({{ role_rows | length }})</h2>
-  <div class="roles">
-{% for name, color in role_rows %}
-    <div class="role">
-      <div class="swatch" style="background: {{ color.hex }}"></div>
-      <div class="label"><span>{{ name }}</span><span>{{ color.hex }}</span></div>
-    </div>
-{% endfor %}
-  </div>
+{% for view in modes %}
+  <section class="mode" data-mode="{{ view.mode_name }}">
+    <h2>Mode: <strong>{{ view.mode_name }}</strong></h2>
 
-  <h2>Tonal palettes</h2>
-{% for palette_name, tones in palettes %}
-  <section class="palette">
-    <h3>{{ palette_name }}</h3>
-    <div class="tones">
-{% for tone, color in tones %}
-      <div class="tone" style="background: {{ color.hex }}; color: {{ roles['on_surface'].hex }}">{{ tone }}<br>{{ color.hex }}</div>
+    <h3>Material roles ({{ view.roles | length }})</h3>
+    <div class="roles">
+{% for name, color in view.roles %}
+      <div class="role">
+        <div class="swatch" style="background: {{ color.hex }}"></div>
+        <div class="label"><span>{{ name }}</span><span>{{ color.hex }}</span></div>
+      </div>
 {% endfor %}
     </div>
+
+    <h3>Tonal palettes</h3>
+{% for palette_name, tones in view.palettes %}
+    <section class="palette">
+      <h4>{{ palette_name }}</h4>
+      <div class="tones">
+{% for tone, color in tones %}
+        <div class="tone" style="background: {{ color.hex }}; color: {{ view.mode.roles['on_surface'].hex }}">{{ tone }}<br>{{ color.hex }}</div>
+{% endfor %}
+      </div>
+    </section>
+{% endfor %}
   </section>
 {% endfor %}
 </body>

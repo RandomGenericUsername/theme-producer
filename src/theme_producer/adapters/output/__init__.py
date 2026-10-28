@@ -19,6 +19,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.text import Text
 
+from theme_producer.domain.enums import ModeName
 from theme_producer.domain.generation import GenerationResult
 from theme_producer.domain.models import Theme
 from theme_producer.domain.settings import Verbosity
@@ -106,6 +107,7 @@ def project_result(result: GenerationResult) -> CustomView:
         "Success" if result.success else "Failure",
         f"Command: {result.command}",
         f"Engine: {result.engine}",
+        f"Mode: {result.mode.value}",
         f"Duration: {result.duration:.2f}s",
     ]
     if result.plan is not None:
@@ -132,6 +134,7 @@ def project_result(result: GenerationResult) -> CustomView:
         table.add_column("Value")
         table.add_row("Command", result.command)
         table.add_row("Engine", result.engine)
+        table.add_row("Mode", result.mode.value)
         table.add_row("Duration", f"{result.duration:.2f}s")
         console.print(table)
         if result.plan is not None:
@@ -152,9 +155,14 @@ def project_result(result: GenerationResult) -> CustomView:
     return CustomView(plain="\n".join(lines), object=obj, rich=rich)
 
 
-def project_theme(theme: Theme, *, engine: str) -> CustomView:
+def project_theme(
+    theme: Theme,
+    *,
+    engine: str,
+    mode: ModeName | str = ModeName.DARK,
+) -> CustomView:
     """Project a display-only Theme (the ``show`` verb)."""
-    result = GenerationResult(command="show", engine=engine, theme=theme)
+    result = GenerationResult(command="show", engine=engine, theme=theme, mode=mode)
     return project_result(result)
 
 

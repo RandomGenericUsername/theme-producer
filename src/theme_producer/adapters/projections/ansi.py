@@ -15,6 +15,7 @@ from typing import Any
 
 from theme_producer.adapters.jinja_renderer import JinjaThemeRenderer
 from theme_producer.domain.ansi import ansi_palette
+from theme_producer.domain.enums import ModeName
 from theme_producer.domain.models import Theme
 from theme_producer.ports.projection import Projection
 
@@ -56,9 +57,12 @@ SEQUENCES_PROJECTION = Projection(
 ANSI_PROJECTIONS: tuple[Projection, ...] = (KITTY_PROJECTION, SEQUENCES_PROJECTION)
 
 
-def build_ansi_context(theme: Theme) -> Mapping[str, Any]:
-    """Build the template context from the shared ANSI table (dark mode)."""
-    colors = ansi_palette(theme)
+def build_ansi_context(
+    theme: Theme,
+    mode: ModeName | str = ModeName.DARK,
+) -> Mapping[str, Any]:
+    """Build the template context from the selected mode's ANSI table."""
+    colors = ansi_palette(theme, mode)
     return {
         "colors": colors,
         "background": colors[ANSI_BACKGROUND_INDEX],
@@ -98,11 +102,16 @@ class AnsiProjection:
         """The static projection record."""
         return self._projection
 
-    def render(self, theme: Theme, output_dir: Path) -> Path:
+    def render(
+        self,
+        theme: Theme,
+        output_dir: Path,
+        mode: ModeName | str = ModeName.DARK,
+    ) -> Path:
         """Render this ANSI projection into ``output_dir`` and return its path."""
         output = self._renderer.render(
             self._projection.template,
-            build_ansi_context(theme),
+            build_ansi_context(theme, mode),
             Path(output_dir),
         )
         if self._postprocess is not None:

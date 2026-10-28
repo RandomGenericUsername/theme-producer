@@ -314,3 +314,109 @@ def test_generate_uses_settings_default_formats(
         "colors.yaml",
         "theme.json",
     ]
+
+
+def test_generate_mode_light_renders_light_roles_and_keeps_both_modes(
+    runner: CliRunner,
+    fake_engine: FakeEngine,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    image = make_image(tmp_path / "wall.png")
+    output = tmp_path / "out"
+
+    result = invoke(
+        runner,
+        make_deps(fake_engine),
+        [
+            "generate",
+            str(image),
+            "--mode",
+            "light",
+            "--format",
+            "yaml",
+            "--format",
+            "gtk.css",
+            "--format",
+            "kitty",
+            "-o",
+            str(output),
+        ],
+        monkeypatch,
+    )
+
+    assert result.exit_code == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["mode"] == "light"
+
+    theme_payload = json.loads((output / "theme.json").read_text(encoding="utf-8"))
+    assert set(theme_payload["modes"]) == {"dark", "light"}
+    light = theme_payload["modes"]["light"]["roles"]
+
+    yaml_text = (output / "colors.yaml").read_text(encoding="utf-8")
+    assert f'background: "{light["surface"]}"' in yaml_text
+    assert f'foreground: "{light["on_surface"]}"' in yaml_text
+    assert f'accent: "{light["primary"]}"' in yaml_text
+
+    gtk_text = (output / "colors.gtk.css").read_text(encoding="utf-8")
+    assert f"@define-color surface {light['surface']};" in gtk_text
+    assert f"@define-color on_surface {light['on_surface']};" in gtk_text
+    assert f"@define-color primary {light['primary']};" in gtk_text
+
+    kitty_text = (output / "colors.kitty").read_text(encoding="utf-8")
+    assert f"background {light['surface']}" in kitty_text
+    assert f"foreground {light['on_surface']}" in kitty_text
+
+
+def test_generate_invalid_mode_is_a_typed_error(
+    runner: CliRunner,
+    fake_engine: FakeEngine,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    image = make_image(tmp_path / "wall.png")
+
+    result = invoke(
+        runner,
+        make_deps(fake_engine),
+        ["generate", str(image), "--mode", "sepia", "-o", str(tmp_path / "out")],
+        monkeypatch,
+    )
+
+    assert result.exit_code == 1
+    payload = json.loads(result.stderr)
+    assert payload["error"]["type"] == "UnknownModeError"
+    assert "dark, light" in payload["error"]["message"]
+    assert not fake_engine.calls
+
+
+def test_generate_dry_run_prints_the_selected_mode(
+    runner: CliRunner,
+    fake_engine: FakeEngine,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    image = make_image(tmp_path / "wall.png")
+
+    result = invoke(
+        runner,
+        make_deps(fake_engine),
+        [
+            "generate",
+            str(image),
+            "--mode",
+            "light",
+            "--format",
+            "yaml",
+            "--dry-run",
+            "-o",
+            str(tmp_path / "out"),
+        ],
+        monkeypatch,
+    )
+
+    assert result.exit_code == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["mode"] == "light"
+    assert "--mode light" in payload["plan"]
+    assert not fake_engine.calls

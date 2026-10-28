@@ -63,3 +63,59 @@ def test_local_generate_writes_theme_json_and_all_eight_projections(
     assert "background " in (output / "colors.kitty").read_text(encoding="utf-8")
     assert (output / "colors.sequences").read_bytes().startswith(b"\x1b]4;0;")
     assert not (output / "theme.html").exists()  # dev-only preview is opt-in
+
+
+def test_local_generate_light_renders_light_roles_and_keeps_theme_json_modes(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from theme_producer.factory import create_dependencies
+
+    runner = CliRunner()
+    deps = create_dependencies()
+    deps.engine_registry = {"matugen": FakeEngine()}
+    image = make_image(tmp_path / "wallpaper.png")
+    output = tmp_path / "output-light"
+
+    result = invoke(
+        runner,
+        deps,
+        ["generate", str(image), "--mode", "light", "-o", str(output)],
+        monkeypatch,
+    )
+
+    assert result.exit_code == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["mode"] == "light"
+
+    theme_payload = json.loads((output / "theme.json").read_text(encoding="utf-8"))
+    assert set(theme_payload["modes"]) == {"dark", "light"}
+    theme = Theme.from_dict(theme_payload)
+    light_roles = theme_payload["modes"]["light"]["roles"]
+
+    yaml_text = (output / "colors.yaml").read_text(encoding="utf-8")
+    assert f'background: "{light_roles["surface"]}"' in yaml_text
+    assert f'foreground: "{light_roles["on_surface"]}"' in yaml_text
+
+    gtk_text = (output / "colors.gtk.css").read_text(encoding="utf-8")
+    assert f"@define-color surface {light_roles['surface']};" in gtk_text
+    assert f"@define-color primary {light_roles['primary']};" in gtk_text
+
+    kitty_text = (output / "colors.kitty").read_text(encoding="utf-8")
+    assert f"background {light_roles['surface']}" in kitty_text
+    assert f"foreground {light_roles['on_surface']}" in kitty_text
+
+    # The selected mode does not replace the Theme: both modes stay canonical.
+    assert theme.dark.roles
+    assert theme.light.roles
+    assert {path.name for path in output.iterdir()} == {
+        "theme.json",
+        "colors.gtk.css",
+        "colors.adw.css",
+        "colors.yaml",
+        "colors.rasi",
+        "colors.conf",
+        "colors.btop.theme",
+        "colors.kitty",
+        "colors.sequences",
+    }

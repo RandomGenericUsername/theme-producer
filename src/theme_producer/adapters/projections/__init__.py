@@ -14,9 +14,11 @@ from theme_producer.adapters.projections.registry import (
     OPEN_PROJECTIONS,
     PROJECTION_VOCABULARY,
     RUNTIME_PROJECTIONS,
+    ModeProjectionContext,
     ProjectionContext,
     ProjectionRegistry,
     TemplateProjection,
+    build_mode_context,
     build_projection_context,
 )
 
@@ -29,9 +31,11 @@ __all__ = [
     "PROJECTION_VOCABULARY",
     "RUNTIME_PROJECTIONS",
     "BtopRow",
+    "ModeProjectionContext",
     "ProjectionContext",
     "ProjectionRegistry",
     "TemplateProjection",
     "build_btop_rows",
+    "build_mode_context",
     "build_projection_context",
 ]

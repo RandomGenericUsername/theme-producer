@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from theme_producer.domain.enums import ModeName
 from theme_producer.domain.models import Theme
 from theme_producer.domain.settings import AppliedOverride, RuntimeMode
 
@@ -30,6 +31,7 @@ __all__ = [
     "GenerationResult",
     "OutputWriteError",
     "UnknownFormatError",
+    "UnknownModeError",
 ]
 
 
@@ -53,6 +55,10 @@ class GenerationError(RuntimeError):
 
 class UnknownFormatError(GenerationError):
     """Raised when ``--format`` names a format with no projection."""
+
+
+class UnknownModeError(GenerationError):
+    """Raised when ``--mode`` names a mode the Theme does not carry."""
 
 
 class EngineNotRegisteredError(GenerationError):
@@ -95,6 +101,9 @@ class GenerationRequest:
     overwrite: bool = False
     runtime: RuntimeMode = RuntimeMode.LOCAL
     dry_run: bool = False
+    #: Which Theme mode the projections render. ``theme.json`` always contains
+    #: both modes; this only selects the consumer artifacts' mode.
+    mode: ModeName = ModeName.DARK
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "image_path", Path(self.image_path))
@@ -103,6 +112,12 @@ class GenerationRequest:
         object.__setattr__(self, "formats", tuple(self.formats))
         if isinstance(self.runtime, str):
             object.__setattr__(self, "runtime", RuntimeMode(self.runtime))
+        try:
+            object.__setattr__(self, "mode", ModeName(self.mode))
+        except (TypeError, ValueError) as exc:
+            raise UnknownModeError(
+                f"unknown projection mode {self.mode!r}; known modes: dark, light"
+            ) from exc
 
 
 @dataclass(frozen=True, slots=True)
@@ -145,12 +160,18 @@ class GenerationResult:
     projections: tuple[str, ...] = ()
     stderr: str = ""
     return_code: int = 0
+    mode: ModeName = ModeName.DARK
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.mode, ModeName):
+            object.__setattr__(self, "mode", ModeName(self.mode))
 
     def to_dict(self) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "success": self.success,
             "command": self.command,
             "engine": self.engine,
+            "mode": self.mode.value,
             "theme": self.theme.to_dict() if self.theme is not None else None,
             "output_files": [str(path) for path in self.output_files],
             "duration": round(self.duration, 6),

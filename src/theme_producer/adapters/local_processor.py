@@ -98,7 +98,9 @@ class LocalProcessor:
             destination = output_dir / projection.filename
             if destination.exists() and not request.overwrite:
                 continue
-            files.append(self._projection_registry.render(projection, theme, output_dir))
+            files.append(
+                self._projection_registry.render(projection, theme, output_dir, mode=request.mode)
+            )
 
         return GenerationResult(
             command="generate",
@@ -106,6 +108,7 @@ class LocalProcessor:
             theme=theme,
             output_files=tuple(files),
             duration=duration,
+            mode=request.mode,
         )
 
     def process_show(self, request: GenerationRequest, settings: AppSettings) -> GenerationResult:
@@ -116,4 +119,5 @@ class LocalProcessor:
             theme=theme,
             output_files=(),
             duration=duration,
+            mode=request.mode,
         )

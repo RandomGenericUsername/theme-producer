@@ -46,3 +46,14 @@ ENGINE_OPT: ContainerEngine | None = typer.Option(
     help="Container engine: docker or podman",
     case_sensitive=False,
 )
+
+PROJECTION_MODE_OPT: str = typer.Option(
+    "dark",
+    "--mode",
+    help=(
+        "Output projection mode: dark or light (default: dark). Selects the mode rendered "
+        "into the consumer files; theme.json always carries both. Distinct from "
+        "`--param mode=...`, which sets the engine's default mode."
+    ),
+    case_sensitive=False,
+)

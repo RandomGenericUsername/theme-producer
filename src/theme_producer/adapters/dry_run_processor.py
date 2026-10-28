@@ -66,6 +66,7 @@ class DryRunProcessor:
         ]
         if request.runtime is RuntimeMode.CONTAINER:
             command.extend(["--container-engine", settings.container.engine.value])
+        command.extend(["--mode", request.mode.value])
         for key in sorted(request.params):
             command.extend(["--param", f"{key}={request.params[key]}"])
         if subcommand == "generate":
@@ -87,6 +88,7 @@ class DryRunProcessor:
             duration=time.monotonic() - started,
             plan=plan,
             projections=tuple(projection.filename for projection in projections),
+            mode=request.mode,
         )
 
     def process_generate(

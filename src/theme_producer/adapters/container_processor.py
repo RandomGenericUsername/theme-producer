@@ -143,6 +143,8 @@ class ContainerProcessor:
             "--no-summary",
             "-o",
             _CONTAINER_OUTPUT,
+            "--mode",
+            request.mode.value,
         ]
         for key in sorted(request.params):
             command.extend(["--param", f"{key}={request.params[key]}"])
@@ -159,6 +161,8 @@ class ContainerProcessor:
             f"/input/{Path(request.image_path).name}",
             "--engine",
             request.engine,
+            "--mode",
+            request.mode.value,
         ]
         for key in sorted(request.params):
             command.extend(["--param", f"{key}={request.params[key]}"])
@@ -222,6 +226,7 @@ class ContainerProcessor:
                 output_files=tuple(output_files),
                 duration=time.monotonic() - started,
                 stderr=result.stderr,
+                mode=request.mode,
             )
         finally:
             if temp_settings is not None:
@@ -258,6 +263,7 @@ class ContainerProcessor:
                 output_files=(),
                 duration=time.monotonic() - started,
                 stderr=result.stderr,
+                mode=request.mode,
             )
         finally:
             if temp_settings is not None:

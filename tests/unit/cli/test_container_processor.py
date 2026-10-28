@@ -87,6 +87,7 @@ def test_container_generate_mounts_runs_inner_cli_and_maps_paths(
     ]
     assert "--runtime" in run["command"]
     assert run["command"][run["command"].index("--runtime") + 1] == "local"
+    assert run["command"][run["command"].index("--mode") + 1] == "dark"
     assert "--no-summary" in run["command"]
     assert run["environment"]["THEME_CONFIG_FILE_PATH"] == "/tpr-config/settings.toml"
     assert run["environment"]["THEME_TEMPLATES_TEMPLATES_DIR"] == "/templates"
@@ -99,3 +100,66 @@ def test_container_generate_mounts_runs_inner_cli_and_maps_paths(
     assert mounts["/tpr-config/settings.toml"].source.exists() is False  # cleaned in finally
     config_text = mounts["/tpr-config/settings.toml"].source
     assert not config_text.exists()
+
+
+def test_container_generate_forwards_selected_mode(tmp_path: Path) -> None:
+    image = make_image(tmp_path / "wall.png")
+    output = tmp_path / "out"
+    output.mkdir()
+    theme = load_theme()
+    payload = {
+        "success": True,
+        "command": "generate",
+        "engine": "matugen",
+        "theme": theme.to_dict(),
+        "output_files": ["/output/theme.json"],
+        "duration": 0.1,
+    }
+    runtime = FakeContainerRuntime(images={IMAGE}, run_stdout=json.dumps(payload))
+    processor = ContainerProcessor(runtime, tmp_path)
+    settings = _settings(output)
+    request = GenerationRequest(
+        image_path=image,
+        engine="matugen",
+        formats=("yaml",),
+        output_dir=output,
+        runtime=RuntimeMode.CONTAINER,
+        mode="light",
+    )
+
+    result = processor.process_generate(request, settings)
+
+    assert result.mode.value == "light"
+    command = runtime.runs[0]["command"]
+    assert command[command.index("--mode") + 1] == "light"
+
+
+def test_container_show_forwards_selected_mode(tmp_path: Path) -> None:
+    image = make_image(tmp_path / "wall.png")
+    output = tmp_path / "out"
+    output.mkdir()
+    theme = load_theme()
+    payload = {
+        "success": True,
+        "command": "show",
+        "engine": "matugen",
+        "theme": theme.to_dict(),
+        "output_files": [],
+        "duration": 0.1,
+    }
+    runtime = FakeContainerRuntime(images={IMAGE}, run_stdout=json.dumps(payload))
+    processor = ContainerProcessor(runtime, tmp_path)
+    settings = _settings(output)
+    request = GenerationRequest(
+        image_path=image,
+        engine="matugen",
+        output_dir=output,
+        runtime=RuntimeMode.CONTAINER,
+        mode="light",
+    )
+
+    result = processor.process_show(request, settings)
+
+    assert result.mode.value == "light"
+    command = runtime.runs[0]["command"]
+    assert command[command.index("--mode") + 1] == "light"

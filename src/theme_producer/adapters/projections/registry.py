@@ -1,9 +1,10 @@
 """Registry of open Theme projections and their capability table.
 
-Projections are pure: this module builds one context from the theme's dark mode
-and hands it to the Jinja renderer. Templates never read each other and never
-read the filesystem. The light mode stays in ``theme.json``; runtime light/dark
-switching is explicitly out of scope for the producer (product brief, Scope).
+Projections are pure: this module builds one context from the selected Theme
+mode (dark by default) and hands it to the Jinja renderer. Templates never read
+each other and never read the filesystem. The dev-only HTML preview additionally
+receives both modes so a reviewer can compare them; ``theme.json`` always carries
+both modes and runtime light/dark switching stays out of scope.
 """
 
 from __future__ import annotations
@@ -26,7 +27,7 @@ from theme_producer.adapters.template_catalog_loader import (
     TemplateCatalog,
     TemplateCatalogLoader,
 )
-from theme_producer.domain.enums import TONE_ORDER, MaterialRole, PaletteName
+from theme_producer.domain.enums import TONE_ORDER, MaterialRole, ModeName, PaletteName
 from theme_producer.domain.generation import UnknownFormatError
 from theme_producer.domain.models import Color, Mode, Theme
 from theme_producer.domain.services import AliasService
@@ -42,9 +43,11 @@ __all__ = [
     "OPEN_PROJECTIONS",
     "PROJECTION_VOCABULARY",
     "RUNTIME_PROJECTIONS",
+    "ModeProjectionContext",
     "ProjectionContext",
     "ProjectionRegistry",
     "TemplateProjection",
+    "build_mode_context",
     "build_projection_context",
     "default_format_names",
     "known_format_names",
@@ -225,8 +228,30 @@ def projections_for_formats(formats: Iterable[str]) -> tuple[Projection, ...]:
 
 
 @dataclass(frozen=True, slots=True)
+class ModeProjectionContext:
+    """One mode's ordered projection rows.
+
+    Instances are built for both modes so the dev-only HTML preview can render
+    them side by side without templates reaching into the domain model.
+    """
+
+    mode: Mode
+    mode_name: str
+    vocabulary: tuple[tuple[str, Color], ...]
+    roles: tuple[tuple[str, Color], ...]
+    extra_roles: tuple[tuple[str, Color], ...]
+    legacy: tuple[tuple[str, Color], ...]
+    palettes: tuple[tuple[str, tuple[tuple[int, Color], ...]], ...]
+    btop: tuple[BtopRow, ...]
+
+
+@dataclass(frozen=True, slots=True)
 class ProjectionContext:
-    """Typed view of everything a projection template may consume."""
+    """Typed view of everything a projection template may consume.
+
+    ``mode``/``roles``/``palettes``/... describe the selected projection mode;
+    ``modes`` always carries both modes, dark first, for the HTML preview.
+    """
 
     theme: Theme
     mode: Mode
@@ -241,6 +266,7 @@ class ProjectionContext:
     legacy: tuple[tuple[str, Color], ...]
     palettes: tuple[tuple[str, tuple[tuple[int, Color], ...]], ...]
     btop: tuple[BtopRow, ...]
+    modes: tuple[ModeProjectionContext, ...]
 
     def as_jinja_context(self) -> dict[str, Any]:
         """Return the mapping passed to Jinja.
@@ -266,12 +292,12 @@ class ProjectionContext:
             "legacy_rows": self.legacy,
             "palettes": self.palettes,
             "btop": self.btop,
+            "modes": self.modes,
         }
 
 
-def build_projection_context(theme: Theme) -> ProjectionContext:
-    """Build the deterministic dark-mode context shared by all projections."""
-    mode = theme.dark
+def build_mode_context(mode: Mode) -> ModeProjectionContext:
+    """Build one mode's deterministic rows for the projection templates."""
     alias_service = AliasService()
 
     vocabulary = tuple((name, mode.roles[role]) for name, role in PROJECTION_VOCABULARY.items())
@@ -289,20 +315,43 @@ def build_projection_context(theme: Theme) -> ProjectionContext:
         for palette_name in PaletteName
     )
 
-    return ProjectionContext(
-        theme=theme,
+    return ModeProjectionContext(
         mode=mode,
         mode_name=mode.mode.value,
-        scheme=theme.scheme,
-        contrast=theme.contrast,
-        source=theme.source.to_dict(),
-        generator=theme.generator.to_dict(),
         vocabulary=vocabulary,
         roles=roles,
         extra_roles=extra_roles,
         legacy=legacy,
         palettes=palettes,
         btop=build_btop_rows(mode),
+    )
+
+
+def build_projection_context(
+    theme: Theme,
+    mode: ModeName | str = ModeName.DARK,
+) -> ProjectionContext:
+    """Build the deterministic context for the selected projection ``mode``."""
+    mode_name = ModeName(mode)
+    selected = theme.dark if mode_name is ModeName.DARK else theme.light
+    view = build_mode_context(selected)
+    modes = tuple(build_mode_context(candidate) for candidate in (theme.dark, theme.light))
+
+    return ProjectionContext(
+        theme=theme,
+        mode=selected,
+        mode_name=selected.mode.value,
+        scheme=theme.scheme,
+        contrast=theme.contrast,
+        source=theme.source.to_dict(),
+        generator=theme.generator.to_dict(),
+        vocabulary=view.vocabulary,
+        roles=view.roles,
+        extra_roles=view.extra_roles,
+        legacy=view.legacy,
+        palettes=view.palettes,
+        btop=view.btop,
+        modes=modes,
     )
 
 
@@ -322,9 +371,14 @@ class TemplateProjection:
         """The static projection record."""
         return self._projection
 
-    def render(self, theme: Theme, output_dir: Path) -> Path:
+    def render(
+        self,
+        theme: Theme,
+        output_dir: Path,
+        mode: ModeName | str = ModeName.DARK,
+    ) -> Path:
         """Render this projection into ``output_dir`` and return its path."""
-        context = build_projection_context(theme)
+        context = build_projection_context(theme, mode=mode)
         return self._renderer.render(
             self._projection.template,
             context.as_jinja_context(),
@@ -398,29 +452,41 @@ class ProjectionRegistry:
         projection: Projection | str,
         theme: Theme,
         output_dir: Path,
+        mode: ModeName | str = ModeName.DARK,
     ) -> Path:
-        """Render one projection into ``output_dir``."""
+        """Render one projection into ``output_dir`` using ``mode``."""
         self.catalog()
-        return self.renderer_for(projection).render(theme, Path(output_dir))
+        return self.renderer_for(projection).render(theme, Path(output_dir), mode=mode)
 
     def _render_many(
         self,
         projections: Iterable[Projection],
         theme: Theme,
         output_dir: Path,
+        mode: ModeName | str = ModeName.DARK,
     ) -> dict[str, Path]:
         self.catalog()
         rendered: dict[str, Path] = {}
         for projection in projections:
             rendered[projection.filename] = self._projection_renderers[projection.name].render(
-                theme, Path(output_dir)
+                theme, Path(output_dir), mode=mode
             )
         return rendered
 
-    def render_all(self, theme: Theme, output_dir: Path) -> dict[str, Path]:
+    def render_all(
+        self,
+        theme: Theme,
+        output_dir: Path,
+        mode: ModeName | str = ModeName.DARK,
+    ) -> dict[str, Path]:
         """Render every shipped projection, including dev-only previews."""
-        return self._render_many(ALL_PROJECTIONS, theme, output_dir)
+        return self._render_many(ALL_PROJECTIONS, theme, output_dir, mode=mode)
 
-    def render_runtime(self, theme: Theme, output_dir: Path) -> dict[str, Path]:
+    def render_runtime(
+        self,
+        theme: Theme,
+        output_dir: Path,
+        mode: ModeName | str = ModeName.DARK,
+    ) -> dict[str, Path]:
         """Render the runtime projections only (no dev preview)."""
-        return self._render_many(RUNTIME_PROJECTIONS, theme, output_dir)
+        return self._render_many(RUNTIME_PROJECTIONS, theme, output_dir, mode=mode)

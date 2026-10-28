@@ -35,10 +35,9 @@ def theme() -> Theme:
     return Theme.from_dict(json.loads(FIXTURE.read_text(encoding="utf-8")))
 
 
-@pytest.fixture(scope="module")
-def rendered(tmp_path_factory: pytest.TempPathFactory, theme: Theme) -> dict[str, str]:
-    output = tmp_path_factory.mktemp("open-projections")
-    paths = ProjectionRegistry().render_all(theme, output)
+@pytest.fixture
+def rendered(tmp_path: Path, theme: Theme) -> dict[str, str]:
+    paths = ProjectionRegistry().render_all(theme, tmp_path)
     return {name: path.read_text(encoding="utf-8") for name, path in paths.items()}
 
 
@@ -207,18 +206,20 @@ def test_btop_renders_the_capability_table(rendered) -> None:
     assert all(line.startswith("theme[") for line in lines)
 
 
-def test_html_shows_mode_scheme_roles_and_all_palettes(rendered, theme: Theme) -> None:
+def test_html_shows_both_modes_with_roles_and_all_palettes(rendered, theme: Theme) -> None:
     text = rendered["theme.html"]
 
     assert "<!DOCTYPE html>" in text
-    assert "mode: <strong>dark</strong>" in text
+    assert "Mode: <strong>dark</strong>" in text
+    assert "Mode: <strong>light</strong>" in text
     assert theme.scheme in text
-    assert text.count('class="role"') == 50
-    assert text.count('class="tone"') == 6 * 18
+    assert text.count('class="role"') == 2 * 50
+    assert text.count('class="tone"') == 2 * 6 * 18
     for role in MaterialRole:
         assert role.value in text
     for palette in ("primary", "secondary", "tertiary", "neutral", "neutral_variant", "error"):
         assert palette in text
-    for palette in theme.dark.palettes.values():
-        for tone in TONE_ORDER:
-            assert f">{tone}<br>{palette.tones[tone].hex}" in text
+    for mode in (theme.dark, theme.light):
+        for palette in mode.palettes.values():
+            for tone in TONE_ORDER:
+                assert f">{tone}<br>{palette.tones[tone].hex}" in text

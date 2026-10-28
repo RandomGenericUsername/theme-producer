@@ -17,7 +17,13 @@ from theme_producer.cli._helpers import (
     selected,
 )
 from theme_producer.cli._params import parse_params, resolve_engine_params
-from theme_producer.cli.options import CONFIG_OPT, ENGINE_OPT, RUNTIME_OPT, TEMPLATES_DIR_OPT
+from theme_producer.cli.options import (
+    CONFIG_OPT,
+    ENGINE_OPT,
+    PROJECTION_MODE_OPT,
+    RUNTIME_OPT,
+    TEMPLATES_DIR_OPT,
+)
 from theme_producer.domain.settings import ContainerEngine, RuntimeMode
 from theme_producer.factory import CliDependencies, create_processor
 
@@ -38,6 +44,7 @@ def generate(
     param: list[str] = typer.Option(  # noqa: B008
         [], "--param", help="Engine parameter override K=V"
     ),
+    mode: str = PROJECTION_MODE_OPT,
     output_dir: Path | None = typer.Option(None, "--output-dir", "-o", help="Output directory"),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Print the resolved plan without generating"
@@ -80,6 +87,7 @@ def generate(
             output_dir=resolved_output,
             settings=settings,
             dry_run=dry_run,
+            mode=mode,
         )
         processor = create_processor(
             deps,

@@ -58,3 +58,46 @@ def test_show_reports_engine_unavailable_as_typed_error(
     payload = json.loads(result.stderr)
     assert payload["error"]["type"] == "EngineUnavailableError"
     assert not engine.calls
+
+
+def test_show_mode_light_returns_and_displays_the_selected_mode(
+    runner: CliRunner,
+    fake_engine: FakeEngine,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    image = make_image(tmp_path / "wall.png")
+
+    result = invoke(
+        runner,
+        make_deps(fake_engine),
+        ["show", str(image), "--mode", "light"],
+        monkeypatch,
+    )
+
+    assert result.exit_code == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["mode"] == "light"
+    assert set(payload["theme"]["modes"]) == {"dark", "light"}
+    assert len(fake_engine.calls) == 1
+
+
+def test_show_invalid_mode_is_a_typed_error(
+    runner: CliRunner,
+    fake_engine: FakeEngine,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    image = make_image(tmp_path / "wall.png")
+
+    result = invoke(
+        runner,
+        make_deps(fake_engine),
+        ["show", str(image), "--mode", "sepia"],
+        monkeypatch,
+    )
+
+    assert result.exit_code == 1
+    payload = json.loads(result.stderr)
+    assert payload["error"]["type"] == "UnknownModeError"
+    assert not fake_engine.calls

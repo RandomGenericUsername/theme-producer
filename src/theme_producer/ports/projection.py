@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, Protocol, runtime_checkable
 
+from theme_producer.domain.enums import ModeName
 from theme_producer.domain.models import Theme
 
 __all__ = ["CAPABILITIES", "Capability", "Projection", "ProjectionPort"]
@@ -61,6 +62,11 @@ class Projection:
 class ProjectionPort(Protocol):
     """Render one Theme artifact into an output directory."""
 
-    def render(self, theme: Theme, output_dir: Path) -> Path:
+    def render(
+        self,
+        theme: Theme,
+        output_dir: Path,
+        mode: ModeName | str = ModeName.DARK,
+    ) -> Path:
         """Write this projection into ``output_dir`` and return its path."""
         ...

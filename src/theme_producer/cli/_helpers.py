@@ -16,10 +16,12 @@ from theme_producer.adapters.projections.registry import (
     projections_for_formats,
 )
 from theme_producer.domain.engines import EngineDefinition
+from theme_producer.domain.enums import ModeName
 from theme_producer.domain.generation import (
     EngineInfo,
     EngineNotRegisteredError,
     GenerationRequest,
+    UnknownModeError,
 )
 from theme_producer.domain.settings import (
     AppSettings,
@@ -122,6 +124,7 @@ def build_request(
     output_dir: Path,
     settings: AppSettings,
     dry_run: bool = False,
+    mode: ModeName | str = ModeName.DARK,
 ) -> GenerationRequest:
     return GenerationRequest(
         image_path=image_path,
@@ -132,7 +135,18 @@ def build_request(
         overwrite=settings.output.overwrite,
         runtime=settings.runtime.mode,
         dry_run=dry_run,
+        mode=resolve_mode(mode),
     )
+
+
+def resolve_mode(value: ModeName | str) -> ModeName:
+    """Validate the projection ``--mode`` and return the canonical enum."""
+    try:
+        return ModeName(str(value).strip().lower())
+    except (TypeError, ValueError) as exc:
+        raise UnknownModeError(
+            f"unknown projection mode {value!r}; known modes: dark, light"
+        ) from exc
 
 
 def output_adapter(deps: CliDependencies) -> OutputPort:

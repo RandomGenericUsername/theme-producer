@@ -2,7 +2,7 @@
 id: REQ-020
 title: "Scheme policy catalog + metrics adapters"
 kind: requirement
-status: in-progress
+status: done
 lane: 3
 links:
   openspec: none

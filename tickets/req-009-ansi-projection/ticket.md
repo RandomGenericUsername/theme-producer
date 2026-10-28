@@ -2,14 +2,14 @@
 id: REQ-009
 title: "ANSI intent projection (kitty, sequences)"
 kind: requirement
-status: proposed
+status: in-progress
 lane: 3 — ticket-multi
 parent: EPIC-001
 links:
   openspec: req-009-ansi-projection
   bmad: none
-worktree: none
-branch: none
+worktree: .worktrees/req-009/
+branch: ticket/req-009-ansi-projection
 ---
 
 # ANSI intent projection (kitty, sequences)

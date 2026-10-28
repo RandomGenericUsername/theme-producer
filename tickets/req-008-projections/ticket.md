@@ -2,7 +2,7 @@
 id: REQ-008
 title: "Canonical theme.json + open projections"
 kind: requirement
-status: in-progress
+status: done
 lane: 3 — ticket-multi
 parent: EPIC-001
 links:

@@ -40,7 +40,7 @@ mechanical CSG swap with the runtime's artifact/hash impact named.
 
 ## Children
 
-9/16 complete (8 done + 1 spike reported).
+10/16 complete (9 done + 1 spike reported).
 
   - [x] `OPS-001` — Repo birth + planning substrate (`done`)
   - [x] `REQ-001` — Product brief (`done`)
@@ -50,7 +50,7 @@ mechanical CSG swap with the runtime's artifact/hash impact named.
   - [x] `REQ-005` — Theme domain model + alias vocabulary (`done`)
   - [x] `REQ-006` — Settings via config-assembler-engine (`done`)
   - [x] `REQ-007` — ThemeEnginePort + matugen engine + engines.yaml (`done`)
-  - [ ] `REQ-008` — Canonical theme.json + open projections (`proposed`)
+  - [x] `REQ-008` — Canonical theme.json + open projections (`done`)
   - [ ] `REQ-009` — ANSI intent projection (kitty, sequences) (`proposed`)
   - [ ] `REQ-010` — CLI surface + local/container/dry-run processors (`proposed`)
   - [ ] `REQ-011` — Pinned base + matugen images, install/uninstall (`proposed`)

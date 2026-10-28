@@ -1,0 +1,23 @@
+[output]
+directory = "/tmp/theme-producer"
+default_formats = []
+overwrite = false
+verbosity = 1
+apply_to_terminal = true
+
+[generation]
+engine = "matugen"
+default_params = {}
+
+[templates]
+directory = ""
+
+[runtime]
+mode = "local"
+
+[container]
+engine = "podman"
+image_prefix = "tpr"
+image_tag = "latest"
+timeout_seconds = 300
+memory_limit = "512m"

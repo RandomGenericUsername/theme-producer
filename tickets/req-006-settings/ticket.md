@@ -2,14 +2,14 @@
 id: REQ-006
 title: "Settings via config-assembler-engine"
 kind: requirement
-status: proposed
+status: in-progress
 lane: 2 — openspec-single
 parent: EPIC-001
 links:
   openspec: req-006-settings
   bmad: none
-worktree: none
-branch: none
+worktree: .worktrees/req-006/
+branch: ticket/req-006-settings
 ---
 
 # Settings via config-assembler-engine

@@ -13,8 +13,8 @@
   - [req-002-spec](./req-002-spec/ticket.md) — Spec (CAP-001..012) | `done`
   - [req-003-architecture-spine](./req-003-architecture-spine/ticket.md) — Architecture spine (AD-1..13) | `done`
   - [req-004-repo-harness](./req-004-repo-harness/ticket.md) — Executable harness: packaging, gates, CI, hermetic tests | `done`
-  - [req-005-domain-theme-model](./req-005-domain-theme-model/ticket.md) — Theme domain model + alias vocabulary | `proposed`
-  - [req-006-settings](./req-006-settings/ticket.md) — Settings via config-assembler-engine | `proposed`
+  - [req-005-domain-theme-model](./req-005-domain-theme-model/ticket.md) — Theme domain model + alias vocabulary | `in-progress`
+  - [req-006-settings](./req-006-settings/ticket.md) — Settings via config-assembler-engine | `in-progress`
   - [req-007-engines](./req-007-engines/ticket.md) — ThemeEnginePort + matugen engine + engines.yaml | `proposed`
   - [req-008-projections](./req-008-projections/ticket.md) — Canonical theme.json + open projections | `proposed`
   - [req-009-ansi-projection](./req-009-ansi-projection/ticket.md) — ANSI intent projection (kitty, sequences) | `proposed`

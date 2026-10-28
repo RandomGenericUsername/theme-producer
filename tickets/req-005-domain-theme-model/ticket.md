@@ -2,14 +2,14 @@
 id: REQ-005
 title: "Theme domain model + alias vocabulary"
 kind: requirement
-status: proposed
+status: in-progress
 lane: 2 — openspec-single
 parent: EPIC-001
 links:
   openspec: req-005-domain-theme-model
   bmad: none
-worktree: none
-branch: none
+worktree: .worktrees/req-005/
+branch: ticket/req-005-domain-theme-model
 ---
 
 # Theme domain model + alias vocabulary

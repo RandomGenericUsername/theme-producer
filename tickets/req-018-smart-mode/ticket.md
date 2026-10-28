@@ -2,7 +2,7 @@
 id: REQ-018
 title: "Smart projection mode: --mode smart (configurable threshold)"
 kind: requirement
-status: in-progress
+status: done
 lane: 3
 links:
   openspec: none

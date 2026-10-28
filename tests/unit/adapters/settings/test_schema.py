@@ -1,0 +1,145 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+from pydantic import ValidationError
+
+from theme_producer.adapters.settings.schema import (
+    ContainerSettingsSchema,
+    CoreSettingsSchema,
+    GenerationSettingsSchema,
+    OutputSettingsSchema,
+    RuntimeSettingsSchema,
+    TemplatesSettingsSchema,
+)
+
+
+class TestCoreSettingsSchema:
+    def test_valid_full_config(self) -> None:
+        data = {
+            "output": {
+                "directory": "/tmp/out",
+                "default_formats": ["json"],
+                "overwrite": True,
+                "verbosity": 2,
+                "apply_to_terminal": False,
+            },
+            "generation": {"engine": "matugen", "default_params": {"quality": "high"}},
+            "templates": {"directory": "/tmp/templates"},
+            "runtime": {"mode": "local"},
+            "container": {
+                "engine": "docker",
+                "image_prefix": "myapp",
+                "image_tag": "v1",
+                "timeout_seconds": 600,
+                "memory_limit": "2G",
+            },
+        }
+        schema = CoreSettingsSchema.model_validate(data)
+
+        assert schema.output.directory == Path("/tmp/out")
+        assert schema.output.default_formats == ["json"]
+        assert schema.output.verbosity == 2
+        assert schema.output.apply_to_terminal is False
+        assert schema.generation.engine == "matugen"
+        assert schema.generation.default_params == {"quality": "high"}
+        assert schema.templates.directory == "/tmp/templates"
+        assert schema.runtime.mode == "local"
+        assert schema.container.engine == "docker"
+        assert schema.container.image_prefix == "myapp"
+        assert schema.container.image_tag == "v1"
+        assert schema.container.timeout_seconds == 600
+        assert schema.container.memory_limit == "2g"
+
+    def test_minimal_config_with_defaults(self) -> None:
+        schema = CoreSettingsSchema.model_validate({"output": {"directory": "/out"}})
+
+        assert schema.output.default_formats == []
+        assert schema.output.overwrite is False
+        assert schema.output.verbosity == 1
+        assert schema.output.apply_to_terminal is True
+        assert schema.generation.engine == "matugen"
+        assert schema.generation.default_params == {}
+        assert schema.templates.directory == ""
+        assert schema.runtime.mode == "local"
+        assert schema.container.engine == "podman"
+        assert schema.container.image_prefix == "tpr"
+        assert schema.container.image_tag == "latest"
+        assert schema.container.timeout_seconds == 300
+        assert schema.container.memory_limit == "512m"
+
+    def test_missing_output_raises(self) -> None:
+        with pytest.raises(ValidationError):
+            CoreSettingsSchema.model_validate({})
+
+
+class TestOutputSettingsSchema:
+    def test_empty_directory_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="directory must not be empty"):
+            OutputSettingsSchema(directory="  ")
+
+    @pytest.mark.parametrize("verbosity", [0, 1, 2, 3])
+    def test_verbosity_range_accepted(self, verbosity: int) -> None:
+        assert OutputSettingsSchema(directory="/out", verbosity=verbosity).verbosity == verbosity
+
+    @pytest.mark.parametrize("verbosity", [-1, 4])
+    def test_verbosity_out_of_range_rejected(self, verbosity: int) -> None:
+        with pytest.raises(ValidationError):
+            OutputSettingsSchema(directory="/out", verbosity=verbosity)
+
+
+class TestGenerationSettingsSchema:
+    def test_default_engine(self) -> None:
+        assert GenerationSettingsSchema().engine == "matugen"
+
+    def test_empty_engine_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="engine must not be empty"):
+            GenerationSettingsSchema(engine="  ")
+
+    def test_default_params_accepts_arbitrary_values(self) -> None:
+        schema = GenerationSettingsSchema(default_params={"contrast": 0.5, "scheme_type": "tonal"})
+        assert schema.default_params == {"contrast": 0.5, "scheme_type": "tonal"}
+
+
+class TestTemplatesSettingsSchema:
+    def test_default_directory_is_empty(self) -> None:
+        assert TemplatesSettingsSchema().directory == ""
+
+
+class TestRuntimeSettingsSchema:
+    def test_valid_local(self) -> None:
+        assert RuntimeSettingsSchema(mode="local").mode == "local"
+
+    def test_valid_container(self) -> None:
+        assert RuntimeSettingsSchema(mode="container").mode == "container"
+
+    def test_invalid_mode_raises_clear_message(self) -> None:
+        with pytest.raises(ValidationError, match="Invalid runtime mode 'hybrid'"):
+            RuntimeSettingsSchema(mode="hybrid")
+
+
+class TestContainerSettingsSchema:
+    def test_valid_engines(self) -> None:
+        assert ContainerSettingsSchema(engine="docker").engine == "docker"
+        assert ContainerSettingsSchema(engine="podman").engine == "podman"
+
+    def test_invalid_engine_raises_clear_message(self) -> None:
+        with pytest.raises(ValidationError, match="Invalid container engine 'containerd'"):
+            ContainerSettingsSchema(engine="containerd")
+
+    @pytest.mark.parametrize("value", ["512m", "2G", "128", "1t"])
+    def test_memory_limit_accepts_valid_shapes(self, value: str) -> None:
+        assert ContainerSettingsSchema(memory_limit=value).memory_limit == value.lower()
+
+    @pytest.mark.parametrize("value", ["abc", "512mb", "", "-1g"])
+    def test_memory_limit_rejects_invalid_shapes(self, value: str) -> None:
+        with pytest.raises(ValidationError, match="Invalid memory limit"):
+            ContainerSettingsSchema(memory_limit=value)
+
+    def test_negative_timeout_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="Timeout must be non-negative"):
+            ContainerSettingsSchema(timeout_seconds=-1)
+
+    def test_zero_timeout_accepted(self) -> None:
+        assert ContainerSettingsSchema(timeout_seconds=0).timeout_seconds == 0

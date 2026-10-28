@@ -1,0 +1,76 @@
+[project]
+name = "theme-producer"
+version = "0.1.0"
+description = "Theme producer (tpr): Material You themes and projections for the dotfiles toolchain"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.14"
+dependencies = [
+    "cli-output>=0.1.0",
+    "config-assembler-engine>=0.1.0",
+    "oci-runtime>=0.5.0",
+    "jinja2>=3.1",
+    "pydantic>=2.0",
+    "rich>=13.0",
+    "typer>=0.12",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Typing :: Typed",
+]
+
+[project.scripts]
+tpr = "theme_producer.cli.main:app"
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+include = [
+    "src/theme_producer/**",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/theme_producer"]
+
+# The harness trees (.agents/, _bmad/, .opencode/, openspec/, tickets/) are not
+# package content; keep them out of the sdist.
+[tool.hatch.build.targets.sdist]
+only-include = [
+    "pyproject.toml",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "src/theme_producer",
+    "tests",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+addopts = ["--strict-markers", "-rxX"]
+
+[tool.uv.sources]
+cli-output = { git = "https://github.com/RandomGenericUsername/cli-output", tag = "v0.1.0" }
+config-assembler-engine = { git = "https://github.com/RandomGenericUsername/config-assembler-engine", tag = "v0.1.0" }
+oci-runtime = { git = "https://github.com/RandomGenericUsername/oci-runtime", tag = "v0.5.0" }
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B"]
+ignore = ["B008", "B905"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=7.0",
+    "ruff>=0.15.17",
+]

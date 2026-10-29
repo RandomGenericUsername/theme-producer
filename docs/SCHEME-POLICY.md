@@ -1,6 +1,6 @@
 # Scheme policy design — `scheme-smart` in `tpr`
 
-Status: proposed
+Status: implemented (REQ-019/020/021)
 Date: 2026-10-28
 Scope: standalone `theme-producer`; no dotfiles/provisioning/runtime changes.
 
@@ -124,6 +124,44 @@ Computed on the 256×256 Triangle resize, sRGB, alpha dropped:
 For a color source, the metrics are derived from that single color (`contrast=0`,
 `hue_diversity=0`, `colorfulness=0`).
 
+## Corpus calibration (2026-10-28)
+
+Measured with `PillowImageMetrics` on the seven-wallpaper oracle corpus
+(`tests/contract/test_scheme_policy_corpus.py`, skipped when the host wallpapers are absent):
+
+| Wallpaper | saturation | colorfulness | lightness | contrast | hue_diversity |
+|---|---:|---:|---:|---:|---:|
+| zenitsu-agatsuma-3840x2160-26517.png | 0.097 | 0.145 | 0.014 | 0.140 | 0.036 |
+| windows-95-dark-3840x2160-27097.jpg | 0.191 | 0.143 | 0.178 | 0.357 | 0.096 |
+| gargantua-black-3840x2160-9621.jpg | 0.220 | 0.078 | 0.063 | 0.305 | 0.603 |
+| japan-artistic-3840x2160-25406.jpg | 0.260 | 0.233 | 0.346 | 0.669 | 0.583 |
+| astronaut-purple-3840x2160-22432.jpg | 0.550 | 0.225 | 0.148 | 0.353 | 0.172 |
+| yasuke-dark-7680x4320-21997.jpg | 0.416 | 0.136 | 0.044 | 0.319 | 0.884 |
+| aurora.jpg | 0.594 | 0.292 | 0.148 | 0.351 | 0.674 |
+
+Recorded picks (before calibration the `balanced` vibrant rule at `colorfulness >= 0.35` was
+unreachable because the corpus maximum is 0.292):
+
+| Wallpaper | balanced | vivid | muted | source-faithful |
+|---|---|---|---|---|
+| zenitsu | scheme-neutral | scheme-neutral | scheme-neutral | scheme-content |
+| windows-95 | scheme-tonal-spot | scheme-vibrant | scheme-neutral | scheme-content |
+| gargantua | scheme-monochrome | scheme-neutral | scheme-neutral | scheme-content |
+| japan-artistic | scheme-tonal-spot | scheme-vibrant | scheme-neutral | scheme-fidelity |
+| astronaut-purple | scheme-vibrant | scheme-vibrant | scheme-tonal-spot | scheme-content |
+| yasuke | scheme-expressive | scheme-vibrant | scheme-expressive | scheme-content |
+| aurora | scheme-vibrant | scheme-vibrant | scheme-tonal-spot | scheme-content |
+
+Changes (thresholds only; the documented normalizers are unchanged):
+
+- `balanced`: vibrant threshold `colorfulness >= 0.35, saturation >= 0.55` →
+  `>= 0.18, >= 0.45`, so a genuinely saturated/colorful image can trigger it.
+- `vivid`: added `saturation < 0.15 → scheme-neutral` so a near-gray image is not forced vibrant;
+  the remaining images stay vibrant by default, which is the profile's intent.
+- `muted`: tonal-spot threshold `colorfulness >= 0.35` → `colorfulness >= 0.18 and saturation >= 0.30`,
+  so desaturated wallpapers stay neutral while colorful ones become tonal-spot.
+- `source-faithful` is unchanged.
+
 ## Policy catalog schema
 
 ```yaml
@@ -141,8 +179,8 @@ policies:
           saturation: { lt: 0.15 }
         variant: scheme-neutral
       - when:
-          colorfulness: { gte: 0.35 }
-          saturation: { gte: 0.55 }
+          colorfulness: { gte: 0.18 }
+          saturation: { gte: 0.45 }
         variant: scheme-vibrant
       - when:
           hue_diversity: { gte: 0.60 }
@@ -153,13 +191,17 @@ policies:
     rules:
       - when: { colorfulness: { lt: 0.10 } }
         variant: scheme-neutral
+      - when: { saturation: { lt: 0.15 } }
+        variant: scheme-neutral
       - when: { contrast: { gte: 0.55 } }
         variant: scheme-vibrant
 
   muted:
     default: scheme-neutral
     rules:
-      - when: { colorfulness: { gte: 0.35 } }
+      - when:
+          colorfulness: { gte: 0.18 }
+          saturation: { gte: 0.30 }
         variant: scheme-tonal-spot
       - when: { hue_diversity: { gte: 0.65 } }
         variant: scheme-expressive
@@ -176,13 +218,26 @@ Unknown metric/operator/variant, out-of-range values, or empty rules fail at loa
 
 ## Resolution and precedence
 
-1. `scheme_type` explicit (one of the nine) → use it, skip the policy.
-2. `scheme_type=scheme-smart` or `scheme_policy` set → load catalog, compute metrics, resolve
-   variant.
-3. No policy and no explicit scheme → engine default (`scheme-tonal-spot`).
+`scheme_type` is one setting with three sources, highest first:
 
-`scheme_policy` selects the profile name; `--policies-file` / `THEME_SCHEME_POLICIES_CONFIG_FILE_PATH`
-selects the catalog file.
+1. `--param scheme_type=<variant|scheme-smart>`.
+2. `[generation] scheme_type` / `THEME__GENERATION__SCHEME_TYPE`.
+3. The engine catalog's `scheme_type` default (packaged `scheme-tonal-spot`).
+
+Then:
+
+- A real variant (one of the nine) is used directly and **bypasses the policy**.
+- `scheme_type=scheme-smart` is a `tpr` pseudo-value: load the catalog, select the profile,
+  measure the source, resolve a concrete variant, and forward **that** to the engine. Native's
+  catalog lists only the nine real variants, so the pseudo-value is resolved before engine
+  parameter validation; `--param scheme_type=scheme-smart` is therefore accepted by both engines.
+- `scheme_policy` alone never enables smart. It only selects the profile once smart is requested.
+
+`scheme_policy` selects the profile name (`--scheme-policy` > settings > catalog `default`);
+`--policies-file` / `THEME_SCHEME_POLICIES_CONFIG_FILE_PATH` selects the catalog file.
+
+`--dry-run` reports the requested type, profile, metrics, and chosen variant. Container runs resolve
+on the host and the inner command receives the concrete variant only.
 
 ## Ports and adapters
 

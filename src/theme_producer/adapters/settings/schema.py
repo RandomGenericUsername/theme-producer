@@ -13,7 +13,9 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
+from theme_producer.domain.exceptions import InvalidSchemeTypeError
 from theme_producer.domain.generation import InvalidSmartThresholdError
+from theme_producer.domain.scheme_selection import normalize_scheme_type
 from theme_producer.domain.settings import ContainerEngine, RuntimeMode
 from theme_producer.domain.smart_mode import ProjectionMode, validate_threshold
 
@@ -64,6 +66,7 @@ class OutputSettingsSchema(BaseModel):
 class GenerationSettingsSchema(BaseModel):
     engine: str = "matugen"
     default_params: dict[str, Any] = Field(default_factory=dict)
+    scheme_type: str = "scheme-tonal-spot"
     scheme_policy: str = "balanced"
 
     @field_validator("engine")
@@ -72,6 +75,14 @@ class GenerationSettingsSchema(BaseModel):
         if not value.strip():
             raise ValueError("engine must not be empty")
         return value
+
+    @field_validator("scheme_type")
+    @classmethod
+    def _validate_scheme_type(cls, value: str) -> str:
+        try:
+            return normalize_scheme_type(value)
+        except InvalidSchemeTypeError as exc:
+            raise ValueError(str(exc)) from exc
 
     @field_validator("scheme_policy")
     @classmethod

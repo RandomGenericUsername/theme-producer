@@ -14,6 +14,7 @@ from theme_producer.domain.exceptions import (
     InvalidImageMetricsError,
     InvalidSchemePolicyCatalogError,
     InvalidSchemeRuleError,
+    InvalidSchemeTypeError,
     SchemePolicyError,
     ThemeValidationError,
     UnknownSchemePolicyError,
@@ -39,6 +40,11 @@ from theme_producer.domain.scheme_policy import (
     SchemeVariant,
 )
 from theme_producer.domain.scheme_policy_resolver import SchemePolicyResolver
+from theme_producer.domain.scheme_selection import (
+    SMART_SCHEME_TYPE,
+    SchemeResolution,
+    normalize_scheme_type,
+)
 from theme_producer.domain.services import (
     ALIASES,
     LEGACY_ALIASES,
@@ -53,6 +59,7 @@ __all__ = [
     "LEGACY_ALIASES",
     "LEGACY_COLOR_ORDER",
     "SCHEMA_VERSION",
+    "SMART_SCHEME_TYPE",
     "STABLE_ALIASES",
     "TONE_ORDER",
     "TONES",
@@ -64,6 +71,7 @@ __all__ = [
     "InvalidImageMetricsError",
     "InvalidSchemePolicyCatalogError",
     "InvalidSchemeRuleError",
+    "InvalidSchemeTypeError",
     "MaterialRole",
     "MetricName",
     "Mode",
@@ -75,6 +83,7 @@ __all__ = [
     "SchemePolicyCatalog",
     "SchemePolicyError",
     "SchemePolicyResolver",
+    "SchemeResolution",
     "SchemeVariant",
     "Source",
     "SourceKind",
@@ -82,4 +91,5 @@ __all__ = [
     "ThemeValidationError",
     "TonalPalette",
     "UnknownSchemePolicyError",
+    "normalize_scheme_type",
 ]

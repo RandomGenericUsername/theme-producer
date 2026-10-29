@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
 import typer
@@ -17,11 +18,14 @@ from theme_producer.cli._helpers import (
     selected,
 )
 from theme_producer.cli._params import parse_params, resolve_engine_params
+from theme_producer.cli._scheme import apply_scheme_resolution
 from theme_producer.cli.options import (
     CONFIG_OPT,
     ENGINE_OPT,
+    POLICIES_FILE_OPT,
     PROJECTION_MODE_OPT,
     RUNTIME_OPT,
+    SCHEME_POLICY_OPT,
     SMART_THRESHOLD_OPT,
     TEMPLATES_DIR_OPT,
 )
@@ -47,6 +51,8 @@ def generate(
     ),
     mode: str | None = PROJECTION_MODE_OPT,
     smart_threshold: float | None = SMART_THRESHOLD_OPT,
+    scheme_policy: str | None = SCHEME_POLICY_OPT,
+    policies_file: Path | None = POLICIES_FILE_OPT,
     output_dir: Path | None = typer.Option(None, "--output-dir", "-o", help="Output directory"),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Print the resolved plan without generating"
@@ -66,14 +72,35 @@ def generate(
             config_path=config_path,
             runtime=runtime,
             container_engine=container_engine,
+            extra_overrides=(
+                {"generation.scheme_policy": scheme_policy} if scheme_policy is not None else None
+            ),
         )
         catalog = load_catalog(deps)
         engine_name = resolve_engine_name(engine, settings, catalog)
         definition = catalog[engine_name]
 
         raw_params = parse_params(param)
+        scheme, params_with_scheme = apply_scheme_resolution(
+            deps,
+            image_path=image,
+            definition=definition,
+            settings_scheme_type=settings.generation.scheme_type,
+            profile=settings.generation.scheme_policy,
+            policies_file=str(policies_file) if policies_file is not None else None,
+            params=raw_params,
+        )
+        # The container inner command must also read a concrete variant from its
+        # temporary settings file, never the pseudo-value.
+        settings = replace(
+            settings,
+            generation=replace(
+                settings.generation,
+                scheme_type=scheme.variant.value,
+            ),
+        )
         resolved_params = resolve_engine_params(
-            definition, settings.generation.default_params, raw_params
+            definition, settings.generation.default_params, params_with_scheme
         )
         resolved_formats = resolve_formats(formats, settings)
         resolved_output = Path(output_dir) if output_dir is not None else settings.output.directory
@@ -83,9 +110,7 @@ def generate(
 
         effective_mode = mode if mode is not None else settings.output.default_mode
         effective_threshold = (
-            smart_threshold
-            if smart_threshold is not None
-            else settings.output.smart_threshold
+            smart_threshold if smart_threshold is not None else settings.output.smart_threshold
         )
         request = build_request(
             image_path=image,
@@ -97,6 +122,7 @@ def generate(
             dry_run=dry_run,
             mode=effective_mode,
             smart_threshold=effective_threshold,
+            scheme=scheme,
         )
         processor = create_processor(
             deps,

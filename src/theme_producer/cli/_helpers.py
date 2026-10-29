@@ -22,6 +22,7 @@ from theme_producer.domain.generation import (
     EngineNotRegisteredError,
     GenerationRequest,
 )
+from theme_producer.domain.scheme_selection import SchemeResolution
 from theme_producer.domain.settings import (
     AppSettings,
     ContainerEngine,
@@ -62,6 +63,7 @@ def resolve_settings(
     config_path: Path | None = None,
     runtime: RuntimeMode | None = None,
     container_engine: ContainerEngine | None = None,
+    extra_overrides: Mapping[str, str] | None = None,
 ) -> AppSettings:
     """Resolve settings with THEME/CLI overrides and the 5-strategy chain."""
     effective_config = selected(ctx, "config_path", config_path)
@@ -69,6 +71,7 @@ def resolve_settings(
     effective_container = selected(ctx, "container_engine", container_engine)
 
     overrides = dict((ctx.obj or {}).get("cli_overrides", {}))
+    overrides.update(extra_overrides or {})
     if effective_runtime is not None:
         overrides["runtime.mode"] = RuntimeMode(effective_runtime).value
     if effective_container is not None:
@@ -127,6 +130,7 @@ def build_request(
     mode: ModeName | str = ModeName.DARK,
     smart_threshold: object = 0.5,
     seed_color: str | None = None,
+    scheme: SchemeResolution | None = None,
 ) -> GenerationRequest:
     return GenerationRequest(
         image_path=image_path,
@@ -145,6 +149,7 @@ def build_request(
             seed_color=seed_color,
             threshold=smart_threshold,
         ),
+        scheme=scheme,
     )
 
 

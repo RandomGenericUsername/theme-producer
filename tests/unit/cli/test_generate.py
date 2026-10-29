@@ -218,13 +218,15 @@ def test_generate_coerces_params_and_validates_choices(
     assert "invalid choice" in error["error"]["message"].lower()
 
 
-def test_generate_rejects_native_scheme_smart_at_param_validation(
+def test_generate_accepts_native_scheme_smart_and_forwards_a_concrete_variant(
     runner: CliRunner,
     fake_engine: FakeEngine,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    image = make_image(tmp_path / "wall.png")
+    # Native's catalog lists only the nine real variants; the tpr pseudo-value
+    # is resolved before engine parameter validation.
+    image = make_solid_image(tmp_path / "red.png", (255, 0, 0))
     deps = make_deps(fake_engine)
     deps.engine_registry["native"] = fake_engine
 
@@ -244,12 +246,9 @@ def test_generate_rejects_native_scheme_smart_at_param_validation(
         monkeypatch,
     )
 
-    assert result.exit_code == 1
-    error = json.loads(result.stderr)
-    assert error["error"]["type"] == "EngineConfigError"
-    assert "invalid choice" in error["error"]["message"].lower()
-    assert "scheme-smart" in error["error"]["message"]
-    assert not fake_engine.calls
+    assert result.exit_code == 0, result.stderr
+    _request, config = fake_engine.calls[0]
+    assert config.params["scheme_type"] == "scheme-vibrant"
 
 
 def test_generate_drops_malformed_params(

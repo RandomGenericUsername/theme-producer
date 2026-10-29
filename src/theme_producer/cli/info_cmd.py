@@ -77,6 +77,7 @@ def info(
             "templates_path": str(templates_path),
             "runtime": RuntimeMode(effective_runtime).value,
             "container_engine": settings.container.engine.value,
+            "scheme_type": settings.generation.scheme_type,
             "scheme_policy": policy_report,
             "engines": [info.to_dict() for info in infos],
             "formats": list(known_format_names()),

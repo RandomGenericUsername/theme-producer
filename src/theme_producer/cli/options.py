@@ -60,6 +60,25 @@ PROJECTION_MODE_OPT: str | None = typer.Option(
     case_sensitive=False,
 )
 
+SCHEME_POLICY_OPT: str | None = typer.Option(
+    None,
+    "--scheme-policy",
+    help=(
+        "Named scheme-policy profile used when scheme_type=scheme-smart "
+        "(default: settings.generation.scheme_policy, packaged balanced)."
+    ),
+)
+
+POLICIES_FILE_OPT: Path | None = typer.Option(
+    None,
+    "--policies-file",
+    help="Path to scheme-policies.yaml (default: THEME_SCHEME_POLICIES_CONFIG_FILE_PATH chain)",
+    file_okay=True,
+    dir_okay=False,
+    readable=True,
+    resolve_path=True,
+)
+
 SMART_THRESHOLD_OPT: float | None = typer.Option(
     None,
     "--smart-threshold",

@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.4.0 — 2026-10-28
+
+- **Configurable scheme policy (`scheme-smart`)**: a hexagonal `tpr` feature that picks one of the
+  nine Material variants from image metrics, for both engines.
+  - Metrics: saturation, Hasler–Süsstrunk colorfulness, relative lightness, contrast,
+    saturation-weighted hue diversity (256×256 Triangle, Pillow).
+  - Ordered ANDed rules, first match, per-policy default; nine real variants; no arbitrary code.
+  - `[generation] scheme_type` (default `scheme-tonal-spot`) and `scheme_policy` (default
+    `balanced`); `--param scheme_type=scheme-smart`, `--scheme-policy`, `--policies-file`, env
+    overrides. `scheme_policy` alone does not enable smart; only `scheme-smart` does.
+  - User catalog: `scheme-policies.yaml` via `config-assembler-engine` (CLI → env → traversal →
+    XDG → packaged default); profiles `balanced`, `vivid`, `muted`, `source-faithful`.
+  - Resolved on the host; containers receive the concrete variant; `theme.json.scheme` is concrete;
+    `--dry-run` shows metrics/profile/variant.
+  - Corpus-calibrated: `balanced` vibrant gate `colorfulness>=0.18, saturation>=0.45`; `vivid`
+    neutral gate; `muted` tonal-spot gate. Seven-wallpaper table in `docs/SCHEME-POLICY.md`.
+
 ## 0.3.1 — 2026-10-28
 
 - **Legacy token compatibility (`BUG-003`):** `colors.gtk.css` now emits

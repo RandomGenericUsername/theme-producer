@@ -227,6 +227,7 @@ class ContainerProcessor:
                 duration=time.monotonic() - started,
                 stderr=result.stderr,
                 mode=request.mode,
+                scheme=request.scheme,
             )
         finally:
             if temp_settings is not None:
@@ -264,6 +265,7 @@ class ContainerProcessor:
                 duration=time.monotonic() - started,
                 stderr=result.stderr,
                 mode=request.mode,
+                scheme=request.scheme,
             )
         finally:
             if temp_settings is not None:

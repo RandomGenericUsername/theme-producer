@@ -17,6 +17,7 @@ from theme_producer.adapters.dry_run_processor import DryRunProcessor
 from theme_producer.adapters.engines.matugen import MatugenEngine
 from theme_producer.adapters.engines.native import NativeEngine
 from theme_producer.adapters.engines_catalog_loader import YamlEngineCatalogLoader
+from theme_producer.adapters.image_metrics import PillowImageMetrics
 from theme_producer.adapters.jinja_renderer import JinjaThemeRenderer
 from theme_producer.adapters.local_processor import LocalProcessor
 from theme_producer.adapters.oci_container_runtime import OciContainerRuntimeAdapter
@@ -31,6 +32,7 @@ from theme_producer.domain.generation import (
 )
 from theme_producer.domain.settings import AppSettings, ContainerEngine, RuntimeMode, Verbosity
 from theme_producer.ports.container_runtime import ContainerRuntimePort
+from theme_producer.ports.image_metrics import ImageMetricsPort
 from theme_producer.ports.output import OutputPort
 from theme_producer.ports.processor import ProcessorPort
 from theme_producer.ports.theme_engine import ThemeEnginePort
@@ -59,6 +61,7 @@ class CliDependencies:
     scheme_policy_catalog_loader: YamlSchemePolicyCatalogLoader = field(
         default_factory=YamlSchemePolicyCatalogLoader
     )
+    image_metrics: ImageMetricsPort = field(default_factory=PillowImageMetrics)
     engine_registry: dict[str, ThemeEnginePort] = field(default_factory=dict)
     template_dir_resolver: TemplateDirResolver = field(default_factory=TemplateDirResolver)
     template_renderer: JinjaThemeRenderer = field(default_factory=JinjaThemeRenderer)

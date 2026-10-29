@@ -22,6 +22,7 @@ def test_dump_config_prints_resolved_toml(
     payload = tomllib.loads(result.stdout)
     assert payload["runtime"]["mode"] == "local"
     assert payload["generation"]["engine"] == "matugen"
+    assert payload["generation"]["scheme_type"] == "scheme-tonal-spot"
     assert payload["generation"]["scheme_policy"] == "balanced"
     assert payload["container"]["engine"] == "podman"
     assert payload["container"]["image_tag"] == f"v{get_version()}"
@@ -41,6 +42,20 @@ def test_dump_config_includes_the_generation_scheme_policy(
     assert result.exit_code == 0, result.stderr
     payload = tomllib.loads(result.stdout)
     assert payload["generation"]["scheme_policy"] == "muted"
+
+
+def test_dump_config_includes_the_generation_scheme_type(
+    runner: CliRunner,
+    fake_engine: FakeEngine,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("THEME__GENERATION__SCHEME_TYPE", "scheme-smart")
+
+    result = invoke(runner, make_deps(fake_engine), ["dump-config"], monkeypatch)
+
+    assert result.exit_code == 0, result.stderr
+    payload = tomllib.loads(result.stdout)
+    assert payload["generation"]["scheme_type"] == "scheme-smart"
 
 
 def test_dump_config_writes_a_file_and_refuses_overwrite(

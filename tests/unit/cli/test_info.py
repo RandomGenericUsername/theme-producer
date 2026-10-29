@@ -36,6 +36,8 @@ def test_info_reports_resolved_settings_templates_engines_formats(
     assert payload["settings"]["container"]["image_tag"] == f"v{get_version()}"
     assert payload["settings"]["output"]["default_mode"] == "dark"
     assert payload["settings"]["output"]["smart_threshold"] == 0.5
+    assert payload["scheme_type"] == "scheme-tonal-spot"
+    assert payload["settings"]["generation"]["scheme_type"] == "scheme-tonal-spot"
     assert payload["scheme_policy"]["profile"] == "balanced"
     assert payload["scheme_policy"]["loaded"] is True
     assert payload["scheme_policy"]["profile_found"] is True
@@ -88,11 +90,14 @@ policies:
     )
     monkeypatch.setenv("THEME_SCHEME_POLICIES_CONFIG_FILE_PATH", str(catalog))
     monkeypatch.setenv("THEME__GENERATION__SCHEME_POLICY", "custom")
+    monkeypatch.setenv("THEME__GENERATION__SCHEME_TYPE", "scheme-smart")
 
     result = invoke(runner, make_deps(fake_engine), ["info"], monkeypatch)
 
     assert result.exit_code == 0, result.stderr
     payload = json.loads(result.stdout)
+    assert payload["scheme_type"] == "scheme-smart"
+    assert payload["settings"]["generation"]["scheme_type"] == "scheme-smart"
     assert payload["settings"]["generation"]["scheme_policy"] == "custom"
     assert payload["scheme_policy"] == {
         "profile": "custom",

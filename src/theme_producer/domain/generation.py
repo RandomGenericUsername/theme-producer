@@ -15,6 +15,7 @@ from typing import Any
 
 from theme_producer.domain.enums import ModeName
 from theme_producer.domain.models import Theme
+from theme_producer.domain.scheme_selection import SchemeResolution
 from theme_producer.domain.settings import AppliedOverride, RuntimeMode
 
 __all__ = [
@@ -114,6 +115,9 @@ class GenerationRequest:
     #: Which Theme mode the projections render. ``theme.json`` always contains
     #: both modes; this only selects the consumer artifacts' mode.
     mode: ModeName = ModeName.DARK
+    #: The requested scheme type plus, for ``scheme-smart``, the measured
+    #: metrics and concrete variant chosen on the host.
+    scheme: SchemeResolution | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "image_path", Path(self.image_path))
@@ -171,6 +175,7 @@ class GenerationResult:
     stderr: str = ""
     return_code: int = 0
     mode: ModeName = ModeName.DARK
+    scheme: SchemeResolution | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.mode, ModeName):
@@ -186,6 +191,8 @@ class GenerationResult:
             "output_files": [str(path) for path in self.output_files],
             "duration": round(self.duration, 6),
         }
+        if self.scheme is not None:
+            payload["scheme"] = self.scheme.to_dict()
         if self.plan is not None:
             payload["plan"] = self.plan
             payload["projections"] = list(self.projections)

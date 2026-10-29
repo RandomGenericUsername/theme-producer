@@ -13,6 +13,8 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any
 
+from theme_producer.domain.scheme_selection import normalize_scheme_type
+
 
 class RuntimeMode(Enum):
     LOCAL = "local"
@@ -51,12 +53,16 @@ class OutputSettings:
 class GenerationSettings:
     engine: str
     default_params: dict[str, Any]
+    # Default scheme forwarded to the engine. One of the nine concrete variants
+    # or the tpr pseudo-value ``scheme-smart`` (which runs the policy).
+    scheme_type: str = "scheme-tonal-spot"
     # Named profile resolved from the scheme-policy catalog when the source
     # uses the ``scheme-smart`` pseudo-variant.
     scheme_policy: str = "balanced"
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "default_params", MappingProxyType(self.default_params))
+        object.__setattr__(self, "scheme_type", normalize_scheme_type(self.scheme_type))
         if not isinstance(self.scheme_policy, str) or not self.scheme_policy.strip():
             raise ValueError(
                 f"generation scheme_policy must be a non-empty string; got {self.scheme_policy!r}"

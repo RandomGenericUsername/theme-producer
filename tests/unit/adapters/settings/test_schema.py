@@ -48,6 +48,7 @@ class TestCoreSettingsSchema:
         assert schema.output.smart_threshold == 0.7
         assert schema.generation.engine == "matugen"
         assert schema.generation.default_params == {"quality": "high"}
+        assert schema.generation.scheme_type == "scheme-tonal-spot"
         assert schema.generation.scheme_policy == "balanced"
         assert schema.templates.directory == "/tmp/templates"
         assert schema.runtime.mode == "local"
@@ -68,6 +69,7 @@ class TestCoreSettingsSchema:
         assert schema.output.smart_threshold == 0.5
         assert schema.generation.engine == "matugen"
         assert schema.generation.default_params == {}
+        assert schema.generation.scheme_type == "scheme-tonal-spot"
         assert schema.generation.scheme_policy == "balanced"
         assert schema.templates.directory == ""
         assert schema.runtime.mode == "local"
@@ -129,6 +131,24 @@ class TestGenerationSettingsSchema:
     def test_default_params_accepts_arbitrary_values(self) -> None:
         schema = GenerationSettingsSchema(default_params={"contrast": 0.5, "scheme_type": "tonal"})
         assert schema.default_params == {"contrast": 0.5, "scheme_type": "tonal"}
+
+    def test_default_scheme_type_is_tonal_spot(self) -> None:
+        assert GenerationSettingsSchema().scheme_type == "scheme-tonal-spot"
+
+    @pytest.mark.parametrize(
+        "scheme_type",
+        ["scheme-smart", "scheme-content", "scheme-vibrant", "scheme-monochrome"],
+    )
+    def test_real_variants_and_smart_are_accepted(self, scheme_type: str) -> None:
+        assert GenerationSettingsSchema(scheme_type=scheme_type).scheme_type == scheme_type
+
+    def test_unknown_scheme_type_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="unknown scheme_type 'scheme-rainbow-2'"):
+            GenerationSettingsSchema(scheme_type="scheme-rainbow-2")
+
+    def test_empty_scheme_type_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="scheme_type must be a non-empty"):
+            GenerationSettingsSchema(scheme_type="  ")
 
     def test_default_scheme_policy_is_balanced(self) -> None:
         assert GenerationSettingsSchema().scheme_policy == "balanced"

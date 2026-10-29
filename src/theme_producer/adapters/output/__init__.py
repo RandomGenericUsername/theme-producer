@@ -110,6 +110,20 @@ def project_result(result: GenerationResult) -> CustomView:
         f"Mode: {result.mode.value}",
         f"Duration: {result.duration:.2f}s",
     ]
+    if result.scheme is not None:
+        lines.append(f"Scheme: {result.scheme.variant.value}")
+        if result.scheme.smart:
+            lines.append(f"Scheme profile: {result.scheme.profile}")
+            if result.scheme.metrics is not None:
+                metrics = result.scheme.metrics
+                lines.append(
+                    "Metrics: "
+                    f"saturation={metrics.saturation:.3f} "
+                    f"colorfulness={metrics.colorfulness:.3f} "
+                    f"lightness={metrics.lightness:.3f} "
+                    f"contrast={metrics.contrast:.3f} "
+                    f"hue_diversity={metrics.hue_diversity:.3f}"
+                )
     if result.plan is not None:
         lines.append(f"Plan: {result.plan}")
         lines.append(
@@ -136,6 +150,20 @@ def project_result(result: GenerationResult) -> CustomView:
         table.add_row("Engine", result.engine)
         table.add_row("Mode", result.mode.value)
         table.add_row("Duration", f"{result.duration:.2f}s")
+        if result.scheme is not None:
+            table.add_row("Scheme", result.scheme.variant.value)
+            if result.scheme.smart:
+                table.add_row("Scheme profile", str(result.scheme.profile))
+                if result.scheme.metrics is not None:
+                    metrics = result.scheme.metrics
+                    table.add_row(
+                        "Metrics",
+                        f"saturation={metrics.saturation:.3f} "
+                        f"colorfulness={metrics.colorfulness:.3f} "
+                        f"lightness={metrics.lightness:.3f} "
+                        f"contrast={metrics.contrast:.3f} "
+                        f"hue_diversity={metrics.hue_diversity:.3f}",
+                    )
         console.print(table)
         if result.plan is not None:
             console.print()
@@ -196,6 +224,11 @@ def project_config_info(payload: Mapping[str, Any]) -> CustomView:
     lines = [
         f"settings: {payload.get('settings_path')}",
         f"templates: {payload.get('templates_path')}",
+        f"scheme_type: {payload.get('scheme_type')}",
+        "scheme_policy: "
+        f"{(payload.get('scheme_policy') or {}).get('profile')} "
+        f"(loaded={(payload.get('scheme_policy') or {}).get('loaded')}, "
+        f"path={(payload.get('scheme_policy') or {}).get('catalog_path')})",
         "engines:",
     ]
     for engine in payload.get("engines", []):
@@ -218,6 +251,8 @@ def project_config_info(payload: Mapping[str, Any]) -> CustomView:
         table.add_column("Value")
         table.add_row("settings", str(payload.get("settings_path")))
         table.add_row("templates", str(payload.get("templates_path")))
+        table.add_row("scheme_type", str(payload.get("scheme_type")))
+        table.add_row("scheme_policy", str((payload.get("scheme_policy") or {}).get("profile")))
         table.add_row("formats", ", ".join(payload.get("formats", [])))
         console.print(table)
         engine_table = Table(title="Engines", box=None)

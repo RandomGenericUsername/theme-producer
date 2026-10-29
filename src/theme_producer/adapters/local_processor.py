@@ -109,6 +109,7 @@ class LocalProcessor:
             output_files=tuple(files),
             duration=duration,
             mode=request.mode,
+            scheme=request.scheme,
         )
 
     def process_show(self, request: GenerationRequest, settings: AppSettings) -> GenerationResult:
@@ -120,4 +121,5 @@ class LocalProcessor:
             output_files=(),
             duration=duration,
             mode=request.mode,
+            scheme=request.scheme,
         )

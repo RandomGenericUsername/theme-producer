@@ -10,6 +10,7 @@ __all__ = [
     "InvalidImageMetricsError",
     "InvalidSchemePolicyCatalogError",
     "InvalidSchemeRuleError",
+    "InvalidSchemeTypeError",
     "SchemePolicyError",
     "ThemeValidationError",
     "UnknownSchemePolicyError",
@@ -100,3 +101,7 @@ class InvalidSchemePolicyCatalogError(SchemePolicyError):
 
 class UnknownSchemePolicyError(SchemePolicyError):
     """Raised when a policy name is not present in the catalog."""
+
+
+class InvalidSchemeTypeError(SchemePolicyError):
+    """Raised when a requested ``scheme_type`` is neither a variant nor smart."""

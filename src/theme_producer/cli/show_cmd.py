@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
 import typer
@@ -16,11 +17,14 @@ from theme_producer.cli._helpers import (
     selected,
 )
 from theme_producer.cli._params import parse_params, resolve_engine_params
+from theme_producer.cli._scheme import apply_scheme_resolution
 from theme_producer.cli.options import (
     CONFIG_OPT,
     ENGINE_OPT,
+    POLICIES_FILE_OPT,
     PROJECTION_MODE_OPT,
     RUNTIME_OPT,
+    SCHEME_POLICY_OPT,
     SMART_THRESHOLD_OPT,
     TEMPLATES_DIR_OPT,
 )
@@ -39,6 +43,8 @@ def show(
     ),
     mode: str | None = PROJECTION_MODE_OPT,
     smart_threshold: float | None = SMART_THRESHOLD_OPT,
+    scheme_policy: str | None = SCHEME_POLICY_OPT,
+    policies_file: Path | None = POLICIES_FILE_OPT,
     runtime: RuntimeMode | None = RUNTIME_OPT,
     container_engine: ContainerEngine | None = ENGINE_OPT,
     config_path: Path | None = CONFIG_OPT,
@@ -52,21 +58,38 @@ def show(
             config_path=config_path,
             runtime=runtime,
             container_engine=container_engine,
+            extra_overrides=(
+                {"generation.scheme_policy": scheme_policy} if scheme_policy is not None else None
+            ),
         )
         catalog = load_catalog(deps)
         engine_name = resolve_engine_name(engine, settings, catalog)
         definition = catalog[engine_name]
+        scheme, params_with_scheme = apply_scheme_resolution(
+            deps,
+            image_path=image,
+            definition=definition,
+            settings_scheme_type=settings.generation.scheme_type,
+            profile=settings.generation.scheme_policy,
+            policies_file=str(policies_file) if policies_file is not None else None,
+            params=parse_params(param),
+        )
+        settings = replace(
+            settings,
+            generation=replace(
+                settings.generation,
+                scheme_type=scheme.variant.value,
+            ),
+        )
         resolved_params = resolve_engine_params(
-            definition, settings.generation.default_params, parse_params(param)
+            definition, settings.generation.default_params, params_with_scheme
         )
         effective_templates = selected(ctx, "templates_dir", templates_dir)
         if effective_templates is None and settings.templates.directory:
             effective_templates = settings.templates.directory
         effective_mode = mode if mode is not None else settings.output.default_mode
         effective_threshold = (
-            smart_threshold
-            if smart_threshold is not None
-            else settings.output.smart_threshold
+            smart_threshold if smart_threshold is not None else settings.output.smart_threshold
         )
         request = build_request(
             image_path=image,
@@ -77,6 +100,7 @@ def show(
             settings=settings,
             mode=effective_mode,
             smart_threshold=effective_threshold,
+            scheme=scheme,
         )
         processor = create_processor(
             deps,

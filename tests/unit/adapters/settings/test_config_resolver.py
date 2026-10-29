@@ -50,6 +50,7 @@ def test_resolve_returns_domain_settings(tmp_path: Path) -> None:
     assert settings.output.verbosity is Verbosity.NORMAL
     assert settings.output.default_mode == "dark"
     assert settings.output.smart_threshold == 0.5
+    assert settings.generation.scheme_type == "scheme-tonal-spot"
     assert settings.generation.scheme_policy == "balanced"
 
 
@@ -140,6 +141,11 @@ def test_cli_overrides_beat_env_overrides(tmp_path: Path, monkeypatch: pytest.Mo
             lambda s: dict(s.generation.default_params) == {"a": "one", "b": "two"},
         ),
         (
+            "THEME__GENERATION__SCHEME_TYPE",
+            "scheme-smart",
+            lambda s: s.generation.scheme_type == "scheme-smart",
+        ),
+        (
             "THEME__GENERATION__SCHEME_POLICY",
             "vivid",
             lambda s: s.generation.scheme_policy == "vivid",
@@ -216,6 +222,7 @@ def test_resolver_uses_theme_schema_and_policy() -> None:
         "output.smart_threshold",
         "generation.engine",
         "generation.default_params",
+        "generation.scheme_type",
         "generation.scheme_policy",
         "templates.directory",
         "runtime.mode",
@@ -327,12 +334,34 @@ def test_cli_overrides_generation_scheme_policy(tmp_path: Path) -> None:
     assert applied["generation.scheme_policy"].coerced_value == "source-faithful"
 
 
+def test_cli_overrides_generation_scheme_type(tmp_path: Path) -> None:
+    config = _write_config(tmp_path / "settings.toml")
+    resolver = AssembledConfigResolver()
+
+    settings = resolver.resolve(
+        explicit_path=str(config),
+        cli_overrides={"generation.scheme_type": "scheme-smart"},
+    )
+
+    assert settings.generation.scheme_type == "scheme-smart"
+    assert resolver.last_result is not None
+    applied = {override.field_path: override for override in resolver.last_result.applied_overrides}
+    assert applied["generation.scheme_type"].source == "cli"
+    assert applied["generation.scheme_type"].coerced_value == "scheme-smart"
+
+
 @pytest.mark.parametrize(
     ("field_path", "value", "key", "match"),
     [
         ("output.default_mode", "sepia", "output.default_mode", "Invalid output default mode"),
         ("output.smart_threshold", "1.5", "output.smart_threshold", "smart threshold"),
         ("output.smart_threshold", "-0.1", "output.smart_threshold", "smart threshold"),
+        (
+            "generation.scheme_type",
+            "scheme-nope",
+            "generation.scheme_type",
+            "unknown scheme_type",
+        ),
         (
             "generation.scheme_policy",
             "   ",

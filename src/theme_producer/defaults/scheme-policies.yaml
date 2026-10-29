@@ -19,9 +19,11 @@ policies:
       - when:
           saturation: { lt: 0.15 }
         variant: scheme-neutral
+      # Calibrated on the seven-wallpaper corpus: observed colorfulness is
+      # 0.078..0.292, so the original 0.35 threshold was unreachable.
       - when:
-          colorfulness: { gte: 0.35 }
-          saturation: { gte: 0.55 }
+          colorfulness: { gte: 0.18 }
+          saturation: { gte: 0.45 }
         variant: scheme-vibrant
       - when:
           hue_diversity: { gte: 0.60 }
@@ -32,13 +34,17 @@ policies:
     rules:
       - when: { colorfulness: { lt: 0.10 } }
         variant: scheme-neutral
+      - when: { saturation: { lt: 0.15 } }
+        variant: scheme-neutral
       - when: { contrast: { gte: 0.55 } }
         variant: scheme-vibrant
 
   muted:
     default: scheme-neutral
     rules:
-      - when: { colorfulness: { gte: 0.35 } }
+      - when:
+          colorfulness: { gte: 0.18 }
+          saturation: { gte: 0.30 }
         variant: scheme-tonal-spot
       - when: { hue_diversity: { gte: 0.65 } }
         variant: scheme-expressive

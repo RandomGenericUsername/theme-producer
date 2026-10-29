@@ -89,6 +89,7 @@ class DryRunProcessor:
             plan=plan,
             projections=tuple(projection.filename for projection in projections),
             mode=request.mode,
+            scheme=request.scheme,
         )
 
     def process_generate(

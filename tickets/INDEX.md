@@ -7,7 +7,7 @@
 
 ## Epics
 
-- [epic-001-theme-producer](./epic-001-theme-producer/ticket.md) — Theme producer (successor to CSG) | `in-progress` | 24/26 complete (23 done + 1 spike reported; REQ-014 blocked, REQ-021 pending) | done-when: a pinned `tpr` release produces a schema-valid Theme + eight projections; adoption spike reports a mechanical CSG swap; gates + image smoke green | exec: bmad brief+spec+spine
+- [epic-001-theme-producer](./epic-001-theme-producer/ticket.md) — Theme producer (successor to CSG) | `in-progress` | 25/26 complete (24 done + 1 spike reported; REQ-014 blocked) | done-when: a pinned `tpr` release produces a schema-valid Theme + eight projections; adoption spike reports a mechanical CSG swap; gates + image smoke green | exec: bmad brief+spec+spine
   - [ops-001-repo-birth](./ops-001-repo-birth/ticket.md) — Repo birth + planning substrate | `done`
   - [req-001-product-brief](./req-001-product-brief/ticket.md) — Product brief | `done`
   - [req-002-spec](./req-002-spec/ticket.md) — Spec (CAP-001..012) | `done`
@@ -32,7 +32,7 @@
   - [bug-003-legacy-token-compat](./bug-003-legacy-token-compat/ticket.md) — GTK/rasi legacy tokens missing (AGS/rofi break) | `done` | severity: high | fixed v0.3.1
   - [req-019-scheme-policy-domain](./req-019-scheme-policy-domain/ticket.md) — Scheme policy domain: metrics, rules, resolver | `done`
   - [req-020-scheme-policy-catalog](./req-020-scheme-policy-catalog/ticket.md) — Scheme policy catalog + metrics adapters | `done`
-  - [req-021-scheme-policy-integration](./req-021-scheme-policy-integration/ticket.md) — Scheme policy integration: scheme-smart resolution | `in-progress`
+  - [req-021-scheme-policy-integration](./req-021-scheme-policy-integration/ticket.md) — Scheme policy integration: scheme-smart resolution | `done`
 
   - [spike-001-dotfiles-fit](./spike-001-dotfiles-fit/ticket.md) — Dotfiles fit: adapter, hashes, contract, rollout | `reported` | timebox 4h
 

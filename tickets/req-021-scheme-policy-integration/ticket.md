@@ -2,7 +2,7 @@
 id: REQ-021
 title: "Scheme policy integration: scheme-smart resolution"
 kind: requirement
-status: in-progress
+status: done
 lane: 3
 links:
   openspec: none

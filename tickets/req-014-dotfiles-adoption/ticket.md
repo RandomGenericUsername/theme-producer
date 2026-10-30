@@ -1,8 +1,8 @@
 ---
 id: REQ-014
-title: "Dotfiles runtime/provisioning adoption (after spike)"
+title: "Dotfiles tpr adoption: runtime/provisioning acceptance and cutover"
 kind: requirement
-status: proposed
+status: in-progress
 lane: 4 — bmad-advisory
 parent: EPIC-001
 links:
@@ -12,66 +12,99 @@ worktree: none
 branch: none
 ---
 
-# Dotfiles runtime/provisioning adoption (after spike)
+# Dotfiles tpr adoption — acceptance and cutover
 
-## Requirement
+## Scope
 
-Adopt `tpr` in the dotfiles tree after the spike reports, without breaking the runtime artifact
-contract.
+This ticket is the **adoption gate** for using `theme-producer` (`tpr`) as the
+dotfiles palette producer. It is not the theme-producer feature roadmap.
 
-## Acceptance
+In scope:
 
-- [ ] A runtime adapter invokes `tpr` (or a generalized producer adapter) and populates the palette
-      cache; artifact hashes and generation identity are mapped.
-- [ ] Provisioning pins the released `tpr` tag and builds the images; the verify role names them.
-- [ ] Consumer pointers, reloaders and the AGS palette-refresh path are exercised.
-- [ ] CSG remains available for rollback for one cycle; its removal is a separate ticket.
-- [ ] No unversioned contract change.
+- host bootstrap with the pinned tpr/runtime/provisioning/CSG releases;
+- runtime-owned producer selection and cache identity;
+- selector, rofi, AGS, GTK, rofi, wlogout, btop, kitty, Hyprland and icon
+  consumer behavior on a real wallpaper;
+- rollback to CSG and restoration of tpr;
+- evidence and ticket closeout.
 
-## Current state (2026-10-28)
+Out of scope / separate tickets:
 
-The cross-repo slices are done and released:
+- per-wallpaper scheme selection in the wallpaper-selector GUI;
+- consumer semantic-role migrations beyond the current compatibility aliases;
+- btop theme-studio integration work;
+- removing CSG after the rollback window.
 
-- `contracts v0.4.0` — the `tpr` record + tests, pushed.
-- `dotfiles-runtime v0.4.0` — `TprAdapter`, `THEME__` allowlist, producer fingerprint in the cache
-  key, `RUNTIME__PALETTE__PRODUCER` selector defaulting to `csg`; pushed.
-- `dotfiles-provision v0.1.22` — tpr pin, three images, settings, templates, verify and the runtime
-  producer switch; pushed.
-- `theme-producer v0.1.0` — `cli-invocation-contract v0.4.0` pinned; conformance test green with
-  `tpr-native`.
+## Product status: frozen
 
-## Container validation (2026-10-28)
+`theme-producer v0.4.0` is feature-complete and released: 50 roles, 6×18
+palettes, nine schemes, smart mode, scheme policy, ANSI projection, semantic
+tokens/legacy aliases, `theme.json`, local/container engines, images and tests.
+Do not change tpr product code for adoption unless acceptance finds a genuine
+tpr defect; route that back to the theme-producer ticket system.
 
-`docs/CONTAINER-VALIDATION-2026-10-28.md` records the real-wallpaper run:
+## Integration status: released
 
-- Host matugen absent; both `tpr-matugen-podman:v0.1.0` and `tpr-native-podman:v0.1.0` ran via
-  `--runtime container --container-engine podman`.
-- Seven wallpapers (six real files + the currently applied one), both engines: all exit 0, 9 files,
-  50 roles, 6×18 palettes, 16 distinct ANSI colors, hue anchors exact, schema-valid `theme.json`.
-- 8K wallpaper ~15 s including container startup; no host matugen cache/config created.
-- Finding: same-seed parity is exact, but image-source selection can diverge (zenitsu: matugen
-  `#f9c711` vs native `#f13802`). For the first cutover keep `engine = "matugen"`; native needs its
-  source-color preference aligned before it can be a visual drop-in.
+| Component | Release | Adoption change |
+|---|---|---|
+| contracts | `v0.4.0` | tpr invocation record |
+| dotfiles-runtime | `v0.4.1` | runtime-owned `producer.json`, tpr container mode, pinned templates, palette diagnostics |
+| color-scheme-generator | `v0.2.2` | fail-closed artifacts, decoy CWD template fix |
+| dotfiles-provision | `v0.1.27` | renders producer config, removes ambient env authority, post-seed consumer links, tpr container verify |
+| dotfiles-v3 | `PIN-0118` | engine/runtime/CSG pins; tpr default; `RUNTIME_PALETTE_PRODUCER=csg` rollback |
+| theme-producer | `v0.4.0` | product frozen |
 
-## Blocker
+The v3 composition selects tpr by default; the runtime reads
+`<install>/config/dotfiles-runtime/producer.json`, not ambient environment.
 
-The `dotfiles-v3` composition pin is blocked by the in-flight `REQ-008` all-standalone cutover.
-The composition is still engine `v0.1.19` with all seven AGS apps `owner: legacy`
-(`dotfiles/provisioning/apps.yaml:30-38`), while engine `v0.1.21+` requires every entry to be
-`owner: standalone`. Pinning engine `v0.1.22` now would combine the all-standalone topology change
-with the tpr pin and fail the composition gates.
+## Live acceptance matrix (the gate)
 
-Next: after the REQ-008 v0.1.21 cutover lands in `dotfiles-v3`, make one combined pin release:
+Run after `bootstrap.sh` completes on the host. No item may be waived; any
+failure is routed to the owning repo and this ticket stays open.
 
-- engine `v0.1.22`
-- runtime `v0.4.0`
-- theme-producer `v0.1.0`
-- assets `v0.6.2` (from the REQ-008 cutover)
+| # | Check | Expected / evidence |
+|---|---|---|
+| 1 | Fresh bootstrap | `./bootstrap.sh` exits 0 with engine `v0.1.27`, runtime `v0.4.1`, CSG `v0.2.2`, tpr `v0.4.0`; verify green |
+| 2 | Producer config | `<install>/config/dotfiles-runtime/producer.json` is `{schema_version:1, producer:"tpr", tpr_engine:"native", tpr_runtime:"container"}` |
+| 3 | No ambient authority | no producer `environment.d` file/unit `Environment=`; `inspect producer` shows `source: config` and any stale `RUNTIME__PALETTE__PRODUCER=csg` as `ignored_env` |
+| 4 | No host helper | `~/.local/bin/tpr-native` is removed; tpr still generates via the pinned native container image |
+| 5 | Real wallpaper | set the current real wallpaper; palette cache gets a `tpr` entry, not CSG; 8 artifacts present |
+| 6 | Previously failing image | `white_tailed_eagle.png` from the selector’s app CWD with stale `RUNTIME__PALETTE__PRODUCER=csg` succeeds and uses tpr |
+| 7 | Selector-shaped apply | `dotfiles-runtime wallpaper set` invoked with the selector’s env uses tpr and the tpr cache key |
+| 8 | Rofi | immediately after bootstrap, with no manual wallpaper switch, `rofi-ui` opens with no theme parse error; `colors.rasi` resolves |
+| 9 | Consumers | AGS 7-app refresh 0 failures; GTK3/4, rofi, btop, wlogout, kitty, Hyprland and icons point at the new palette/current links |
+| 10 | Diagnostics | a forced failure records `tool: tpr`/`tool: csg` correctly and includes rc/stdout/stderr; no `returncode:null` loss |
+| 11 | Rollback | `RUNTIME_PALETTE_PRODUCER=csg ./bootstrap.sh` renders `producer:csg`, sets a CSG palette, and consumers follow; then restore tpr and verify |
+| 12 | Clean repeat | a second tpr set is a cache hit; no manual helper, no ambient env override, no manual consumer relink |
 
-with `apps.yaml` flipped to standalone, `deploy-coverage` green, and `runtime_palette_producer`
-kept at `csg` until the user flips it.
+## Rules
+
+- **No workarounds**: no manual `tpr-native` copy, no `RUNTIME__…` double-underscore
+  override, no manual `colors.rasi`/symlink repair, no “just re-run the wallpaper”.
+- **One source of truth**: producer selection is `producer.json`; the selector
+  calls the runtime unchanged.
+- **Versioned pins only**: no `main` refs; no unversioned contract changes.
+- **Close on evidence**: each matrix row records the command and observed output.
+- **Rollback is a tested path**, not a fallback guess.
+
+## Open tickets that must close with the gate
+
+- `dotfiles-provision` BUG-006 — rofi post-bootstrap colors link.
+- `dotfiles-provision` BUG-007 — tpr native/container provisioning and verify.
+- `dotfiles-provision` BUG-008 — runtime-seed producer selection.
+- `dotfiles-runtime` BUG-007 — palette missing-artifact diagnostics/templates.
+- `dotfiles-runtime` REQ-004 — runtime producer config.
+- `dotfiles-runtime` REQ-005 — tpr container runtime.
+- `color-scheme-generator` BUG-002 — CSG exit 0 without artifacts.
+- `ags-wallpaper-selector` BUG-001 — stale producer; resolved by runtime config,
+  selector apply path unchanged.
 
 ## Done-when
 
-A dotfiles ticket proves the swap end-to-end on a real wallpaper with all consumers green.
-
+- [ ] All 12 live acceptance rows have recorded evidence.
+- [ ] No adoption ticket above remains open for the cutover.
+- [ ] CSG rollback has been exercised and tpr restored; both cache identities
+  are correct.
+- [ ] The host runs the pinned set with no manual helper/env/link workarounds.
+- [ ] Deferred items (selector scheme GUI, consumer semantic migrations, btop,
+  CSG removal) are split into their own tickets and explicitly not blockers.

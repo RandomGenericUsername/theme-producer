@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — `on_backdrop` (REQ-022)
+## 0.5.0 — 2026-10-30
 
 - **Produced role `on_backdrop`** (additive, `theme.json` schema `1.1`): the
   ink that reads over the wallpaper's top bar band. The engine still emits

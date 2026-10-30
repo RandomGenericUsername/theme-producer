@@ -1,6 +1,6 @@
 [project]
 name = "theme-producer"
-version = "0.4.0"
+version = "0.5.0"
 description = "Theme producer (tpr): Material You themes and projections for the dotfiles toolchain"
 readme = "README.md"
 license = "MIT"

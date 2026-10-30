@@ -108,3 +108,34 @@ failure is routed to the owning repo and this ticket stays open.
 - [ ] The host runs the pinned set with no manual helper/env/link workarounds.
 - [ ] Deferred items (selector scheme GUI, consumer semantic migrations, btop,
   CSG removal) are split into their own tickets and explicitly not blockers.
+
+## Live acceptance evidence (2026-10-30)
+
+Bootstrap completed. Installed versions: engine `0.1.27`, runtime `0.4.1`,
+CSG `0.2.2`, tpr `0.4.0`.
+
+| # | Result | Evidence |
+|---|---|---|
+| 1 | PASS | bootstrap completed; engine/runtime/CSG/tpr versions above |
+| 2 | PASS | `config/dotfiles-runtime/producer.json` = `{"schema_version":1,"producer":"tpr","tpr_engine":"native","tpr_runtime":"container"}` |
+| 3 | PASS | no `environment.d` producer file; no unit `Environment=`; `inspect producer` with ambient csg → `source: config`, `ignored_env: csg` |
+| 4 | PASS | manual `~/.local/bin/tpr-native` removed; selector-CWD tpr set still succeeded via the image |
+| 5 | PASS | `white_tailed_eagle.png` tpr set: palette `a53f2180…`, 8 artifacts, cache miss then hit |
+| 6 | PASS | same image run from the selector app CWD with stale `RUNTIME__PALETTE__PRODUCER=csg` succeeded with tpr |
+| 7 | PASS | selector-shaped set reports `producer=tpr`, `producer_source=config`, `producer_engine=native` |
+| 8 | PASS | rofi `colors.rasi` created at 07:56:42; rofi opens with rc 124 and empty stderr |
+| 9 | PASS | AGS 7 apps / 0 failures; GTK3/4, rofi, btop, AGS links to `a53f2180…`; doctor clean |
+| 10 | PASS | forced tpr missing-artifact failure records `tool: tpr`, rc 0, stdout/stderr, elapsed, missing list; state unchanged |
+| 11 | PARTIAL | runtime one-shot `--producer csg` succeeded (palette `e2f7…`) and tpr restored; full `RUNTIME_PALETTE_PRODUCER=csg ./bootstrap.sh` config rollback still requires a root bootstrap |
+| 12 | PASS | restore default tpr: cache hit, palette `01c9360b…`; no manual helper/env/link repair |
+
+Closed tickets: provisioning BUG-006/007/008, runtime REQ-004/005/BUG-007,
+CSG BUG-002, selector BUG-001.
+
+### Remaining root-gated check
+
+The only open adoption row is the full composition rollback: run
+`RUNTIME_PALETTE_PRODUCER=csg ./bootstrap.sh`, verify `producer.json` is csg and
+consumers follow, then restore with `./bootstrap.sh`. The runtime one-shot
+rollback and the provisioning render tests already cover the mechanism; this is
+the final end-to-end configuration exercise.

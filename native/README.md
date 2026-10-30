@@ -71,8 +71,8 @@ canonical tones each. Colors are lowercase `#rrggbb`.
 
 ```json
 {
-  "schema_version": "1",
-  "generator": {"engine": "native", "engine_version": "0.1.0", "schema_version": "1"},
+  "schema_version": "1.1",
+  "generator": {"engine": "native", "engine_version": "0.1.0", "schema_version": "1.1"},
   "source": {"kind": "color", "path": null, "hash": "..."},
   "scheme": "scheme-tonal-spot",
   "contrast": 0.0,
@@ -80,6 +80,9 @@ canonical tones each. Colors are lowercase `#rrggbb`.
 }
 ```
 
+The helper emits the 50 engine roles only. The Python producer adds the
+produced `on_backdrop` role to each mode after the engine returns; see
+`docs/VOCABULARY.md`.
 Images are decoded once, resized to 128×128 with Lanczos3, quantized with
 `QuantizerCelebi`, and ranked with `Score`; the seed is the selected ranked
 color. The SHA-256 hash is computed over the file bytes exactly as read. For a

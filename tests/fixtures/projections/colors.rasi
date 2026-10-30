@@ -53,6 +53,7 @@
 @define-color tertiary_container #fbd0aa;
 @define-color tertiary_fixed #000000;
 @define-color tertiary_fixed_dim #26201a;
+@define-color on_backdrop #fbd0aa;
 @define-color color00 #000000;
 @define-color color01 #26201a;
 @define-color color02 #cdaa8a;

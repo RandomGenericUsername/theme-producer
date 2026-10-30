@@ -6,7 +6,10 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-from theme_producer.adapters.image_metrics import PillowImageMetrics
+from theme_producer.adapters.image_metrics import (
+    PillowImageMetrics,
+    measure_top_band_luminance,
+)
 from theme_producer.domain.engines import ThemeRequest
 from theme_producer.domain.enums import SourceKind
 from theme_producer.domain.exceptions import InvalidImageMetricsError
@@ -199,3 +202,45 @@ def test_measurement_is_deterministic_and_size_independent(tmp_path: Path) -> No
     resized_source = adapter.measure(ThemeRequest(SourceKind.IMAGE, image_path=large))
 
     assert first == second == resized_source
+
+
+def test_top_band_measures_only_the_first_48_rows(tmp_path: Path) -> None:
+    image = Image.new("RGB", (80, 120), (0, 0, 0))
+    for y in range(48):
+        for x in range(80):
+            image.putpixel((x, y), (255, 255, 255))
+    path = tmp_path / "band.png"
+    image.save(path)
+
+    assert measure_top_band_luminance(path) == pytest.approx(1.0)
+
+
+def test_top_band_uses_the_whole_image_when_shorter_than_48_rows(tmp_path: Path) -> None:
+    path = _solid(tmp_path / "short.png", (255, 255, 255), (32, 10))
+
+    assert measure_top_band_luminance(path) == pytest.approx(1.0)
+
+
+def test_top_band_resizes_to_at_most_64_pixels_wide(tmp_path: Path) -> None:
+    image = Image.new("RGB", (1000, 80), (0, 0, 0))
+    for y in range(48):
+        for x in range(500):
+            image.putpixel((x, y), (255, 255, 255))
+    path = tmp_path / "wide.png"
+    image.save(path)
+
+    assert measure_top_band_luminance(path) == pytest.approx(0.5, abs=0.01)
+
+
+def test_top_band_is_deterministic(tmp_path: Path) -> None:
+    path = _solid(tmp_path / "band-color.png", (60, 120, 200), (90, 90))
+
+    assert measure_top_band_luminance(path) == measure_top_band_luminance(path)
+
+
+def test_top_band_rejects_an_undecodable_image(tmp_path: Path) -> None:
+    path = tmp_path / "broken-band.png"
+    path.write_bytes(b"not an image")
+
+    with pytest.raises(InvalidImageMetricsError, match="cannot decode image for on_backdrop"):
+        measure_top_band_luminance(path)

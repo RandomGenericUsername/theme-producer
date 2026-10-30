@@ -50,7 +50,7 @@ def test_generate_writes_theme_json_and_selected_projections(
     assert payload["success"] is True
     assert payload["command"] == "generate"
     assert payload["engine"] == "matugen"
-    assert payload["theme"]["schema_version"] == "1"
+    assert payload["theme"]["schema_version"] == "1.1"
     assert payload["output_files"] == [
         str(output / "theme.json"),
         str(output / "colors.yaml"),

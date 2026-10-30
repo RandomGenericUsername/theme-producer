@@ -1,9 +1,9 @@
 {
-  "schema_version": "1",
+  "schema_version": "1.1",
   "generator": {
     "engine": "matugen",
     "engine_version": "4.2.0",
-    "schema_version": "1"
+    "schema_version": "1.1"
   },
   "source": {
     "kind": "image",
@@ -187,7 +187,8 @@
           "99": "#fed2ab",
           "100": "#ffd4ad"
         }
-      }
+      },
+      "on_backdrop": "#fbd0aa"
     },
     "light": {
       "roles": {
@@ -363,7 +364,8 @@
           "99": "#fed3ac",
           "100": "#ffd5ae"
         }
-      }
+      },
+      "on_backdrop": "#fed3ac"
     }
   }
 }

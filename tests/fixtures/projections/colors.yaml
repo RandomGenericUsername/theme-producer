@@ -54,6 +54,7 @@ tertiary: "#cdaa8a"
 tertiary_container: "#fbd0aa"
 tertiary_fixed: "#000000"
 tertiary_fixed_dim: "#26201a"
+on_backdrop: "#fbd0aa"
 colors:
   - "#000000"
   - "#26201a"

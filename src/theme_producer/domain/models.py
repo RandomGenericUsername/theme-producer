@@ -34,7 +34,14 @@ __all__ = [
     "TonalPalette",
 ]
 
-SCHEMA_VERSION = "1"
+#: Canonical theme.json schema version. ``1.1`` is the additive REQ-022 bump:
+#: each mode gained the produced ``on_backdrop`` token; the 50 engine roles are
+#: unchanged.
+SCHEMA_VERSION = "1.1"
+
+#: Older schema versions still accepted on import (``Theme.from_dict``), so a
+#: saved theme without ``on_backdrop`` can be upgraded to the current shape.
+_LEGACY_SCHEMA_VERSIONS = frozenset({"1"})
 
 _HEX_PATTERN = re.compile(r"^#[0-9a-fA-F]{6}$")
 
@@ -251,11 +258,17 @@ class TonalPalette:
 
 @dataclass(frozen=True, slots=True)
 class Mode:
-    """One of the two modes: all 50 roles plus all six tonal palettes."""
+    """One of the two modes: all 50 roles, all six tonal palettes, and `on_backdrop`.
+
+    ``on_backdrop`` is a *produced* role, not one of the engine's 50 Material
+    roles. It defaults to ``on_surface`` (the no-image / no-measurement
+    fallback) and is replaced on the host once the wallpaper band is measured.
+    """
 
     mode: ModeName | str
     roles: Mapping[MaterialRole, Color]
     palettes: Mapping[PaletteName, TonalPalette]
+    on_backdrop: Color | None = None
 
     def __post_init__(self) -> None:
         try:
@@ -326,11 +339,25 @@ class Mode:
         object.__setattr__(self, "roles", MappingProxyType(normalized_roles))
         object.__setattr__(self, "palettes", MappingProxyType(normalized_palettes))
 
+        on_backdrop = self.on_backdrop
+        if on_backdrop is None:
+            on_backdrop = normalized_roles[MaterialRole.ON_SURFACE]
+        elif not isinstance(on_backdrop, Color):
+            raise ThemeValidationError(
+                f"{mode.value} on_backdrop must be a Color; got {on_backdrop!r}"
+            )
+        object.__setattr__(self, "on_backdrop", on_backdrop)
+
     @classmethod
     def from_dict(cls, mode: ModeName | str, payload: Mapping[str, Any]) -> Mode:
         data = _require_mapping(payload, f"{mode} mode")
         roles_payload = _require_mapping(data.get("roles"), f"{mode} mode roles")
         palettes_payload = _require_mapping(data.get("palettes"), f"{mode} mode palettes")
+        raw_on_backdrop = data.get("on_backdrop")
+        if raw_on_backdrop is not None and not isinstance(raw_on_backdrop, str):
+            raise ThemeValidationError(
+                f"{mode} mode on_backdrop must be a hex string; got {raw_on_backdrop!r}"
+            )
 
         roles: dict[MaterialRole, Color] = {}
         for raw_role, raw_color in roles_payload.items():
@@ -356,12 +383,19 @@ class Mode:
                 ) from exc
             palettes[palette_name] = TonalPalette.from_dict(palette_name, raw_tones)
 
-        return cls(mode=mode, roles=roles, palettes=palettes)
+        return cls(
+            mode=mode,
+            roles=roles,
+            palettes=palettes,
+            on_backdrop=None if raw_on_backdrop is None else Color.from_hex(raw_on_backdrop),
+        )
 
     def to_dict(self) -> dict[str, dict[str, Any]]:
+        assert self.on_backdrop is not None  # set in __post_init__
         return {
             "roles": {role.value: self.roles[role].hex for role in MaterialRole},
             "palettes": {name.value: self.palettes[name].to_dict() for name in PaletteName},
+            "on_backdrop": self.on_backdrop.hex,
         }
 
 
@@ -398,7 +432,7 @@ class Theme:
         """Validate the canonical ``theme.json`` shape into a Theme."""
         data = _require_mapping(payload, "theme")
         schema_version = data.get("schema_version")
-        if schema_version != SCHEMA_VERSION:
+        if schema_version != SCHEMA_VERSION and schema_version not in _LEGACY_SCHEMA_VERSIONS:
             raise ThemeValidationError(
                 f"unsupported theme schema_version {schema_version!r}; expected {SCHEMA_VERSION!r}"
             )

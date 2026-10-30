@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://theme-producer.local/schemas/theme.schema.json",
   "title": "Theme Producer canonical theme.json",
-  "description": "Versioned canonical Theme artifact. One source, one generator identity, and both dark and light modes with all 50 Material roles and six 18-tone palettes.",
+  "description": "Versioned canonical Theme artifact. One source, one generator identity, and both dark and light modes with all 50 Material roles, six 18-tone palettes, and the produced on_backdrop role.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -15,7 +15,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "1"
+      "const": "1.1"
     },
     "generator": {
       "$ref": "#/definitions/generator"
@@ -194,9 +194,13 @@
       "additionalProperties": false,
       "required": [
         "roles",
-        "palettes"
+        "palettes",
+        "on_backdrop"
       ],
       "properties": {
+        "on_backdrop": {
+          "$ref": "#/definitions/hex_color"
+        },
         "roles": {
           "type": "object",
           "additionalProperties": false,

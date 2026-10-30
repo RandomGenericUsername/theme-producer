@@ -34,6 +34,8 @@ uv run tpr --output-format json list-engines
 ## Shapes
 
 - `theme.json` — canonical, versioned Theme artifact (roles + tonal palettes + both modes).
+  Each mode also carries the produced `on_backdrop` role (the ink that reads over the wallpaper's
+  top bar band); see `docs/VOCABULARY.md`.
 - Projections — `colors.gtk.css`, `colors.adw.css`, `colors.yaml`, `colors.rasi`,
   `colors.btop.theme`, `colors.conf`, `colors.kitty`, `colors.sequences`, plus a dev-only
   `theme.html` preview.

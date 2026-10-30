@@ -6,6 +6,7 @@ import time
 from collections.abc import Mapping
 from pathlib import Path
 
+from theme_producer.adapters.on_backdrop import theme_with_on_backdrop
 from theme_producer.adapters.projections.registry import (
     ProjectionRegistry,
     default_format_names,
@@ -84,6 +85,10 @@ class LocalProcessor:
         engine = self._engine(request.engine)
         started = time.monotonic()
         theme = engine.generate(self._theme_request(request), self._engine_config(request))
+        # Produced role: measure once on the host after the engine output so the
+        # two engines agree byte-for-byte for the same image.
+        image_path = Path(request.image_path).expanduser()
+        theme = theme_with_on_backdrop(theme, image_path)
         return theme, time.monotonic() - started
 
     def process_generate(

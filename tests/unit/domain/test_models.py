@@ -51,7 +51,7 @@ def build_theme() -> Theme:
         contrast=0.0,
         dark=build_mode(ModeName.DARK),
         light=build_mode(ModeName.LIGHT),
-        generator=GeneratorMetadata(engine="matugen", engine_version="4.2.0", schema_version="1"),
+        generator=GeneratorMetadata(engine="matugen", engine_version="4.2.0", schema_version="1.1"),
     )
 
 
@@ -90,7 +90,8 @@ def test_programmatic_theme_has_expected_counts() -> None:
     assert len(theme.dark.palettes) == 6
     assert len(theme.light.palettes) == 6
     assert all(len(palette.tones) == 18 for palette in theme.dark.palettes.values())
-    assert theme.to_dict()["schema_version"] == "1"
+    assert theme.to_dict()["schema_version"] == "1.1"
+    assert theme.to_dict()["modes"]["dark"]["on_backdrop"] == theme.dark.on_backdrop.hex
 
 
 def test_color_derives_rgb_and_normalizes_hex_case() -> None:
@@ -200,6 +201,67 @@ def test_mode_rejects_mismatched_palette_name() -> None:
 
     with pytest.raises(ThemeValidationError, match="mismatched TonalPalette name"):
         Mode(mode=ModeName.DARK, roles=theme.dark.roles, palettes=palettes)
+
+
+def test_mode_on_backdrop_defaults_to_on_surface() -> None:
+    mode = build_mode(ModeName.DARK)
+
+    assert mode.on_backdrop == mode.roles[MaterialRole.ON_SURFACE]
+    assert mode.to_dict()["on_backdrop"] == mode.roles[MaterialRole.ON_SURFACE].hex
+
+
+def test_mode_accepts_an_explicit_on_backdrop() -> None:
+    theme = build_theme()
+    explicit = Color.from_hex("#123456")
+
+    mode = Mode(
+        mode=ModeName.DARK,
+        roles=theme.dark.roles,
+        palettes=theme.dark.palettes,
+        on_backdrop=explicit,
+    )
+
+    assert mode.on_backdrop == explicit
+    assert mode.to_dict()["on_backdrop"] == "#123456"
+
+
+def test_mode_rejects_a_non_color_on_backdrop() -> None:
+    theme = build_theme()
+
+    with pytest.raises(ThemeValidationError, match="on_backdrop must be a Color"):
+        Mode(
+            mode=ModeName.DARK,
+            roles=theme.dark.roles,
+            palettes=theme.dark.palettes,
+            on_backdrop="#ffffff",  # type: ignore[arg-type]
+        )
+
+
+def test_mode_from_dict_defaults_a_missing_on_backdrop_for_legacy_imports() -> None:
+    payload = json.loads(FIXTURE.read_text())
+    del payload["modes"]["dark"]["on_backdrop"]
+
+    theme = Theme.from_dict(payload)
+
+    assert theme.dark.on_backdrop == theme.dark.roles[MaterialRole.ON_SURFACE]
+
+
+def test_mode_from_dict_rejects_a_malformed_on_backdrop() -> None:
+    payload = json.loads(FIXTURE.read_text())
+    payload["modes"]["dark"]["on_backdrop"] = 123
+
+    with pytest.raises(ThemeValidationError, match="on_backdrop must be a hex string"):
+        Theme.from_dict(payload)
+
+
+def test_from_dict_accepts_the_legacy_schema_version_and_upgrades_the_output() -> None:
+    payload = json.loads(FIXTURE.read_text())
+    payload["schema_version"] = "1"
+
+    theme = Theme.from_dict(payload)
+
+    assert theme.to_dict()["schema_version"] == "1.1"
+    assert theme.dark.on_backdrop is not None
 
 
 @pytest.mark.parametrize(

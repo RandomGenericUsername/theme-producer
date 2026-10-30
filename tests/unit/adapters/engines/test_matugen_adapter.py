@@ -115,7 +115,7 @@ def test_generate_parses_both_modes_and_palettes(
     assert theme.light.mode is ModeName.LIGHT
     assert theme.generator.engine == "matugen"
     assert theme.generator.engine_version == "4.2.0"
-    assert theme.generator.schema_version == "1"
+    assert theme.generator.schema_version == "1.1"
 
     assert len(calls) == 1
     call = calls[0]

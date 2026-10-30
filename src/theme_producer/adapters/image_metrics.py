@@ -83,13 +83,16 @@ from pathlib import Path
 
 from PIL import Image, UnidentifiedImageError
 
+from theme_producer.domain.color_metrics import (
+    relative_luminance_rgb as _relative_luminance,
+)
 from theme_producer.domain.engines import ThemeRequest
 from theme_producer.domain.enums import SourceKind
 from theme_producer.domain.exceptions import InvalidImageMetricsError
 from theme_producer.domain.models import Color
 from theme_producer.domain.scheme_policy import ImageMetrics
 
-__all__ = ["PillowImageMetrics"]
+__all__ = ["PillowImageMetrics", "measure_top_band_luminance"]
 
 #: The documented resize target (AD-2).
 METRICS_SIZE = (256, 256)
@@ -97,18 +100,10 @@ METRICS_SIZE = (256, 256)
 #: with a triangle filter); honor ``TRIANGLE`` if a Pillow build provides it.
 _RESAMPLING = getattr(Image.Resampling, "TRIANGLE", Image.Resampling.BILINEAR)
 
-#: sRGB transfer function for an 8-bit channel, memoized as a lookup table.
-_REC709_WEIGHTS = (0.2126, 0.7152, 0.0722)
-
-
-def _linearize_byte(value: int) -> float:
-    channel = value / 255.0
-    if channel <= 0.04045:
-        return channel / 12.92
-    return ((channel + 0.055) / 1.055) ** 2.4
-
-
-_LINEAR_LUT: tuple[float, ...] = tuple(_linearize_byte(value) for value in range(256))
+#: The wallpaper bar band: the top 48 rows (or the whole image when shorter).
+TOP_BAND_ROWS = 48
+#: The band is resized to at most this many pixels wide before averaging.
+TOP_BAND_MAX_WIDTH = 64
 
 #: Largest possible population standard deviation of values in [0, 1].
 _CONTRAST_DIVISOR = 0.5
@@ -122,13 +117,41 @@ def _clamp_unit(value: float) -> float:
     return min(1.0, max(0.0, value))
 
 
-def _relative_luminance(r: int, g: int, b: int) -> float:
-    """Rec.709 relative luminance of one 8-bit sRGB pixel."""
-    return (
-        _REC709_WEIGHTS[0] * _LINEAR_LUT[r]
-        + _REC709_WEIGHTS[1] * _LINEAR_LUT[g]
-        + _REC709_WEIGHTS[2] * _LINEAR_LUT[b]
-    )
+def measure_top_band_luminance(path: Path | str) -> float:
+    """Mean WCAG relative luminance of an image's top band.
+
+    The band is the top ``min(48, height)`` rows, resized to at most 64 pixels
+    wide (and never taller than 64) before averaging. This is the same signal
+    the dotfiles runtime icon-contrast sampler used for its bar band, so
+    ``on_backdrop`` answers the question the guard used to answer.
+
+    Raises :class:`InvalidImageMetricsError` when Pillow cannot decode the
+    source. Callers that treat the role as best effort catch it and keep the
+    ``on_surface`` fallback.
+    """
+    image_path = Path(path)
+    try:
+        with Image.open(image_path) as image:
+            rgb = image.convert("RGB")
+            width, height = rgb.size
+            band = rgb.crop((0, 0, width, min(TOP_BAND_ROWS, height)))
+            band_width, band_height = band.size
+            thumb = band.resize(
+                (
+                    max(1, min(band_width, TOP_BAND_MAX_WIDTH)),
+                    max(1, min(band_height, TOP_BAND_MAX_WIDTH)),
+                )
+            )
+            pixels = list(thumb.getdata())
+    except (UnidentifiedImageError, Image.DecompressionBombError, OSError, ValueError) as exc:
+        raise InvalidImageMetricsError(
+            f"cannot decode image for on_backdrop: {image_path}: {exc}"
+        ) from exc
+
+    if not pixels:  # pragma: no cover - a decoded Pillow image always has pixels
+        raise InvalidImageMetricsError(f"image has no pixels: {image_path}")
+    total = sum(_relative_luminance(r, g, b) for r, g, b in pixels)
+    return total / len(pixels)
 
 
 class PillowImageMetrics:

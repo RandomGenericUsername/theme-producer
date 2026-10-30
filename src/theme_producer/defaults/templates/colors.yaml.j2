@@ -9,6 +9,9 @@ cursor: "{{ roles['on_surface'].hex }}"
 {% for name, color in extra_roles %}
 {{ name }}: "{{ color.hex }}"
 {% endfor %}
+{% for name, color in produced_roles %}
+{{ name }}: "{{ color.hex }}"
+{% endfor %}
 colors:
 {% for name, color in legacy.items() %}
   - "{{ color.hex }}"

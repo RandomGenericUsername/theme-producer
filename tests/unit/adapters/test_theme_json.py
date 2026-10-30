@@ -41,10 +41,12 @@ def test_fixture_validates_against_committed_schema() -> None:
 
 
 def test_schema_pins_schema_version_and_closed_objects() -> None:
-    assert SCHEMA["properties"]["schema_version"]["const"] == "1"
+    assert SCHEMA["properties"]["schema_version"]["const"] == "1.1"
     assert SCHEMA["additionalProperties"] is False
     mode = SCHEMA["definitions"]["mode"]
     assert mode["additionalProperties"] is False
+    assert mode["properties"]["on_backdrop"] == {"$ref": "#/definitions/hex_color"}
+    assert "on_backdrop" in mode["required"]
     assert set(mode["properties"]["roles"]["required"]) == {role.value for role in MaterialRole}
     assert set(mode["properties"]["palettes"]["required"]) == {name.value for name in PaletteName}
     palette = SCHEMA["definitions"]["palette"]
@@ -75,6 +77,22 @@ def test_validate_theme_payload_rejects_noncanonical_extras() -> None:
 
     with pytest.raises(ThemeValidationError, match="not canonical"):
         validate_theme_payload(payload)
+
+
+def test_missing_on_backdrop_fails_schema() -> None:
+    payload = copy.deepcopy(load_payload())
+    del payload["modes"]["light"]["on_backdrop"]
+
+    with pytest.raises(jsonschema.ValidationError, match="on_backdrop"):
+        jsonschema.validate(instance=payload, schema=SCHEMA)
+
+
+def test_written_theme_carries_on_backdrop_in_both_modes(tmp_path: Path) -> None:
+    output = ThemeJsonWriter().write(load_theme(), tmp_path)
+    payload = json.loads(output.read_text(encoding="utf-8"))
+
+    for mode in ("dark", "light"):
+        assert payload["modes"][mode]["on_backdrop"] == payload["modes"][mode]["roles"]["on_surface"]
 
 
 def test_missing_role_fails_schema() -> None:

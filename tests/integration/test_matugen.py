@@ -69,5 +69,5 @@ def test_matugen_generates_a_valid_theme_non_interactively(tmp_path: Path) -> No
     assert all(len(palette.tones) == 18 for palette in theme.light.palettes.values())
     assert theme.generator.engine == "matugen"
     assert theme.generator.engine_version
-    assert theme.generator.schema_version == "1"
+    assert theme.generator.schema_version == "1.1"
     assert theme.scheme == "scheme-tonal-spot"

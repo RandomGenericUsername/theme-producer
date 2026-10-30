@@ -59,6 +59,7 @@
 @define-color tertiary_container #fbd0aa;
 @define-color tertiary_fixed #000000;
 @define-color tertiary_fixed_dim #26201a;
+@define-color on_backdrop #fbd0aa;
 
 /* libadwaita named colors */
 @define-color window_bg_color #000000;

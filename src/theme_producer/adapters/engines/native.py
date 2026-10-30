@@ -30,7 +30,7 @@ from theme_producer.domain.exceptions import (
     EngineParseError,
     ThemeValidationError,
 )
-from theme_producer.domain.models import Theme
+from theme_producer.domain.models import SCHEMA_VERSION, Theme
 
 __all__ = ["NATIVE_PARAMETERS", "NativeEngine"]
 
@@ -348,7 +348,25 @@ def _text(value: str | bytes | None) -> str:
 
 
 def _build_theme(payload: Mapping[str, Any]) -> Theme:
+    canonical = _canonicalize_engine_payload(payload)
     try:
-        return Theme.from_dict(payload)
+        return Theme.from_dict(canonical)
     except ThemeValidationError as exc:
         raise EngineParseError(ENGINE_NAME, str(exc)) from exc
+
+
+def _canonicalize_engine_payload(payload: Mapping[str, Any]) -> dict[str, Any]:
+    """Upgrade a native helper payload to the current canonical schema version.
+
+    The helper is versioned separately from the Python producer. A helper built
+    before a schema bump still emits the schema it knows; the adapter owns the
+    canonical Theme shape, so it stamps the current version here.
+    """
+    canonical = dict(payload)
+    canonical["schema_version"] = SCHEMA_VERSION
+    generator = canonical.get("generator")
+    if isinstance(generator, Mapping):
+        upgraded = dict(generator)
+        upgraded["schema_version"] = SCHEMA_VERSION
+        canonical["generator"] = upgraded
+    return canonical

@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased — `on_backdrop` (REQ-022)
+
+- **Produced role `on_backdrop`** (additive, `theme.json` schema `1.1`): the
+  ink that reads over the wallpaper's top bar band. The engine still emits
+  exactly 50 Material roles; `tpr` measures the top `min(48, height)` rows
+  (resized to ≤64 px wide, mean WCAG relative luminance) and selects the
+  max-contrast neutral-pole role per mode, with `on_surface` as the tie winner.
+  Best effort below WCAG 4.5. Seed-color and imported-JSON themes fall back to
+  `on_backdrop = on_surface`. Emitted by `theme.json`, `colors.yaml`,
+  `colors.gtk.css`, `colors.adw.css`, `colors.rasi`, and `colors.conf`; ANSI,
+  kitty, sequences, and btop are unchanged. See `docs/VOCABULARY.md`.
+
 ## 0.4.0 — 2026-10-28
 
 - **Configurable scheme policy (`scheme-smart`)**: a hexagonal `tpr` feature that picks one of the

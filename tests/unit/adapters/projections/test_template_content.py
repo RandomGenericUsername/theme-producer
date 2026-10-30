@@ -74,8 +74,10 @@ def test_gtk_has_vocabulary_every_role_and_legacy_aliases(rendered, theme: Theme
         assert f"color_{index:02d}" in defines
         assert defines[f"color_{index:02d}"] == role_hex(theme, LEGACY_COLOR_ORDER[index])
     assert len(defines) == len(set(defines))
-    # vocabulary (8) + extra roles (46) + legacy color_00..15 (16) + CSG aliases (3)
-    assert len(defines) == 8 + 46 + 16 + 3
+    # vocabulary (8) + extra roles (46) + produced (1) + legacy color_00..15 (16)
+    # + CSG aliases (3)
+    assert len(defines) == 8 + 46 + 1 + 16 + 3
+    assert defines["on_backdrop"] == theme.dark.on_backdrop.hex
 
     assert defines["background"] == role_hex(theme, MaterialRole.SURFACE)
     assert defines["foreground"] == role_hex(theme, MaterialRole.ON_SURFACE)
@@ -194,6 +196,21 @@ def test_conf_uses_hyprland_rgb_variables_without_hashes(rendered, theme: Theme)
     assert defines["background"] == role_hex(theme, MaterialRole.SURFACE)
     assert defines["foreground"] == role_hex(theme, MaterialRole.ON_SURFACE)
     assert defines["accent"] == role_hex(theme, MaterialRole.PRIMARY)
+
+
+def test_named_token_projections_carry_the_produced_on_backdrop(rendered, theme: Theme) -> None:
+    for filename in (
+        "colors.yaml",
+        "colors.gtk.css",
+        "colors.adw.css",
+        "colors.rasi",
+        "colors.conf",
+    ):
+        assert "on_backdrop" in rendered[filename]
+    assert theme.dark.on_backdrop.hex in rendered["colors.yaml"]
+    assert theme.dark.on_backdrop.hex in rendered["colors.gtk.css"]
+    assert theme.dark.on_backdrop.hex[1:] in rendered["colors.conf"]
+    assert "on_backdrop" not in rendered["colors.btop.theme"]
 
 
 def test_btop_renders_the_capability_table(rendered) -> None:

@@ -240,6 +240,7 @@ class ModeProjectionContext:
     vocabulary: tuple[tuple[str, Color], ...]
     roles: tuple[tuple[str, Color], ...]
     extra_roles: tuple[tuple[str, Color], ...]
+    produced_roles: tuple[tuple[str, Color], ...]
     legacy: tuple[tuple[str, Color], ...]
     palettes: tuple[tuple[str, tuple[tuple[int, Color], ...]], ...]
     btop: tuple[BtopRow, ...]
@@ -263,6 +264,7 @@ class ProjectionContext:
     vocabulary: tuple[tuple[str, Color], ...]
     roles: tuple[tuple[str, Color], ...]
     extra_roles: tuple[tuple[str, Color], ...]
+    produced_roles: tuple[tuple[str, Color], ...]
     legacy: tuple[tuple[str, Color], ...]
     palettes: tuple[tuple[str, tuple[tuple[int, Color], ...]], ...]
     btop: tuple[BtopRow, ...]
@@ -288,6 +290,7 @@ class ProjectionContext:
             "roles": dict(self.roles),
             "role_rows": self.roles,
             "extra_roles": self.extra_roles,
+            "produced_roles": self.produced_roles,
             "legacy": dict(self.legacy),
             "legacy_rows": self.legacy,
             "palettes": self.palettes,
@@ -303,6 +306,8 @@ def build_mode_context(mode: Mode) -> ModeProjectionContext:
     vocabulary = tuple((name, mode.roles[role]) for name, role in PROJECTION_VOCABULARY.items())
     roles = tuple((role.value, mode.roles[role]) for role in MaterialRole)
     extra_roles = tuple((name, color) for name, color in roles if name not in PROJECTION_VOCABULARY)
+    assert mode.on_backdrop is not None  # set in Mode.__post_init__
+    produced_roles = (("on_backdrop", mode.on_backdrop),)
     legacy = tuple(
         (f"color{index}", mode.roles[alias_service.resolve(f"color{index}")])
         for index in range(LEGACY_ALIAS_COUNT)
@@ -321,6 +326,7 @@ def build_mode_context(mode: Mode) -> ModeProjectionContext:
         vocabulary=vocabulary,
         roles=roles,
         extra_roles=extra_roles,
+        produced_roles=produced_roles,
         legacy=legacy,
         palettes=palettes,
         btop=build_btop_rows(mode),
@@ -348,6 +354,7 @@ def build_projection_context(
         vocabulary=view.vocabulary,
         roles=view.roles,
         extra_roles=view.extra_roles,
+        produced_roles=view.produced_roles,
         legacy=view.legacy,
         palettes=view.palettes,
         btop=view.btop,

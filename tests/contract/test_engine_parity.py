@@ -125,11 +125,11 @@ def test_native_matches_matugen_for_every_role_and_tone(tmp_path: Path) -> None:
     matugen = _matugen_payload(tmp_path)
     native = _native_payload()
 
-    assert native["schema_version"] == "1"
+    assert native["schema_version"] == "1.1"
     assert native["generator"] == {
         "engine": "native",
         "engine_version": "0.1.0",
-        "schema_version": "1",
+        "schema_version": "1.1",
     }
     assert native["scheme"] == SCHEME
     assert native["contrast"] == 0.0

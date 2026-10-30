@@ -54,7 +54,7 @@ def test_local_generate_writes_theme_json_and_all_eight_projections(
     assert len(payload["output_files"]) == 9
 
     theme_payload = json.loads((output / "theme.json").read_text(encoding="utf-8"))
-    assert Theme.from_dict(theme_payload).SCHEMA_VERSION == "1"
+    assert Theme.from_dict(theme_payload).SCHEMA_VERSION == "1.1"
 
     assert (output / "colors.yaml").read_text(encoding="utf-8").startswith("# colors.yaml")
     assert "background" in (output / "colors.gtk.css").read_text(encoding="utf-8")

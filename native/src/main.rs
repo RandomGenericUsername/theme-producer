@@ -23,7 +23,7 @@ use sha2::{Digest, Sha256};
 
 const ENGINE_NAME: &str = "native";
 const ENGINE_VERSION: &str = "0.1.0";
-const SCHEMA_VERSION: &str = "1";
+const SCHEMA_VERSION: &str = "1.1";
 const DEFAULT_SCHEME: &str = "scheme-tonal-spot";
 /// matugen 4.2.0 presents four ranked source-color candidates (`0..4`, i.e.
 /// 0-3), so the native helper ranks the same number.

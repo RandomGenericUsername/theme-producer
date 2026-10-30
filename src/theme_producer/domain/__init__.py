@@ -28,6 +28,11 @@ from theme_producer.domain.models import (
     Theme,
     TonalPalette,
 )
+from theme_producer.domain.on_backdrop import (
+    ON_BACKDROP_CANDIDATES,
+    apply_on_backdrop,
+    select_on_backdrop,
+)
 from theme_producer.domain.scheme_policy import (
     CATALOG_VERSION,
     Condition,
@@ -58,6 +63,7 @@ __all__ = [
     "CATALOG_VERSION",
     "LEGACY_ALIASES",
     "LEGACY_COLOR_ORDER",
+    "ON_BACKDROP_CANDIDATES",
     "SCHEMA_VERSION",
     "SMART_SCHEME_TYPE",
     "STABLE_ALIASES",
@@ -91,5 +97,7 @@ __all__ = [
     "ThemeValidationError",
     "TonalPalette",
     "UnknownSchemePolicyError",
+    "apply_on_backdrop",
     "normalize_scheme_type",
+    "select_on_backdrop",
 ]

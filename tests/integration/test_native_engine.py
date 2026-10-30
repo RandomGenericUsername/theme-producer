@@ -80,6 +80,6 @@ def test_native_generates_a_schema_valid_theme_from_a_png(tmp_path: Path) -> Non
     assert all(len(palette.tones) == 18 for palette in theme.light.palettes.values())
     assert theme.generator.engine == "native"
     assert theme.generator.engine_version == "0.1.0"
-    assert theme.generator.schema_version == "1"
+    assert theme.generator.schema_version == "1.1"
     assert theme.scheme == "scheme-tonal-spot"
     assert theme.contrast == 0.0

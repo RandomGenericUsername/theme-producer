@@ -169,6 +169,7 @@ def test_context_exposes_all_roles_legacy_aliases_and_palettes() -> None:
     assert len(context.roles) == 50
     assert {name for name, _color in context.roles} == {role.value for role in MaterialRole}
     assert len(context.extra_roles) == 46
+    assert context.produced_roles == (("on_backdrop", theme.dark.on_backdrop),)
     assert list(legacy) == [f"color{index}" for index in range(16)]
     for index, role in enumerate(LEGACY_COLOR_ORDER):
         assert legacy[f"color{index}"] == theme.dark.roles[role]

@@ -12,6 +12,9 @@
 {% for name, color in extra_roles %}
 @define-color {{ name }} {{ color.hex }};
 {% endfor %}
+{% for name, color in produced_roles %}
+@define-color {{ name }} {{ color.hex }};
+{% endfor %}
 
 /* libadwaita named colors */
 @define-color window_bg_color {{ roles['surface'].hex }};

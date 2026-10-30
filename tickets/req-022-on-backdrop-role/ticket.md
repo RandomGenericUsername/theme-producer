@@ -2,7 +2,7 @@
 id: REQ-022
 title: "Produced role: on_backdrop (ink over the wallpaper band)"
 kind: requirement
-status: in-progress
+status: done
 lane: 3
 links:
   openspec: none
@@ -166,3 +166,15 @@ Verify: `make gates` in `.worktrees/req-022/`, then
 - Verify: `make gates` in this repo after implementation;
   `uv run tpr generate <image> --format json` then inspect
   `theme.json.modes.dark.on_backdrop`.
+
+## Outcome
+
+Released `v0.5.0` (tag pushed). Live proof 2026-10-30:
+- host runs `tpr 0.5.0`; palette `c4fa1eb3…` exposes `on_backdrop: "#e3e1e9"`
+  in `current/colors.yaml` and `@define-color on_backdrop #e3e1e9;` in
+  `current/colors.gtk.css`;
+- container mode verified end-to-end: `tpr generate --runtime container` emitted
+  the role in every named projection (`colors.yaml`, `colors.gtk.css`,
+  `colors.adw.css`, `colors.rasi`, `colors.conf`) and `theme.json` for both modes;
+- bright/dark band contrast checks recorded in evidence (white-tailed eagle band
+  0.026 → ratios 10.7–13.8).

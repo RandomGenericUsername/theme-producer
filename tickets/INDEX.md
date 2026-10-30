@@ -33,7 +33,7 @@
   - [req-019-scheme-policy-domain](./req-019-scheme-policy-domain/ticket.md) — Scheme policy domain: metrics, rules, resolver | `done`
   - [req-020-scheme-policy-catalog](./req-020-scheme-policy-catalog/ticket.md) — Scheme policy catalog + metrics adapters | `done`
   - [req-021-scheme-policy-integration](./req-021-scheme-policy-integration/ticket.md) — Scheme policy integration: scheme-smart resolution | `done`
-  - [req-022-on-backdrop-role](./req-022-on-backdrop-role/ticket.md) — Produced role: `on_backdrop` (ink over the wallpaper band) | `in-progress` | freeze lifted for this additive role (2026-10-30)
+  - [req-022-on-backdrop-role](./req-022-on-backdrop-role/ticket.md) — Produced role: `on_backdrop` (ink over the wallpaper band) | `done` | tag: v0.5.0 | live: palette c4fa1eb3…
 
   - [spike-001-dotfiles-fit](./spike-001-dotfiles-fit/ticket.md) — Dotfiles fit: adapter, hashes, contract, rollout | `reported` | timebox 4h
 

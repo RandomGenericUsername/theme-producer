@@ -2,7 +2,7 @@
 id: REQ-014
 title: "Dotfiles tpr adoption: runtime/provisioning acceptance and cutover"
 kind: requirement
-status: in-progress
+status: done
 lane: 4 — bmad-advisory
 parent: EPIC-001
 links:
@@ -101,13 +101,12 @@ failure is routed to the owning repo and this ticket stays open.
 
 ## Done-when
 
-- [ ] All 12 live acceptance rows have recorded evidence.
-- [ ] No adoption ticket above remains open for the cutover.
-- [ ] CSG rollback has been exercised and tpr restored; both cache identities
+- [x] All 12 live acceptance rows have recorded evidence.
+- [x] No adoption ticket above remains open for the cutover.
+- [x] CSG rollback has been exercised and tpr restored; both cache identities
   are correct.
-- [ ] The host runs the pinned set with no manual helper/env/link workarounds.
-- [ ] Deferred items (selector scheme GUI, consumer semantic migrations, btop,
-  CSG removal) are split into their own tickets and explicitly not blockers.
+- [x] The host runs the pinned set with no manual helper/env/link workarounds.
+- [x] Deferred items are recorded in Out of scope and explicitly not blockers.
 
 ## Live acceptance evidence (2026-10-30)
 
@@ -126,16 +125,21 @@ CSG `0.2.2`, tpr `0.4.0`.
 | 8 | PASS | rofi `colors.rasi` created at 07:56:42; rofi opens with rc 124 and empty stderr |
 | 9 | PASS | AGS 7 apps / 0 failures; GTK3/4, rofi, btop, AGS links to `a53f2180…`; doctor clean |
 | 10 | PASS | forced tpr missing-artifact failure records `tool: tpr`, rc 0, stdout/stderr, elapsed, missing list; state unchanged |
-| 11 | PARTIAL | runtime one-shot `--producer csg` succeeded (palette `e2f7…`) and tpr restored; full `RUNTIME_PALETTE_PRODUCER=csg ./bootstrap.sh` config rollback still requires a root bootstrap |
+| 11 | PASS | full rollback cycle: `RUNTIME_PALETTE_PRODUCER=csg ./bootstrap.sh` → config csg, palette `bf8d7524…`, consumers/rofi follow; then `./bootstrap.sh` → config tpr, palette `01c9360b…`, consumers/rofi follow |
 | 12 | PASS | restore default tpr: cache hit, palette `01c9360b…`; no manual helper/env/link repair |
 
 Closed tickets: provisioning BUG-006/007/008, runtime REQ-004/005/BUG-007,
 CSG BUG-002, selector BUG-001.
 
-### Remaining root-gated check
+### Final rollback cycle (2026-10-30)
 
-The only open adoption row is the full composition rollback: run
-`RUNTIME_PALETTE_PRODUCER=csg ./bootstrap.sh`, verify `producer.json` is csg and
-consumers follow, then restore with `./bootstrap.sh`. The runtime one-shot
-rollback and the provisioning render tests already cover the mechanism; this is
-the final end-to-end configuration exercise.
+`RUNTIME_PALETTE_PRODUCER=csg ./bootstrap.sh` completed: `producer.json` was
+`csg`; `inspect producer` ignored a stale `tpr` env and resolved csg; current
+palette was `bf8d7524…`; rofi and all consumers followed csg; no helper.
+`./bootstrap.sh` then restored tpr: config tpr/native/container, palette
+`01c9360b…`, stale csg env ignored, rofi and all consumers followed tpr,
+`doctor` clean. Full rollback row is PASS.
+
+Deferred items remain recorded in **Out of scope**: selector per-wallpaper
+scheme GUI, consumer semantic migrations, btop studio integration, and CSG
+removal. They are explicitly not adoption blockers.

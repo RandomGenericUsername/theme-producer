@@ -7,7 +7,7 @@
 
 ## Epics
 
-- [epic-001-theme-producer](./epic-001-theme-producer/ticket.md) — Theme producer (successor to CSG) | `in-progress` | 25/26 complete (24 done + 1 spike reported; REQ-014 acceptance 11/12 live verified; full bootstrap rollback pending) | done-when: a pinned `tpr` release produces a schema-valid Theme + eight projections; adoption spike reports a mechanical CSG swap; gates + image smoke green | exec: bmad brief+spec+spine
+- [epic-001-theme-producer](./epic-001-theme-producer/ticket.md) — Theme producer (successor to CSG) | `done` | 26/26 complete (25 done + 1 spike reported) | done-when: a pinned `tpr` release produces a schema-valid Theme + eight projections; adoption spike reports a mechanical CSG swap; gates + image smoke green | exec: bmad brief+spec+spine
   - [ops-001-repo-birth](./ops-001-repo-birth/ticket.md) — Repo birth + planning substrate | `done`
   - [req-001-product-brief](./req-001-product-brief/ticket.md) — Product brief | `done`
   - [req-002-spec](./req-002-spec/ticket.md) — Spec (CAP-001..012) | `done`
@@ -24,7 +24,7 @@
   - [req-013-native-engine](./req-013-native-engine/ticket.md) — v2 Rust helper on material-colors + oracle parity | `done`
   - [bug-001-native-smart-choice](./bug-001-native-smart-choice/ticket.md) — Native engine advertises scheme-smart but rejects it | `done` | severity: medium
   - [bug-002-image-tag-latest](./bug-002-image-tag-latest/ticket.md) — Default container image_tag is latest, not the pin | `done` | severity: medium
-  - [req-014-dotfiles-adoption](./req-014-dotfiles-adoption/ticket.md) — Dotfiles tpr adoption: runtime/provisioning acceptance and cutover | `in-progress`
+  - [req-014-dotfiles-adoption](./req-014-dotfiles-adoption/ticket.md) — Dotfiles tpr adoption: runtime/provisioning acceptance and cutover | `done`
   - [req-015-native-source-parity](./req-015-native-source-parity/ticket.md) — Native source-color parity: prefer + fallback_color | `done` | known: 41/56 exact, 15 recorded deltas
   - [req-016-native-lightness-controls](./req-016-native-lightness-controls/ticket.md) — Native lightness controls: lightness_dark / lightness_light | `done` | 2500/2500 within ±1
   - [req-017-light-mode-projections](./req-017-light-mode-projections/ticket.md) — Light-mode projections: --mode dark|light | `done`

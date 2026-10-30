@@ -2,7 +2,7 @@
 id: EPIC-001
 title: "Theme producer (successor to CSG)"
 kind: epic
-status: in-progress
+status: done
 lane: 4 — bmad-advisory
 links:
   openspec: none
@@ -40,7 +40,7 @@ mechanical CSG swap with the runtime's artifact/hash impact named.
 
 ## Children
 
-25/26 complete (24 done + 1 spike reported; REQ-014 blocked).
+26/26 complete (25 done + 1 spike reported).
 
   - [x] `OPS-001` — Repo birth + planning substrate (`done`)
   - [x] `REQ-001` — Product brief (`done`)
@@ -58,7 +58,7 @@ mechanical CSG swap with the runtime's artifact/hash impact named.
   - [x] `REQ-013` — v2 Rust helper on material-colors + oracle parity (`done`)
   - [x] `BUG-001` — Native engine advertises scheme-smart but rejects it (`done`)
 - [x] `BUG-002` — Default container image_tag is latest, not the pin (`done`)
-- [ ] `REQ-014` — Dotfiles runtime/provisioning adoption (after spike) (`proposed`)
+- [x] `REQ-014` — Dotfiles tpr adoption: runtime/provisioning acceptance and cutover (`done`)
 - [x] `REQ-015` — Native source-color parity: prefer + fallback_color (`done`)
 - [x] `REQ-016` — Native lightness controls: lightness_dark / lightness_light (`done`)
 - [x] `REQ-017` — Light-mode projections: --mode dark|light (`done`)

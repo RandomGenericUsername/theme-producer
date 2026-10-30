@@ -33,12 +33,15 @@
   - [req-019-scheme-policy-domain](./req-019-scheme-policy-domain/ticket.md) — Scheme policy domain: metrics, rules, resolver | `done`
   - [req-020-scheme-policy-catalog](./req-020-scheme-policy-catalog/ticket.md) — Scheme policy catalog + metrics adapters | `done`
   - [req-021-scheme-policy-integration](./req-021-scheme-policy-integration/ticket.md) — Scheme policy integration: scheme-smart resolution | `done`
+  - [req-022-on-backdrop-role](./req-022-on-backdrop-role/ticket.md) — Produced role: `on_backdrop` (ink over the wallpaper band) | `in-progress` | freeze lifted for this additive role (2026-10-30)
 
   - [spike-001-dotfiles-fit](./spike-001-dotfiles-fit/ticket.md) — Dotfiles fit: adapter, hashes, contract, rollout | `reported` | timebox 4h
 
+- [epic-002-consumer-adoption](./epic-002-consumer-adoption/ticket.md) — Consumer semantic adoption of tpr roles | `in-progress` | done-when: every palette consumer uses semantic roles (legacy aliases only as fallback) with visual + contract evidence | tracking epic; children live in consumer repos
+
 ## Standalone requirements
 
-(none — all items are children of EPIC-001)
+(none — all items are children of EPIC-001; REQ-022 is filed as a child above)
 
 ## Bugs
 

@@ -37,7 +37,7 @@
 
   - [spike-001-dotfiles-fit](./spike-001-dotfiles-fit/ticket.md) — Dotfiles fit: adapter, hashes, contract, rollout | `reported` | timebox 4h
 
-- [epic-002-consumer-adoption](./epic-002-consumer-adoption/ticket.md) — Consumer semantic adoption of tpr roles | `in-progress` | done-when: every palette consumer uses semantic roles (legacy aliases only as fallback) with visual + contract evidence | tracking epic; children live in consumer repos
+- [epic-002-consumer-adoption](./epic-002-consumer-adoption/ticket.md) — Consumer semantic adoption of tpr roles | `done` | done-when: every palette consumer uses semantic roles (legacy aliases only as fallback) with visual + contract evidence | tracking epic; children live in consumer repos
 
 ## Standalone requirements
 

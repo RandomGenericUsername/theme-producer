@@ -2,7 +2,7 @@
 id: EPIC-002
 title: "Consumer semantic adoption of tpr roles"
 kind: epic
-status: in-progress
+status: done
 lane: 4 — bmad-advisory
 links:
   openspec: none
@@ -84,3 +84,28 @@ migration because the runtime cutover changed the live path.
 - `appearance-ledger.json` marks `icon-color-mapping-editor` as `applied`, while
   its log reports `no window registered with name
   "icon-color-mapping-editor-window"`; the source names the window `icme-window`.
+
+## Outcome — 2026-11-02
+
+All AGS palette consumers are on `palette.v1` roles; none reads legacy
+`@color_*` or the flat `colors:` list in deployed code.
+
+| Consumer | Tag | Deployed legacy tokens |
+|---|---|---|
+| bar | v0.2.0 | 0 |
+| notifications | v0.2.0 | 0 |
+| capture | v0.2.0 | 0 |
+| clipboard | v0.2.0 | 0 |
+| wallpaper-selector | v0.2.0 | 0 |
+| btop-theme-studio | v0.2.0 | 0 |
+| icme | v0.2.0 | 0 |
+
+Platform: ags-platform v0.4.0 (typed `palette()`, `subscribe()`, provider-owned
+role CSS). Provenance: tpr v0.5.0, runtime v0.5.1, assets v0.6.3, engine
+v0.1.31, composition PIN-0128. Live: palette conforming (51 roles), doctor
+clean, ICME toggles without window errors and repaints on palette changes.
+
+Remaining known debt (not part of this epic): provisioning pin mirrors
+(assets/app/platform), provider still applies the legacy sheet alongside roles,
+btop studio's role→btop table duplicates tpr's canonical projection, and the
+per-wallpaper scheme GUI.

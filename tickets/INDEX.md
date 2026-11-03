@@ -39,6 +39,10 @@
 
 - [epic-002-consumer-adoption](./epic-002-consumer-adoption/ticket.md) — Consumer semantic adoption of tpr roles | `done` | done-when: every palette consumer uses semantic roles (legacy aliases only as fallback) with visual + contract evidence | tracking epic; children live in consumer repos
 
+## Bugs
+
+- [bug-004-rasi-projection](./bug-004-rasi-projection/ticket.md) — `colors.rasi` projection is GTK syntax; rofi cannot parse it | `in-progress` | severity: high
+
 ## Standalone requirements
 
 (none — all items are children of EPIC-001; REQ-022 is filed as a child above)

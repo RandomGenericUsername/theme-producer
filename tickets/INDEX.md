@@ -49,6 +49,7 @@
 
 - [req-023-themed-ansi-anchors](./req-023-themed-ansi-anchors/ticket.md) — Theme-tinted ANSI hue anchors with lower saturation | `in-progress` | branch: ticket/req-023-themed-ansi-anchors | superseded by REQ-024
 - [req-024-role-derived-ansi](./req-024-role-derived-ansi/ticket.md) — Role-derived ANSI table (supersedes REQ-023) | `in-progress` | branch: ticket/req-024-role-derived-ansi
+- [req-025-terminal-chrome-semantic-roles](./req-025-terminal-chrome-semantic-roles/ticket.md) — Decouple terminal chrome from ANSI slot indices (fixes REQ-024 regression) | `in-progress` | branch: ticket/req-025-terminal-chrome-semantic-roles
 
 ## Bugs
 

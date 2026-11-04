@@ -187,3 +187,18 @@ v0.5.2 REQ-023 table, `after` is this role mapping. A script asserted each
 CAP-008 and AD-6 still describe hue-anchored ANSI. Their wording needs a
 spec/architecture update through the normal OpenSpec/BMAD path; this ticket only
 records and implements the terminal decision.
+
+## Correction (2026-11-04): terminal chrome was a regression
+
+The accepted tradeoff above notes that foreground/cursor follow slot 15
+(`on_surface_variant`) after this change. Live output confirmed that consequence
+was **not intended**: generated `colors.kitty`/`colors.sequences` rendered
+`foreground #d7c1c1` and `cursor #d7c1c1` while the semantic `on_surface` was
+`#f0dede`, visibly dimming terminal text.
+
+This ticket's role table is unchanged and remains correct. The chrome mapping
+was decoupled from slot indices by
+[REQ-025](../req-025-terminal-chrome-semantic-roles/ticket.md) in v0.5.4:
+`surface`/`on_surface` now drive background, foreground, cursor, and selection
+regardless of which role occupies a slot. History above is kept as recorded; see
+REQ-025 for the fix and regression tests.

@@ -373,7 +373,7 @@ def test_generate_mode_light_renders_light_roles_and_keeps_both_modes(
 
     kitty_text = (output / "colors.kitty").read_text(encoding="utf-8")
     assert f"background {light['surface']}" in kitty_text
-    assert f"foreground {light['on_surface']}" in kitty_text
+    assert f"foreground {light['on_surface_variant']}" in kitty_text
 
 
 def test_generate_invalid_mode_is_a_typed_error(

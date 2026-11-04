@@ -82,9 +82,9 @@ def parse_sequences(path: Path) -> dict[str, str]:
     return parsed
 
 
-def mutate_primary(theme: Theme, hex_value: str) -> Theme:
+def mutate_role(theme: Theme, role: MaterialRole, hex_value: str) -> Theme:
     roles = dict(theme.dark.roles)
-    roles[MaterialRole.PRIMARY] = Color.from_hex(hex_value)
+    roles[role] = Color.from_hex(hex_value)
     dark = Mode(mode=ModeName.DARK, roles=roles, palettes=theme.dark.palettes)
     return replace(theme, dark=dark)
 
@@ -188,9 +188,21 @@ def test_unrelated_role_mutation_does_not_change_ansi_bytes(tmp_path: Path) -> N
     assert after_sequences.read_bytes() == before_sequences.read_bytes()
 
 
-def test_primary_saturation_mutation_changes_ansi_bytes(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "role",
+    [
+        MaterialRole.ERROR,
+        MaterialRole.TERTIARY,
+        MaterialRole.SECONDARY,
+        MaterialRole.PRIMARY,
+        MaterialRole.ERROR_CONTAINER,
+        MaterialRole.PRIMARY_CONTAINER,
+        MaterialRole.ON_SURFACE_VARIANT,
+    ],
+)
+def test_role_mutation_changes_ansi_bytes(tmp_path: Path, role: MaterialRole) -> None:
     theme = load_theme()
-    mutated = mutate_primary(theme, "#ff0000")
+    mutated = mutate_role(theme, role, "#010203")
 
     before_kitty, before_sequences = render(theme, tmp_path / "before")
     after_kitty, after_sequences = render(mutated, tmp_path / "after")

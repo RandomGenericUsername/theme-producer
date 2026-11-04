@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.5.3 — 2026-11-04
+
+- **Role-derived ANSI table (`REQ-024`, supersedes `REQ-023`)**: `colors.kitty`
+  and `colors.sequences` now map all sixteen ANSI slots directly to Material
+  roles in canonical legacy order: `surface`, `error`, `tertiary`, `secondary`,
+  `primary`, `surface_variant`, `outline_variant`, `on_surface`, `outline`,
+  `error_container`, `tertiary_container`, `secondary_container`,
+  `primary_container`, `surface_container`, `surface_container_high`,
+  `on_surface_variant`. No fixed hue anchors, tint blend, family bound, hue
+  separation, or derived saturation remain; every emitted value is a role color
+  from the selected mode, so the terminal palette matches the wallpaper.
+- **Tradeoff (JD-approved)**: standard ANSI red/green/blue semantics are no
+  longer preserved. `color1` is the theme's error tone, `color2` tertiary,
+  `color4` primary, and so on. Because foreground/cursor are slot 15, they now
+  follow `on_surface_variant` instead of `on_surface`; background and selection
+  still follow slot 0 (`surface`). Duplicate slot values are valid when the
+  wallpaper's roles coincide; the recipe never invents a color to keep them
+  distinct. Projection templates, runtime wiring, and the `theme.json` schema
+  are unchanged.
+
 ## 0.5.2 — 2026-11-04
 
 - **Theme-tinted ANSI hue anchors (`REQ-023`)**: `colors.kitty` and

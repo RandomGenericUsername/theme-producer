@@ -108,7 +108,7 @@ def test_local_generate_light_renders_light_roles_and_keeps_theme_json_modes(
 
     kitty_text = (output / "colors.kitty").read_text(encoding="utf-8")
     assert f"background {light_roles['surface']}" in kitty_text
-    assert f"foreground {light_roles['on_surface']}" in kitty_text
+    assert f"foreground {light_roles['on_surface_variant']}" in kitty_text
 
     # The selected mode does not replace the Theme: both modes stay canonical.
     assert theme.dark.roles

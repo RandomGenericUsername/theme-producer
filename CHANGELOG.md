@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.4 — 2026-11-04
+
+- **Terminal chrome decoupled from ANSI slot indices (`REQ-025`, fixes `REQ-024`
+  regression)**: `colors.kitty` and `colors.sequences` now resolve
+  `background`, `foreground`, `cursor`, and selection directly from the selected
+  mode's Material roles — `surface` and `on_surface` — instead of reading slots
+  0/15 of the 16-color table. `REQ-024` moved slot 15 to `on_surface_variant`,
+  which dimmed terminal text (`foreground #d7c1c1` / `cursor #d7c1c1` where the
+  semantic `on_surface` was `#f0dede`). The role-derived 16-slot table itself is
+  unchanged; only the non-palette chrome keys are decoupled. Removed the
+  misleading `ANSI_*_INDEX` chrome constants and added a regression test where
+  slot 15 differs from `on_surface`.
+
 ## 0.5.3 — 2026-11-04
 
 - **Role-derived ANSI table (`REQ-024`, supersedes `REQ-023`)**: `colors.kitty`

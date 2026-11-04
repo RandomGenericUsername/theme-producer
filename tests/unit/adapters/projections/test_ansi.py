@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from theme_producer.adapters.projections import ansi as ansi_projection
 from theme_producer.adapters.projections.ansi import (
     ANSI_PROJECTIONS,
     KITTY_PROJECTION,
@@ -42,10 +43,12 @@ def load_theme() -> Theme:
     return Theme.from_dict(json.loads(FIXTURE.read_text(encoding="utf-8")))
 
 
-def render(theme: Theme, tmp_path: Path) -> tuple[Path, Path]:
+def render(
+    theme: Theme, tmp_path: Path, mode: ModeName | str = ModeName.DARK
+) -> tuple[Path, Path]:
     registry = ProjectionRegistry()
-    kitty = registry.render(KITTY_PROJECTION, theme, tmp_path)
-    sequences = registry.render(SEQUENCES_PROJECTION, theme, tmp_path)
+    kitty = registry.render(KITTY_PROJECTION, theme, tmp_path, mode=mode)
+    sequences = registry.render(SEQUENCES_PROJECTION, theme, tmp_path, mode=mode)
     return kitty, sequences
 
 
@@ -120,10 +123,78 @@ def test_kitty_and_sequences_share_one_table(tmp_path: Path) -> None:
         assert sequence_colors[key] == expected[index]
 
     assert kitty_colors["background"] == expected[0] == sequence_colors["background"]
-    assert kitty_colors["foreground"] == expected[15] == sequence_colors["foreground"]
-    assert kitty_colors["cursor"] == expected[15] == sequence_colors["cursor"]
-    assert kitty_colors["selection_background"] == expected[0]
-    assert kitty_colors["selection_foreground"] == expected[15]
+
+
+@pytest.mark.parametrize("mode_name", [ModeName.DARK, ModeName.LIGHT])
+def test_terminal_chrome_uses_semantic_roles(
+    tmp_path: Path, mode_name: ModeName
+) -> None:
+    theme = load_theme()
+    mode = theme.dark if mode_name is ModeName.DARK else theme.light
+    kitty, sequences = render(theme, tmp_path, mode_name)
+
+    kitty_colors = parse_kitty(kitty)
+    sequence_colors = parse_sequences(sequences)
+    roles = mode.roles
+
+    chrome = {
+        "background": MaterialRole.SURFACE,
+        "foreground": MaterialRole.ON_SURFACE,
+        "cursor": MaterialRole.ON_SURFACE,
+        "selection_background": MaterialRole.SURFACE,
+        "selection_foreground": MaterialRole.ON_SURFACE,
+    }
+    for key, role in chrome.items():
+        assert kitty_colors[key] == roles[role].hex, key
+
+    assert sequence_colors["background"] == roles[MaterialRole.SURFACE].hex
+    assert sequence_colors["foreground"] == roles[MaterialRole.ON_SURFACE].hex
+    assert sequence_colors["cursor"] == roles[MaterialRole.ON_SURFACE].hex
+
+
+def test_chrome_ignores_slot_15_when_it_differs_from_on_surface(
+    tmp_path: Path,
+) -> None:
+    theme = load_theme()
+    roles = dict(theme.dark.roles)
+    roles[MaterialRole.ON_SURFACE] = Color.from_hex("#f0dede")
+    roles[MaterialRole.ON_SURFACE_VARIANT] = Color.from_hex("#d7c1c1")
+    mutated = replace(
+        theme,
+        dark=Mode(mode=ModeName.DARK, roles=roles, palettes=theme.dark.palettes),
+    )
+
+    kitty, sequences = render(mutated, tmp_path)
+    kitty_colors = parse_kitty(kitty)
+    sequence_colors = parse_sequences(sequences)
+    palette = ansi_palette(mutated)
+
+    # Slot 15 is on_surface_variant and must not leak into chrome.
+    assert kitty_colors["color15"] == sequence_colors["color15"] == palette[15].hex
+    assert palette[15].hex == "#d7c1c1"
+
+    assert kitty_colors["foreground"] == "#f0dede"
+    assert kitty_colors["cursor"] == "#f0dede"
+    assert kitty_colors["selection_foreground"] == "#f0dede"
+    assert sequence_colors["foreground"] == "#f0dede"
+    assert sequence_colors["cursor"] == "#f0dede"
+    for key in ("foreground", "cursor", "selection_foreground"):
+        assert kitty_colors[key] != palette[15].hex
+
+    assert kitty_colors["background"] == kitty_colors["selection_background"]
+    assert kitty_colors["background"] == palette[0].hex
+    assert sequence_colors["background"] == palette[0].hex
+
+
+def test_slot_index_chrome_constants_are_gone() -> None:
+    for symbol in (
+        "ANSI_BACKGROUND_INDEX",
+        "ANSI_FOREGROUND_INDEX",
+        "ANSI_CURSOR_INDEX",
+        "ANSI_SELECTION_BACKGROUND_INDEX",
+        "ANSI_SELECTION_FOREGROUND_INDEX",
+    ):
+        assert not hasattr(ansi_projection, symbol), symbol
 
 
 def test_sequences_are_osc_bytes_with_esc_prefix_and_st_terminator(tmp_path: Path) -> None:

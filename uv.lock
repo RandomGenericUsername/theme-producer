@@ -637,7 +637,7 @@ wheels = [
 
 [[package]]
 name = "theme-producer"
-version = "0.5.3"
+version = "0.5.4"
 source = { editable = "." }
 dependencies = [
     { name = "cli-invocation-contract" },

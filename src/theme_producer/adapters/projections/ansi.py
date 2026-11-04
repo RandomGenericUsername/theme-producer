@@ -15,7 +15,7 @@ from typing import Any
 
 from theme_producer.adapters.jinja_renderer import JinjaThemeRenderer
 from theme_producer.domain.ansi import ansi_palette
-from theme_producer.domain.enums import ModeName
+from theme_producer.domain.enums import MaterialRole, ModeName
 from theme_producer.domain.models import Theme
 from theme_producer.ports.projection import Projection
 
@@ -28,15 +28,11 @@ __all__ = [
     "sequences_postprocess",
 ]
 
-#: The kitty/sequences table indices used for the terminal's non-palette keys.
-#: ``foreground`` tracks on-surface (slot 15) and ``cursor`` follows it, matching
-#: the existing semantic ``foreground`` vocabulary. Selection reuses the surface
-#: and on-surface anchors.
-ANSI_BACKGROUND_INDEX = 0
-ANSI_FOREGROUND_INDEX = 15
-ANSI_CURSOR_INDEX = 15
-ANSI_SELECTION_BACKGROUND_INDEX = 0
-ANSI_SELECTION_FOREGROUND_INDEX = 15
+#: Terminal chrome is semantic, not positional. ``background``,
+#: ``foreground``, ``cursor``, and selection are resolved directly from the
+#: selected mode's Material roles. Never derive these keys from an ANSI slot
+#: index: slot roles can change independently (REQ-024 moved slot 15 to
+#: ``on_surface_variant``, which regressed foreground/cursor in REQ-025).
 
 KITTY_PROJECTION = Projection(
     name="kitty",
@@ -61,15 +57,17 @@ def build_ansi_context(
     theme: Theme,
     mode: ModeName | str = ModeName.DARK,
 ) -> Mapping[str, Any]:
-    """Build the template context from the selected mode's ANSI table."""
-    colors = ansi_palette(theme, mode)
+    """Build the template context from the selected mode's ANSI table and roles."""
+    mode_name = ModeName(mode)
+    selected = theme.dark if mode_name is ModeName.DARK else theme.light
+    colors = ansi_palette(theme, mode_name)
     return {
         "colors": colors,
-        "background": colors[ANSI_BACKGROUND_INDEX],
-        "foreground": colors[ANSI_FOREGROUND_INDEX],
-        "cursor": colors[ANSI_CURSOR_INDEX],
-        "selection_background": colors[ANSI_SELECTION_BACKGROUND_INDEX],
-        "selection_foreground": colors[ANSI_SELECTION_FOREGROUND_INDEX],
+        "background": selected.roles[MaterialRole.SURFACE],
+        "foreground": selected.roles[MaterialRole.ON_SURFACE],
+        "cursor": selected.roles[MaterialRole.ON_SURFACE],
+        "selection_background": selected.roles[MaterialRole.SURFACE],
+        "selection_foreground": selected.roles[MaterialRole.ON_SURFACE],
     }
 
 

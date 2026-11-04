@@ -126,10 +126,10 @@ def test_light_projection_uses_light_roles_and_palettes(tmp_path: Path) -> None:
     palette = ansi_palette(theme, ModeName.LIGHT)
     kitty = parse_kitty(rendered["colors.kitty"])
     assert kitty["background"] == light.roles[MaterialRole.SURFACE].hex
-    assert kitty["foreground"] == light.roles[MaterialRole.ON_SURFACE_VARIANT].hex
-    assert kitty["cursor"] == light.roles[MaterialRole.ON_SURFACE_VARIANT].hex
+    assert kitty["foreground"] == light.roles[MaterialRole.ON_SURFACE].hex
+    assert kitty["cursor"] == light.roles[MaterialRole.ON_SURFACE].hex
     assert kitty["selection_background"] == light.roles[MaterialRole.SURFACE].hex
-    assert kitty["selection_foreground"] == light.roles[MaterialRole.ON_SURFACE_VARIANT].hex
+    assert kitty["selection_foreground"] == light.roles[MaterialRole.ON_SURFACE].hex
     for index, color in enumerate(palette):
         assert kitty[f"color{index}"] == color.hex
 

@@ -77,4 +77,22 @@ Before the fix, a generated theme printed `foreground #d7c1c1` and
   `tests/fixtures/projections/colors.kitty`,
   `tests/fixtures/projections/colors.sequences`,
   `CHANGELOG.md`.
+- Test result: `uv run pytest -q -rs` → 649 passed, 88 skipped.
+- Gates: `make gates` → exit 0; `make ci-gates-parity` → PASS.
 - Verify: `make gates && make ci-gates-parity` in `.worktrees/req-025/`.
+
+## Before / after
+
+Default fixture (`tests/fixtures/theme.json`, dark):
+
+| Key | Before (slot) | After (role) | Value |
+| --- | --- | --- | --- |
+| `foreground` | slot 15 `on_surface_variant` | `on_surface` | `#000000` → `#fbd0aa` |
+| `cursor` | slot 15 `on_surface_variant` | `on_surface` | `#000000` → `#fbd0aa` |
+| `selection_foreground` | slot 15 `on_surface_variant` | `on_surface` | `#000000` → `#fbd0aa` |
+| `background` | slot 0 `surface` | `surface` | `#000000` (unchanged) |
+| `selection_background` | slot 0 `surface` | `surface` | `#000000` (unchanged) |
+
+Reported live case: `foreground`/`cursor` were `#d7c1c1` (slot 15) while semantic
+`on_surface` was `#f0dede`; after the fix both are `#f0dede`.
+

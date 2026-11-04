@@ -1,3 +1,3 @@
 """Theme Producer: Material You themes and projections for the dotfiles toolchain."""
 
-__version__ = "0.5.1"
+__version__ = "0.5.2"

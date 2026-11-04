@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.5.2 — 2026-11-04
+
+- **Theme-tinted ANSI hue anchors (`REQ-023`)**: `colors.kitty` and
+  `colors.sequences` keep six distinct ANSI hue families but no longer paint a
+  fixed rainbow. Each anchor (red 25°, green 145°, yellow 90°, blue 260°,
+  magenta 330°, cyan 200°) is blended up to 30% toward the theme primary's hue
+  along the shortest circular arc, clamped to 25° of drift so the family
+  semantics survive an opposite-hue primary. A shared blend factor is lowered
+  in 0.01 steps until every pair of hues is at least 40° apart (0 = the old
+  anchors); an achromatic primary applies no tint. Saturation now uses the
+  calmer `[0.35, 0.65]` window with a `0.50` achromatic fallback instead of
+  `[0.45, 0.85]`/`0.60`. Lightness, Material slots 0/7/8/15, and bright
+  variants are unchanged. Both projections still consume the one shared table.
+
 ## 0.5.1 — 2026-11-04
 
 - **`colors.rasi` is valid rasi (`BUG-004`):** the projection now emits one

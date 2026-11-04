@@ -9,9 +9,15 @@ links:
   bmad: none
 worktree: .worktrees/req-023/
 branch: ticket/req-023-themed-ansi-anchors
+superseded_by: REQ-024
 ---
 
 # Theme-tinted ANSI hue anchors
+
+> **Superseded (2026-11-04) by [REQ-024](../req-024-role-derived-ansi/ticket.md).**
+> JD revised the terminal decision from option B (theme-tinted hue anchors) to
+> option C (fully role-derived ANSI). This ticket's history is kept: the recipe
+> shipped in v0.5.2 and was replaced in v0.5.3. No further work is planned here.
 
 ## Requirement
 

@@ -47,7 +47,8 @@
 
 ## Standalone requirements
 
-- [req-023-themed-ansi-anchors](./req-023-themed-ansi-anchors/ticket.md) — Theme-tinted ANSI hue anchors with lower saturation | `in-progress` | branch: ticket/req-023-themed-ansi-anchors
+- [req-023-themed-ansi-anchors](./req-023-themed-ansi-anchors/ticket.md) — Theme-tinted ANSI hue anchors with lower saturation | `in-progress` | branch: ticket/req-023-themed-ansi-anchors | superseded by REQ-024
+- [req-024-role-derived-ansi](./req-024-role-derived-ansi/ticket.md) — Role-derived ANSI table (supersedes REQ-023) | `in-progress` | branch: ticket/req-024-role-derived-ansi
 
 ## Bugs
 

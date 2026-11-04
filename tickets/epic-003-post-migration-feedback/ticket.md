@@ -22,8 +22,8 @@ bootstrap per item.
 
 | # | Report | Classification | Owning repo | Ticket | Batch |
 |---|---|---|---|---|---|
-| F1 | Bar workspace/palette does not update after wallpaper change; notification: “Could not update: bar (ags, unknown) … outside the deployed link” | Migration regression (runtime discovery skips bare `ags run`) | dotfiles-runtime | BUG-008 | PIN-0129 |
-| F2 | Rofi fails: `Parser error … File: ~/.config/rofi/colors.rasi` | Producer bug (rasi projection uses GTK `@define-color`) | theme-producer | BUG-004 | PIN-0129 |
+| F1 | Bar workspace/palette does not update after wallpaper change; notification: “Could not update: bar (ags, unknown) … outside the deployed link” | Migration regression (runtime discovery skips bare `ags run`) | dotfiles-runtime | BUG-008 | **done** (PIN-0129) |
+| F2 | Rofi fails: `Parser error … File: ~/.config/rofi/colors.rasi` | Producer bug (rasi projection uses GTK `@define-color`) | theme-producer | BUG-004 | **done** (PIN-0129) |
 | F3 | Notification card text overlaps (progress line behind final line) — to confirm whether it persists after F1 | Observe | ags-notifications | — | pending |
 
 ## Batch plan

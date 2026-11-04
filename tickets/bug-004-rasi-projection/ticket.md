@@ -2,7 +2,7 @@
 id: BUG-004
 title: "colors.rasi projection emits GTK @define-color; rofi cannot parse it"
 kind: bug
-status: in-progress
+status: done
 lane: 2
 links:
   openspec: none
@@ -56,3 +56,11 @@ syntax check exists on the host, use it).
 - [ ] Golden fixture updated; test added.
 - [ ] `make gates` green; release v0.5.1 after review.
 - [ ] Live rofi launcher opens without a parser error.
+
+## Outcome
+
+Fixed in `v0.5.1` and deployed via PIN-0129. Template emits one `* { … }` block
+with all roles (hyphenated: `on_surface` → `on-surface`, since rasi identifiers
+cannot contain `_`) plus `color00..15`; no `@define-color`. Live check:
+`rofi -dump-theme -theme ~/.config/rofi/launcher/config.rasi` → rc 0, no
+`Failed to parse theme`, and the launcher no longer reports a parse error.

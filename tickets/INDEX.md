@@ -43,7 +43,7 @@
 
 - [bug-004-rasi-projection](./bug-004-rasi-projection/ticket.md) — `colors.rasi` projection is GTK syntax; rofi cannot parse it | `in-progress` | severity: high
 
-- [epic-003-post-migration-feedback](./epic-003-post-migration-feedback/ticket.md) — Post-migration feedback: triage and patch batches | `in-progress` | batch: PIN-0129 (runtime BUG-008, tpr BUG-004)
+- [epic-003-post-migration-feedback](./epic-003-post-migration-feedback/ticket.md) — Post-migration feedback: triage and patch batches | `done` | batch: PIN-0129 (runtime BUG-008, tpr BUG-004)
 
 ## Standalone requirements
 

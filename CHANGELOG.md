@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.5.1 — 2026-11-04
+
+- **`colors.rasi` is valid rasi (`BUG-004`):** the projection now emits one
+  standard rofi theme block (`* { name: #hex; … }`) instead of GTK
+  `@define-color` directives, which rofi's parser rejects. The block keeps the
+  existing header comment and every vocabulary name, Material role,
+  produced `on_backdrop`, and the zero-padded legacy aliases `color00..15`
+  with unchanged values. rofi property identifiers only allow
+  `[A-Za-z0-9-]+`, so canonical role names are emitted with hyphens
+  (`on_surface` → `on-surface`, `on_backdrop` → `on-backdrop`); the file
+  documents the transform. Added a regression test for the block shape, the
+  trailing `}`, the absence of `@define-color`, and the complete role set.
+  Verified against host rofi 2.0.0-dirty with the real launcher config
+  (`@import "../colors.rasi"`, `@color04`, `@color01`, `@background`,
+  `@foreground`): no parser error.
+
 ## 0.5.0 — 2026-10-30
 
 - **Produced role `on_backdrop`** (additive, `theme.json` schema `1.1`): the

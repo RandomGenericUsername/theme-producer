@@ -1,14 +1,19 @@
-{#- colors.rasi — rofi @define-color semantics + positional aliases -#}
+{#- rofi property names are [A-Za-z0-9-]+; Material role underscores become hyphens -#}
 /* colors.rasi — generated from theme.json */
+/* rofi identifiers cannot contain "_"; canonical theme.json role names are
+   emitted with hyphens (for example on_surface -> on-surface, on_backdrop ->
+   on-backdrop). */
+* {
 {% for name, color in vocabulary.items() %}
-@define-color {{ name }} {{ color.hex }};
+    {{ name|replace('_', '-') }}: {{ color.hex }};
 {% endfor %}
 {% for name, color in extra_roles %}
-@define-color {{ name }} {{ color.hex }};
+    {{ name|replace('_', '-') }}: {{ color.hex }};
 {% endfor %}
 {% for name, color in produced_roles %}
-@define-color {{ name }} {{ color.hex }};
+    {{ name|replace('_', '-') }}: {{ color.hex }};
 {% endfor %}
 {% for name, color in legacy.items() %}
-@define-color color{{ '%02d' % loop.index0 }} {{ color.hex }};
+    color{{ '%02d' % loop.index0 }}: {{ color.hex }};
 {% endfor %}
+}

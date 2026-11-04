@@ -58,7 +58,11 @@ def test_local_generate_writes_theme_json_and_all_eight_projections(
 
     assert (output / "colors.yaml").read_text(encoding="utf-8").startswith("# colors.yaml")
     assert "background" in (output / "colors.gtk.css").read_text(encoding="utf-8")
-    assert "@define-color" in (output / "colors.rasi").read_text(encoding="utf-8")
+    rasi_text = (output / "colors.rasi").read_text(encoding="utf-8")
+    assert rasi_text.startswith("/* colors.rasi — generated from theme.json */")
+    assert "* {" in rasi_text and rasi_text.rstrip().endswith("}")
+    assert "on-surface:" in rasi_text and "color04:" in rasi_text
+    assert "@define-color" not in rasi_text
     assert "$background" in (output / "colors.conf").read_text(encoding="utf-8")
     assert "theme[main_bg]" in (output / "colors.btop.theme").read_text(encoding="utf-8")
     assert "background " in (output / "colors.kitty").read_text(encoding="utf-8")

@@ -27,6 +27,7 @@ TESTS_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE = TESTS_ROOT / "fixtures" / "theme.json"
 
 CSS_DEFINE = re.compile(r"^@define-color ([A-Za-z0-9_-]+) (#[0-9a-f]{6});$")
+RASI_PROPERTY = re.compile(r"^    ([A-Za-z0-9_-]+): (#[0-9a-f]{6});$")
 RASI_POSITIONAL = re.compile(r"^color\d{2}$")
 
 SEMANTIC_NAMES = (
@@ -66,6 +67,26 @@ def render_defines(projection: str, mode: ModeName, tmp_path: Path) -> dict[str,
     return parse_defines(output.read_text(encoding="utf-8"))
 
 
+def parse_rasi(text: str) -> dict[str, str]:
+    properties: dict[str, str] = {}
+    for line in text.splitlines():
+        match = RASI_PROPERTY.fullmatch(line)
+        if match:
+            properties[match.group(1)] = match.group(2)
+    return properties
+
+
+def rasi_name(name: str) -> str:
+    """rofi property identifiers cannot contain ``_`` (BUG-004)."""
+    return name.replace("_", "-")
+
+
+def render_rasi(mode: ModeName, tmp_path: Path) -> dict[str, str]:
+    theme = load_theme()
+    output = ProjectionRegistry().render("rasi", theme, tmp_path / mode.value, mode=mode)
+    return parse_rasi(output.read_text(encoding="utf-8"))
+
+
 def roles_for(theme: Theme, mode: ModeName):
     return theme.dark.roles if mode is ModeName.DARK else theme.light.roles
 
@@ -91,7 +112,7 @@ def test_gtk_has_exactly_the_csg_compatibility_alias_set(
 def test_rasi_has_zero_padded_positional_and_semantic_aliases(
     tmp_path: Path, mode: ModeName
 ) -> None:
-    defines = render_defines("rasi", mode, tmp_path)
+    defines = render_rasi(mode, tmp_path)
     roles = roles_for(load_theme(), mode)
 
     positional = {name for name in defines if RASI_POSITIONAL.fullmatch(name)}
@@ -102,7 +123,7 @@ def test_rasi_has_zero_padded_positional_and_semantic_aliases(
         assert defines[f"color{index:02d}"] == roles[role].hex
 
     for name in SEMANTIC_NAMES:
-        assert name in defines
+        assert rasi_name(name) in defines
     # rasi keeps its shape: only the positional aliases are zero-padded.
     assert "color_background" not in defines
     assert "color_foreground" not in defines
@@ -127,14 +148,8 @@ def test_light_mode_carries_the_same_aliases_with_light_values(tmp_path: Path) -
     assert light_gtk["color_cursor"] == theme.light.roles[MaterialRole.ON_SURFACE].hex
     assert light_gtk["color_background"] != dark_gtk["color_background"]
 
-    dark_rasi = parse_defines(
-        registry.render("rasi", theme, tmp_path / "dark-rasi").read_text(encoding="utf-8")
-    )
-    light_rasi = parse_defines(
-        registry.render(
-            "rasi", theme, tmp_path / "light-rasi", mode=ModeName.LIGHT
-        ).read_text(encoding="utf-8")
-    )
+    dark_rasi = render_rasi(ModeName.DARK, tmp_path / "dark-rasi")
+    light_rasi = render_rasi(ModeName.LIGHT, tmp_path / "light-rasi")
     assert set(light_rasi) == set(dark_rasi)
     assert light_rasi["color04"] == theme.light.roles[LEGACY_COLOR_ORDER[4]].hex
     assert light_rasi["color00"] != dark_rasi["color00"]

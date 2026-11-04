@@ -25,6 +25,7 @@ STABLE_NAMES = (
 )
 
 CSS_DEFINE = re.compile(r"^@define-color ([A-Za-z0-9_-]+) (#[0-9a-f]{6});$")
+RASI_PROPERTY = re.compile(r"^    ([A-Za-z0-9_-]+): (#[0-9a-f]{6});$")
 CONF_DEFINE = re.compile(r"^\$([A-Za-z0-9_-]+) = rgb\(([0-9a-f]{6})\)$")
 YAML_SCALAR = re.compile(r'^([A-Za-z0-9_-]+): "(#[0-9a-f]{6})"$')
 YAML_LIST_ITEM = re.compile(r'^  - "(#[0-9a-f]{6})"$')
@@ -45,6 +46,15 @@ def css_defines(text: str) -> dict[str, str]:
     result: dict[str, str] = {}
     for line in text.splitlines():
         match = CSS_DEFINE.fullmatch(line)
+        if match:
+            result[match.group(1)] = match.group(2)
+    return result
+
+
+def rasi_properties(text: str) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for line in text.splitlines():
+        match = RASI_PROPERTY.fullmatch(line)
         if match:
             result[match.group(1)] = match.group(2)
     return result
@@ -162,13 +172,18 @@ def test_yaml_has_vocabulary_cursor_all_roles_and_legacy_list(rendered, theme: T
     assert colors == [role_hex(theme, role) for role in LEGACY_COLOR_ORDER]
 
 
+def rasi_name(name: str) -> str:
+    """rofi property identifiers cannot contain ``_`` (BUG-004)."""
+    return name.replace("_", "-")
+
+
 def test_rasi_has_vocabulary_roles_and_legacy_aliases(rendered, theme: Theme) -> None:
-    defines = css_defines(rendered["colors.rasi"])
+    defines = rasi_properties(rendered["colors.rasi"])
 
     for name in STABLE_NAMES:
-        assert name in defines
+        assert rasi_name(name) in defines
     for role in MaterialRole:
-        assert role.value in defines
+        assert rasi_name(role.value) in defines
     for index in range(16):
         assert f"color{index:02d}" in defines
         assert defines[f"color{index:02d}"] == role_hex(theme, LEGACY_COLOR_ORDER[index])
@@ -176,6 +191,36 @@ def test_rasi_has_vocabulary_roles_and_legacy_aliases(rendered, theme: Theme) ->
     assert defines["background"] == role_hex(theme, MaterialRole.SURFACE)
     assert defines["foreground"] == role_hex(theme, MaterialRole.ON_SURFACE)
     assert defines["accent"] == role_hex(theme, MaterialRole.PRIMARY)
+
+
+def test_rasi_is_one_theme_block_without_gtk_directives(rendered, theme: Theme) -> None:
+    text = rendered["colors.rasi"]
+
+    # BUG-004: rofi's rasi parser rejects GTK ``@define-color`` directives.
+    assert "@define-color" not in text
+    assert text.startswith("/* colors.rasi — generated from theme.json */\n")
+
+    # Exactly one theme block, and the file ends with its closing brace.
+    assert text.count("* {") == 1
+    assert text.rstrip("\n").endswith("}")
+    lines = text.splitlines()
+    assert lines[-1] == "}"
+    assert "* {" in lines
+
+    properties = rasi_properties(text)
+    expected = {
+        rasi_name(name)
+        for name in (
+            *STABLE_NAMES,
+            *(role.value for role in MaterialRole),
+            "on_backdrop",
+            *(f"color{index:02d}" for index in range(16)),
+        )
+    }
+    assert set(properties) == expected
+    # rofi's lexer only accepts [A-Za-z0-9-]+ as a property name.
+    assert all("_" not in name for name in properties)
+    assert properties["on-backdrop"] == theme.dark.on_backdrop.hex
 
 
 def test_conf_uses_hyprland_rgb_variables_without_hashes(rendered, theme: Theme) -> None:

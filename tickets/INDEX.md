@@ -47,7 +47,7 @@
 
 ## Standalone requirements
 
-(none — all items are children of EPIC-001; REQ-022 is filed as a child above)
+- [req-023-themed-ansi-anchors](./req-023-themed-ansi-anchors/ticket.md) — Theme-tinted ANSI hue anchors with lower saturation | `in-progress` | branch: ticket/req-023-themed-ansi-anchors
 
 ## Bugs
 

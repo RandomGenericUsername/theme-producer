@@ -51,11 +51,11 @@ syntax check exists on the host, use it).
 
 ## Acceptance
 
-- [ ] Generated rasi is `* { name: value; }` with all roles + `color00..15`.
-- [ ] `rg '@define-color' <generated rasi>` → 0.
-- [ ] Golden fixture updated; test added.
-- [ ] `make gates` green; release v0.5.1 after review.
-- [ ] Live rofi launcher opens without a parser error.
+- [x] Generated rasi is `* { name: value; }` with all roles + `color00..15`.
+- [x] `rg '@define-color' <generated rasi>` → 0.
+- [x] Golden fixture updated; test added.
+- [x] `make gates` green; release v0.5.1 after review.
+- [x] Live rofi launcher opens without a parser error.
 
 ## Outcome
 

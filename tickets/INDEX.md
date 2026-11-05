@@ -41,7 +41,7 @@
 
 ## Bugs
 
-- [bug-004-rasi-projection](./bug-004-rasi-projection/ticket.md) — `colors.rasi` projection is GTK syntax; rofi cannot parse it | `in-progress` | severity: high
+- [bug-004-rasi-projection](./bug-004-rasi-projection/ticket.md) — `colors.rasi` projection is GTK syntax; rofi cannot parse it | `done` | severity: high | tag: v0.5.1 | live rofi parse verified
 
 - [epic-003-post-migration-feedback](./epic-003-post-migration-feedback/ticket.md) — Post-migration feedback: triage and patch batches | `done` | batch: PIN-0129 (runtime BUG-008, tpr BUG-004)
 
@@ -58,4 +58,6 @@
 ## Ops
 
 (covered under EPIC-001)
+
+- [ops-002-index-status-sync](./ops-002-index-status-sync/ticket.md) — Sync BUG-004 INDEX status and acceptance with the shipped v0.5.1 tag | `done` | worktree: .worktrees/ops-002/ | branch: ticket/ops-002-index-status-sync
 

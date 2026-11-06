@@ -2,7 +2,7 @@
 id: REQ-026
 title: "Project the selected palette mode into colors.yaml"
 kind: requirement
-status: in-progress
+status: done
 lane: 3
 links:
   openspec: none
@@ -44,17 +44,17 @@ are unreachable.
 
 ## Acceptance
 
-- [ ] The selected mode is emitted in every generated `colors.yaml` as a
+- [x] The selected mode is emitted in every generated `colors.yaml` as a
       top-level quoted `mode` scalar.
-- [ ] Dark is the default (`mode: "dark"`); `--mode light` emits
+- [x] Dark is the default (`mode: "dark"`); `--mode light` emits
       `mode: "light"` from `theme.json.modes.light`.
-- [ ] Projection goldens/fixtures and template/content tests assert the mode
+- [x] Projection goldens/fixtures and template/content tests assert the mode
       key; all eight runtime artifacts still render under one invocation.
-- [ ] Consumer compatibility is exercised read-only: ITR preserves the scalar,
+- [x] Consumer compatibility is exercised read-only: ITR preserves the scalar,
       the dotfiles runtime detects the mode, and any rejecting reader is named
       with the chosen representation recorded.
-- [ ] `make gates` green; hermetic suite green; `make ci-gates-parity` green.
-- [ ] Release the next appropriate version on a tagged commit, merged
+- [x] `make gates` green; hermetic suite green; `make ci-gates-parity` green.
+- [x] Release the next appropriate version on a tagged commit, merged
       fast-forward to `master`, pushed with the tag.
 
 ## Evidence / Verify
@@ -63,6 +63,86 @@ are unreachable.
   (`_MODE_KEYS`, `_DARK_BOOL_KEYS`) and `:134-171`
   (`detect_palette_mode`); pre-change `defaults/templates/colors.yaml.j2`
   emits only roles + the legacy list.
-- Baseline: `uv run pytest -q -rs` on the ticket worktree.
 - Verify: render `tests/fixtures/theme.json` in both modes and inspect the
   first line of `colors.yaml`; then run the runtime detector on that file.
+
+## Progress / evidence (build)
+
+Implementation commit: `486942a` on `ticket/req-026-palette-mode-projection`
+(worktree `.worktrees/req-026/`).
+
+### What landed
+
+- `src/theme_producer/defaults/templates/colors.yaml.j2` emits
+  `mode: "{{ mode_name }}"` immediately after the header. `mode_name` is the
+  existing selected-mode string on `ProjectionContext`
+  (`adapters/projections/registry.py:283`), so no processor/CLI contract
+  changed: the same eight filenames, the same `--mode` flag, and both modes in
+  `theme.json`.
+- Exact emitted value: line 2 is `mode: "dark"` for the default/dark selection
+  and `mode: "light"` for `--mode light` (a `smart` run emits its resolved
+  concrete mode). Roles, produced `on_backdrop`, and the legacy `colors:` list
+  are unchanged.
+- `tests/fixtures/projections/colors.yaml` now carries `mode: "dark"`;
+  `test_mode.py` asserts `mode: "light"` and the literal second line for the
+  light render; `test_template_content.py` accepts/asserts the mode scalar;
+  `tests/integration/test_cli_local.py` asserts the light CLI artifact carries
+  `mode: "light"` while all eight runtime files are present.
+- `README.md`, `CHANGELOG.md`, `pyproject.toml`, `src/theme_producer/__init__.py`
+  and `uv.lock` are at `0.6.0`.
+
+### Consumer compatibility (read-only siblings)
+
+Command: `FileColorSchemeLoader().load(generated colors.yaml)` from
+`icon-templates-renderer/.venv` (ITR accepts additive top-level scalars):
+
+```text
+mode= dark
+background= #000000
+colors= 16
+```
+
+Command: `runtime.adapters.appearance.detect_palette_mode(generated colors.yaml)`
+from `dotfiles-runtime`:
+
+```text
+mode= dark
+values_mode= dark
+```
+
+Command: `parsePaletteYaml(generated colors.yaml)` from `ags-platform` (Node
+26, TypeScript strip-types):
+
+```text
+REJECT dark PaletteParseError colors-dark.yaml:2: role "mode" has invalid value "dark" (expected #rgb, #rrggbb or #rrggbbaa)
+REJECT light PaletteParseError colors-light.yaml:2: role "mode" has invalid value "light" (expected #rgb, #rrggbb or #rrggbbaa)
+```
+
+**Chosen representation and reason:** a top-level quoted `mode` scalar is the
+safest representation. It is the runtime's first-precedence key, ITR preserves
+it, and it is ordinary generated YAML. No scalar can satisfy both the runtime
+and the current AGS reader: every runtime mode key (`mode`/`scheme`/
+`appearance`/`variant`/`is_dark`/`dark`) has a `dark`/`light`/boolean value,
+which AGS rejects because it treats every non-`version`/`colors` top-level
+scalar as a hex role. The AGS reader needs a companion change to skip palette
+metadata (as it already does for `version`); its `createTheme.apply()` failure
+policy keeps the legacy CSS path installed until then. Siblings were not
+edited.
+
+### Commands and results
+
+- `uv run pytest -q -rs` → **649 passed, 88 skipped**.
+- `make gates` → **exit 0** (`test` 649 passed/88 skipped, `lint` clean,
+  `hermetic` 645 passed/37 skipped, `lock-check` resolved 34 packages,
+  `docs-check` pass).
+- `make ci-gates-parity` → **PASS** gates
+  `[docs-check, hermetic, lint, lock-check, test]`; jobs include `image` as
+  declared CI-only.
+- `make build` → **exit 0** (`dist/theme_producer-0.6.0.tar.gz`,
+  `dist/theme_producer-0.6.0-py3-none-any.whl`).
+- Verify: `make gates && make ci-gates-parity` in `.worktrees/req-026/`.
+
+## Outcome
+
+Released `v0.6.0` (tag on this branch), merged fast-forward to `master`, and
+pushed with the tag.

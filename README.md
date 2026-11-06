@@ -11,7 +11,7 @@ is one projection among many.
 
 ## Status
 
-`v0.4.0`. The Theme model, both engines (matugen and native), the projection catalog, the CLI and
+`v0.6.0`. The Theme model, both engines (matugen and native), the projection catalog, the CLI and
 the container images are built and gated. The two remaining tickets are cross-repo:
 
 - `REQ-012` — the `tpr` record in the `contracts` repo and its conformance test.
@@ -25,7 +25,7 @@ architecture spine.
 ```bash
 make sync
 make gates
-make image IMAGE_ENGINE=podman          # base + matugen + native at v0.4.0
+make image IMAGE_ENGINE=podman          # base + matugen + native at v0.6.0
 uv run tpr generate wallpaper.png -o /tmp/theme
 uv run tpr generate wallpaper.png --mode smart -o /tmp/theme   # luminance-selected mode
 uv run tpr --output-format json list-engines
@@ -38,7 +38,9 @@ uv run tpr --output-format json list-engines
   top bar band); see `docs/VOCABULARY.md`.
 - Projections — `colors.gtk.css`, `colors.adw.css`, `colors.yaml`, `colors.rasi`,
   `colors.btop.theme`, `colors.conf`, `colors.kitty`, `colors.sequences`, plus a dev-only
-  `theme.html` preview.
+  `theme.html` preview. `colors.yaml` starts with the selected projection mode as a quoted
+  top-level scalar (`mode: "dark"` or `mode: "light"`), so consumers can recover the palette mode
+  without inferring it from colors; the roles and legacy `colors:` list are unchanged.
 - Engines behind `ThemeEnginePort` — v1 `matugen` (pinned, containerized, JSON only), v2 own Rust
   helper on the MIT/Apache `material-colors` crate. A pure-Python engine is a recorded non-goal.
 - Projection mode — `--mode dark|light|smart` on `generate`/`show`; `smart` picks `light` when the

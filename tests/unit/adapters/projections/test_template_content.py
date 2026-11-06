@@ -27,7 +27,7 @@ STABLE_NAMES = (
 CSS_DEFINE = re.compile(r"^@define-color ([A-Za-z0-9_-]+) (#[0-9a-f]{6});$")
 RASI_PROPERTY = re.compile(r"^    ([A-Za-z0-9_-]+): (#[0-9a-f]{6});$")
 CONF_DEFINE = re.compile(r"^\$([A-Za-z0-9_-]+) = rgb\(([0-9a-f]{6})\)$")
-YAML_SCALAR = re.compile(r'^([A-Za-z0-9_-]+): "(#[0-9a-f]{6})"$')
+YAML_SCALAR = re.compile(r'^([A-Za-z0-9_-]+): "(#[0-9a-f]{6}|dark|light)"$')
 YAML_LIST_ITEM = re.compile(r'^  - "(#[0-9a-f]{6})"$')
 
 
@@ -165,6 +165,8 @@ def test_yaml_has_vocabulary_cursor_all_roles_and_legacy_list(rendered, theme: T
         assert role.value in values
     assert len(keys) == len(set(keys)), "colors.yaml must not emit duplicate keys"
 
+    assert values["mode"] == "dark"
+    assert text.splitlines()[1] == 'mode: "dark"'
     assert values["background"] == role_hex(theme, MaterialRole.SURFACE)
     assert values["foreground"] == role_hex(theme, MaterialRole.ON_SURFACE)
     assert values["cursor"] == role_hex(theme, MaterialRole.ON_SURFACE)

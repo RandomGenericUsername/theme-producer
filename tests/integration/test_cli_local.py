@@ -99,6 +99,7 @@ def test_local_generate_light_renders_light_roles_and_keeps_theme_json_modes(
     light_roles = theme_payload["modes"]["light"]["roles"]
 
     yaml_text = (output / "colors.yaml").read_text(encoding="utf-8")
+    assert 'mode: "light"' in yaml_text
     assert f'background: "{light_roles["surface"]}"' in yaml_text
     assert f'foreground: "{light_roles["on_surface"]}"' in yaml_text
 

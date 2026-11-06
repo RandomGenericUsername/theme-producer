@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.6.0 — 2026-11-06
+
+- **Selected palette mode is projected into `colors.yaml` (`REQ-026`)**: the
+  generated palette now begins with a quoted top-level `mode: "dark"` or
+  `mode: "light"` scalar, taken from the same projection mode that selected the
+  eight consumer artifacts. `--mode dark` (the default) and `--mode light`
+  therefore carry their real mode instead of leaving consumers to guess; a
+  `smart` run records the concrete mode it resolved. `theme.json` still carries
+  both modes and the invocation contract (eight filenames, same flags) is
+  unchanged.
+- **Consumer compatibility:** `itr`'s `FileColorSchemeLoader` preserves the
+  additive top-level scalar (and still maps the legacy `colors:` list), and
+  `dotfiles-runtime`'s `detect_palette_mode` reads `mode` as its first
+  precedence key. The AGS platform's strict `parsePaletteYaml` currently rejects
+  any non-hex top-level scalar, so its reader needs to ignore the metadata
+  scalar before consuming the new artifact; its `createTheme.apply()` failure
+  policy keeps the legacy CSS path working until then. No sibling repo was
+  modified.
+
 ## 0.5.4 — 2026-11-04
 
 - **Terminal chrome decoupled from ANSI slot indices (`REQ-025`, fixes `REQ-024`

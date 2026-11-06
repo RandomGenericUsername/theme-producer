@@ -1,4 +1,5 @@
 # colors.yaml — generated from theme.json
+mode: "dark"
 background: "#000000"
 foreground: "#fbd0aa"
 cursor: "#fbd0aa"

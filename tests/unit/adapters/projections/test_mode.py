@@ -104,6 +104,8 @@ def test_light_projection_uses_light_roles_and_palettes(tmp_path: Path) -> None:
     }
 
     yaml_values, yaml_colors = parse_yaml(rendered["colors.yaml"])
+    assert yaml_values["mode"] == "light"
+    assert rendered["colors.yaml"].splitlines()[1] == 'mode: "light"'
     assert yaml_values["background"] == light.roles[MaterialRole.SURFACE].hex
     assert yaml_values["surface"] == light.roles[MaterialRole.SURFACE].hex
     assert yaml_values["foreground"] == light.roles[MaterialRole.ON_SURFACE].hex

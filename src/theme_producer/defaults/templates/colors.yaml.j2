@@ -1,5 +1,6 @@
 {#- colors.yaml — ITR-compatible semantic palette -#}
 # colors.yaml — generated from theme.json
+mode: "{{ mode_name }}"
 {% for name, color in vocabulary.items() %}
 {{ name }}: "{{ color.hex }}"
 {% if name == 'foreground' %}

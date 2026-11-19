@@ -1,3 +1,13 @@
+## 0.7.0 — 2026-11-19
+
+- **Neovim palette projection (`colors.nvim.lua`, `req-027`)**: a new open
+  projection emits a self-contained Lua module with the semantic palette,
+  the 16 ANSI slots, core editor/diagnostic/diff/LSP highlights, Treesitter
+  aliases and a `load()` function. Consumer-facing format name: `nvim.lua`.
+  It is part of the default runtime projection set.
+- Dark/light rendering, a golden fixture, and the projection/file-list pins
+  are covered by the test suite.
+
 # Changelog
 
 ## 0.6.0 — 2026-11-06

@@ -2,7 +2,7 @@
 id: req-027
 title: "Neovim palette projection (colors.nvim.lua)"
 kind: requirement
-status: in-progress
+status: done
 lane: 2
 links:
   openspec: none
@@ -36,8 +36,11 @@ producer-side projection.
 
 ## Acceptance
 
-- [ ] `colors.nvim.lua` renders for dark and light.
-- [ ] The module contains `M.load`, `M.highlights`, `M.palette.ansi`, and the
+- [x] `colors.nvim.lua` renders for dark and light.
+- [x] The module contains `M.load`, `M.highlights`, `M.palette.ansi`, and the
       expected role hex values.
-- [ ] `make test` passes.
-- [ ] No tag/release.
+- [x] `make test` passes.
+- [x] No tag/release.
+
+
+- Release: v0.7.0

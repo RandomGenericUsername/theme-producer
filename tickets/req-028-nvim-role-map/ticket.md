@@ -2,7 +2,7 @@
 id: req-028
 title: "Neovim role map for skin @role resolution"
 kind: requirement
-status: in-progress
+status: done
 lane: 2
 links:
   openspec: none
@@ -54,3 +54,6 @@ full-role table. `ProjectionContext.roles` already carries all 50
 Evidence: `make test` / `make lint` results recorded in the handoff; see
 `tests/unit/adapters/projections/test_template_content.py`.
 Verify: `TEMPLATES_DIR=$PWD/src/theme_producer/defaults/templates make test`
+
+
+- Release: v0.7.1

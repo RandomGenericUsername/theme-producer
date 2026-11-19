@@ -1,3 +1,9 @@
+## 0.7.1 — 2026-11-19
+
+- **Full palette role map in the Neovim projection (`req-028`)**: `colors.nvim.lua`
+  now additively exposes `M.roles` with every Material role plus `on_backdrop`.
+  `M.palette` and the highlight mapping are unchanged. The appearance loader
+  can resolve every `@role` used by the bundled skins.
 ## 0.7.0 — 2026-11-19
 
 - **Neovim palette projection (`colors.nvim.lua`, `req-027`)**: a new open

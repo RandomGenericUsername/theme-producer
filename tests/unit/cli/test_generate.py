@@ -91,6 +91,7 @@ def test_generate_defaults_to_all_non_dev_projections(
             "colors.rasi",
             "colors.conf",
             "colors.btop.theme",
+            "colors.nvim.lua",
             "colors.kitty",
             "colors.sequences",
         ]

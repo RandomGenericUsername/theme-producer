@@ -37,10 +37,12 @@ uv run tpr --output-format json list-engines
   Each mode also carries the produced `on_backdrop` role (the ink that reads over the wallpaper's
   top bar band); see `docs/VOCABULARY.md`.
 - Projections — `colors.gtk.css`, `colors.adw.css`, `colors.yaml`, `colors.rasi`,
-  `colors.btop.theme`, `colors.conf`, `colors.kitty`, `colors.sequences`, plus a dev-only
-  `theme.html` preview. `colors.yaml` starts with the selected projection mode as a quoted
-  top-level scalar (`mode: "dark"` or `mode: "light"`), so consumers can recover the palette mode
-  without inferring it from colors; the roles and legacy `colors:` list are unchanged.
+  `colors.btop.theme`, `colors.conf`, `colors.kitty`, `colors.sequences`,
+  `colors.nvim.lua`, plus a dev-only `theme.html` preview. `colors.yaml` starts
+  with the selected projection mode as a quoted top-level scalar
+  (`mode: "dark"` or `mode: "light"`), so consumers can recover the palette mode
+  without inferring it from colors; the roles and legacy `colors:` list are
+  unchanged.
 - Engines behind `ThemeEnginePort` — v1 `matugen` (pinned, containerized, JSON only), v2 own Rust
   helper on the MIT/Apache `material-colors` crate. A pure-Python engine is a recorded non-goal.
 - Projection mode — `--mode dark|light|smart` on `generate`/`show`; `smart` picks `light` when the

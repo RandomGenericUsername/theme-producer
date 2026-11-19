@@ -110,6 +110,12 @@ OPEN_PROJECTIONS: tuple[Projection, ...] = (
         template="colors.btop.theme.j2",
     ),
     Projection(
+        name="nvim",
+        filename="colors.nvim.lua",
+        capability="open",
+        template="colors.nvim.lua.j2",
+    ),
+    Projection(
         name="html",
         filename="theme.html",
         capability="open",
@@ -159,6 +165,7 @@ FORMAT_NAMES: tuple[str, ...] = (
     "rasi",
     "kitty",
     "btop.theme",
+    "nvim.lua",
     "html",
 )
 
@@ -172,6 +179,7 @@ _PROJECTION_BY_FORMAT: Mapping[str, Projection] = MappingProxyType(
         "rasi": next(p for p in ALL_PROJECTIONS if p.name == "rasi"),
         "kitty": next(p for p in ALL_PROJECTIONS if p.name == "kitty"),
         "btop.theme": next(p for p in ALL_PROJECTIONS if p.name == "btop"),
+        "nvim.lua": next(p for p in ALL_PROJECTIONS if p.name == "nvim"),
         "html": next(p for p in ALL_PROJECTIONS if p.name == "html"),
     }
 )

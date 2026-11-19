@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from theme_producer.adapters.projections.registry import ProjectionRegistry
-from theme_producer.domain.enums import TONE_ORDER, MaterialRole
+from theme_producer.domain.enums import TONE_ORDER, MaterialRole, ModeName
 from theme_producer.domain.models import Theme
 from theme_producer.domain.services import LEGACY_COLOR_ORDER
 
@@ -223,6 +223,33 @@ def test_rasi_is_one_theme_block_without_gtk_directives(rendered, theme: Theme) 
     # rofi's lexer only accepts [A-Za-z0-9-]+ as a property name.
     assert all("_" not in name for name in properties)
     assert properties["on-backdrop"] == theme.dark.on_backdrop.hex
+
+
+def test_nvim_emits_a_loadable_palette_module(rendered, theme: Theme) -> None:
+    text = rendered["colors.nvim.lua"]
+    assert 'M.name = "dotfiles"' in text
+    assert 'M.mode = "dark"' in text
+    assert "function M.load()" in text
+    assert "vim.api.nvim_set_hl" in text
+    assert "M.palette.ansi" in text
+    assert 'hl("Normal", { fg = p.foreground, bg = p.background })' in text
+    assert 'hl("Comment", { fg = p.on_surface_variant, italic = true })' in text
+    assert 'hl("Error", { fg = p.error, bold = true })' in text
+    assert f'background = "{role_hex(theme, MaterialRole.SURFACE)}"' in text
+    assert f'foreground = "{role_hex(theme, MaterialRole.ON_SURFACE)}"' in text
+    assert f'on_surface_variant = "{role_hex(theme, MaterialRole.ON_SURFACE_VARIANT)}"' in text
+    assert f'error = "{role_hex(theme, MaterialRole.ERROR)}"' in text
+    for role in LEGACY_COLOR_ORDER:
+        assert role_hex(theme, role) in text
+    assert len([line for line in text.splitlines() if line.strip().startswith('"#')]) >= 16
+
+
+def test_nvim_renders_the_selected_light_mode(tmp_path: Path, theme: Theme) -> None:
+    path = ProjectionRegistry().render("nvim", theme, tmp_path, mode=ModeName.LIGHT)
+    text = path.read_text(encoding="utf-8")
+    assert 'M.mode = "light"' in text
+    assert theme.light.roles[MaterialRole.SURFACE].hex in text
+    assert theme.light.roles[MaterialRole.ON_SURFACE].hex in text
 
 
 def test_conf_uses_hyprland_rgb_variables_without_hashes(rendered, theme: Theme) -> None:

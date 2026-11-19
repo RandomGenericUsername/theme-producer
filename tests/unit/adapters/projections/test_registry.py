@@ -31,6 +31,7 @@ EXPECTED_PROJECTIONS = (
     ("rasi", "colors.rasi", "open", False),
     ("conf", "colors.conf", "open", False),
     ("btop", "colors.btop.theme", "open", False),
+    ("nvim", "colors.nvim.lua", "open", False),
     ("html", "theme.html", "open", True),
 )
 

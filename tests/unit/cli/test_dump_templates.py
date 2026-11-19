@@ -26,6 +26,7 @@ def test_dump_templates_uses_xdg_default(
             "colors.conf.j2",
             "colors.gtk.css.j2",
             "colors.kitty.j2",
+            "colors.nvim.lua.j2",
             "colors.rasi.j2",
             "colors.sequences.j2",
             "colors.yaml.j2",

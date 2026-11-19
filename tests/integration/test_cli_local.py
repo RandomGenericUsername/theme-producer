@@ -47,11 +47,12 @@ def test_local_generate_writes_theme_json_and_all_eight_projections(
         "colors.rasi",
         "colors.conf",
         "colors.btop.theme",
+        "colors.nvim.lua",
         "colors.kitty",
         "colors.sequences",
     }
     assert {path.name for path in output.iterdir()} == expected
-    assert len(payload["output_files"]) == 9
+    assert len(payload["output_files"]) == 10
 
     theme_payload = json.loads((output / "theme.json").read_text(encoding="utf-8"))
     assert Theme.from_dict(theme_payload).SCHEMA_VERSION == "1.1"
@@ -123,6 +124,7 @@ def test_local_generate_light_renders_light_roles_and_keeps_theme_json_modes(
         "colors.rasi",
         "colors.conf",
         "colors.btop.theme",
+        "colors.nvim.lua",
         "colors.kitty",
         "colors.sequences",
     }
@@ -163,6 +165,7 @@ def test_local_generate_smart_bright_image_renders_light_without_new_artifacts(
         "colors.rasi",
         "colors.conf",
         "colors.btop.theme",
+        "colors.nvim.lua",
         "colors.kitty",
         "colors.sequences",
     }

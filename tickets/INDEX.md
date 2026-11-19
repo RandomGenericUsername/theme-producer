@@ -52,6 +52,7 @@
 - [req-025-terminal-chrome-semantic-roles](./req-025-terminal-chrome-semantic-roles/ticket.md) — Decouple terminal chrome from ANSI slot indices (fixes REQ-024 regression) | `in-progress` | branch: ticket/req-025-terminal-chrome-semantic-roles
 - [req-026-palette-mode-projection](./req-026-palette-mode-projection/ticket.md) — Project the selected palette mode into colors.yaml | `done` | tag: v0.6.0 | branch: ticket/req-026-palette-mode-projection
 - [req-027-nvim-projection](./req-027-nvim-projection/ticket.md) — Neovim palette projection (`colors.nvim.lua`) | `done` | tag: v0.7.0 | worktree: .worktrees/req-027/ | branch: ticket/req-027-nvim-projection
+- [req-028-nvim-role-map](./req-028-nvim-role-map/ticket.md) — Expose the full Material role map (`M.roles`) in `colors.nvim.lua` | `in-progress` | worktree: .worktrees/req-028/ | branch: ticket/req-028-nvim-role-map
 
 ## Bugs
 

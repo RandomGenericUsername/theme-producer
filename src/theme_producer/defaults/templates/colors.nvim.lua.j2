@@ -73,6 +73,17 @@ M.palette = {
   },
 }
 
+-- Full role map: every Material role plus the produced on_backdrop token.
+-- Consumers resolve skin `@role` references from this table.
+M.roles = {
+{% for name, color in roles.items() %}
+  {{ name }} = "{{ color.hex }}",
+{% endfor %}
+{% for name, color in produced_roles %}
+  {{ name }} = "{{ color.hex }}",
+{% endfor %}
+}
+
 M.highlights = {}
 local function hl(group, attrs)
   M.highlights[group] = attrs

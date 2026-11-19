@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -29,6 +31,8 @@ RASI_PROPERTY = re.compile(r"^    ([A-Za-z0-9_-]+): (#[0-9a-f]{6});$")
 CONF_DEFINE = re.compile(r"^\$([A-Za-z0-9_-]+) = rgb\(([0-9a-f]{6})\)$")
 YAML_SCALAR = re.compile(r'^([A-Za-z0-9_-]+): "(#[0-9a-f]{6}|dark|light)"$')
 YAML_LIST_ITEM = re.compile(r'^  - "(#[0-9a-f]{6})"$')
+NVIM_ROLE = re.compile(r'^  ([a-z_]+) = "(#[0-9a-f]{6})",$')
+LUA = shutil.which("lua")
 
 
 @pytest.fixture(scope="module")
@@ -71,6 +75,19 @@ def conf_defines(text: str) -> dict[str, str]:
 
 def role_hex(theme: Theme, role: MaterialRole) -> str:
     return theme.dark.roles[role].hex
+
+
+def nvim_roles(text: str) -> dict[str, str]:
+    lines = text.splitlines()
+    start = lines.index("M.roles = {")
+    result: dict[str, str] = {}
+    for line in lines[start + 1 :]:
+        if line == "}":
+            break
+        match = NVIM_ROLE.fullmatch(line)
+        if match:
+            result[match.group(1)] = match.group(2)
+    return result
 
 
 def test_gtk_has_vocabulary_every_role_and_legacy_aliases(rendered, theme: Theme) -> None:
@@ -250,6 +267,41 @@ def test_nvim_renders_the_selected_light_mode(tmp_path: Path, theme: Theme) -> N
     assert 'M.mode = "light"' in text
     assert theme.light.roles[MaterialRole.SURFACE].hex in text
     assert theme.light.roles[MaterialRole.ON_SURFACE].hex in text
+
+
+def test_nvim_roles_expose_the_full_dark_role_map(rendered, theme: Theme) -> None:
+    roles = nvim_roles(rendered["colors.nvim.lua"])
+
+    expected = {role.value: theme.dark.roles[role].hex for role in MaterialRole}
+    expected["on_backdrop"] = theme.dark.on_backdrop.hex
+    assert roles == expected
+    assert len(roles) == len(MaterialRole) + 1
+
+
+def test_nvim_roles_expose_the_full_light_role_map(tmp_path: Path, theme: Theme) -> None:
+    path = ProjectionRegistry().render("nvim", theme, tmp_path, mode=ModeName.LIGHT)
+    roles = nvim_roles(path.read_text(encoding="utf-8"))
+
+    expected = {role.value: theme.light.roles[role].hex for role in MaterialRole}
+    expected["on_backdrop"] = theme.light.on_backdrop.hex
+    assert roles == expected
+    assert len(roles) == len(MaterialRole) + 1
+
+
+@pytest.mark.skipif(LUA is None, reason="no lua interpreter on PATH")
+@pytest.mark.parametrize("mode", [ModeName.DARK, ModeName.LIGHT])
+def test_nvim_rendered_lua_is_syntactically_valid(
+    tmp_path: Path, theme: Theme, mode: ModeName
+) -> None:
+    path = ProjectionRegistry().render("nvim", theme, tmp_path, mode=mode)
+
+    result = subprocess.run(
+        [str(LUA), "-e", f'assert(loadfile("{path}"))'],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
 
 
 def test_conf_uses_hyprland_rgb_variables_without_hashes(rendered, theme: Theme) -> None:

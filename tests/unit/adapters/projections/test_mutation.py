@@ -41,17 +41,17 @@ def test_inverse_primary_mutation_only_changes_dependent_projections(tmp_path: P
     unchanged = {name for name in before if before[name] == after[name]}
 
     # btop's 48-key table and the fixed ANSI table do not reference inverse_primary.
+    # nvim now renders the full M.roles map, so every Material role mutation
+    # reaches colors.nvim.lua too.
     assert unchanged == {
         "colors.btop.theme",
         "colors.kitty",
         "colors.sequences",
-        "colors.nvim.lua",
     }
     assert changed == set(before) - {
         "colors.btop.theme",
         "colors.kitty",
         "colors.sequences",
-        "colors.nvim.lua",
     }
 
     # Every dependent open projection carries the new role value.

@@ -1,3 +1,21 @@
+## 0.8.0 — 2026-11-27
+
+- **Semantic btop gradients (`req-029`)**: the btop projection now carries a
+  component/intent contract for all 48 documented keys and resolves graph stops
+  from the existing six tonal palettes instead of flattening them into
+  `surface_container_low/mid/high`. Data graphs are contrast-guarded to at
+  least 3:1 against their real btop background (`meter_bg`; `main_bg` for
+  process text), with mode-aware dark/light variant anchors. `download_end` is
+  no longer `meter_bg`, so the NET graphs are visible.
+- The 48-key vocabulary and `colors.btop.theme.j2` iteration are unchanged: no
+  new keys, hardcoded hex, or post-generation patch. Fixed chrome/ink keys still
+  emit Material roles. Gradient rows expose `component`, `intent`, `family`,
+  `tone`, `background_key` and `contrast`; `BTOP_KEY_ROLES` remains a nominal
+  compatibility view. This output-semantics change is why the minor version
+  moves to `0.8.0`.
+- Golden dark/light snapshots, component/48-key/dark-light tests, a CLI artifact
+  harness and a fail-closed contrast guard are included.
+
 ## 0.7.1 — 2026-11-19
 
 - **Full palette role map in the Neovim projection (`req-028`)**: `colors.nvim.lua`

@@ -2,7 +2,7 @@
 id: req-029
 title: "Semantic btop component contract with contrast-safe gradients"
 kind: requirement
-status: in-progress
+status: done
 lane: 2
 links:
   openspec: none
@@ -56,17 +56,16 @@ free/available capacity families.
 - [x] Dark and light modes both pass the visibility and equivalence checks.
 - [x] Golden `colors.btop.theme` snapshot is regenerated and byte-identical.
 - [x] `make gates` passes (or every gate component is reported separately).
-- [ ] Closeout (tag/release) — out of scope for this ticket; owner approval is a
-      separate gate.
+- [x] Closeout (tag/release) — owner approved; released as `v0.8.0`.
 
 ## Implementation evidence
 
-- `make gates` → exit 0: `test` 669 passed / 88 skipped, `lint` clean,
-  `hermetic` 666 passed / 37 skipped, `lock-check` clean, `docs-check` clean.
-- `make build` → exit 0: sdist + wheel `0.7.1`.
+- `make gates` → exit 0: `test` 671 passed / 88 skipped, `lint` clean,
+  `hermetic` 667 passed / 37 skipped, `lock-check` clean, `docs-check` clean.
+- `make build` → exit 0: sdist + wheel `0.8.0`.
 - `make ci-gates-parity` → exit 0.
-- `make image IMAGE_ENGINE=podman` → exit 0: base, matugen 4.2.0 and native
-  `0.1.0` images at `v0.7.1`.
+- `make image IMAGE_ENGINE=podman` → exit 0: base `tpr version` `0.8.0`,
+  matugen 4.2.0 and native `0.1.0` images at `v0.8.0`.
 - The contrast guard fails closed when no variant in the assigned family can
   reach 3:1; it never substitutes another family or emits an invisible stop.
 - Fixture sample (`tests/fixtures/theme.json`, 48 keys):
@@ -90,3 +89,6 @@ free/available capacity families.
 - Current projection: `src/theme_producer/adapters/projections/btop.py`
 - Domain palettes: `src/theme_producer/domain/models.py`, `domain/enums.py`
 - Template: `src/theme_producer/defaults/templates/colors.btop.theme.j2`
+
+
+- Release: v0.8.0

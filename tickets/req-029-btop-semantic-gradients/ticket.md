@@ -67,6 +67,8 @@ free/available capacity families.
 - `make ci-gates-parity` → exit 0.
 - `make image IMAGE_ENGINE=podman` → exit 0: base, matugen 4.2.0 and native
   `0.1.0` images at `v0.7.1`.
+- The contrast guard fails closed when no variant in the assigned family can
+  reach 3:1; it never substitutes another family or emits an invisible stop.
 - Fixture sample (`tests/fixtures/theme.json`, 48 keys):
   - dark `meter_bg=#806a57`;
     `download_start/mid/end = #f2c7a1/#f9cda6/#ffd2aa` at

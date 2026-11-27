@@ -326,6 +326,21 @@ def test_mutating_a_palette_tone_moves_the_gradient(tmp_path: Path) -> None:
     assert after.tone == 100
 
 
+def test_guard_fails_closed_when_no_family_variant_passes() -> None:
+    theme = load_theme()
+    meter_bg = theme.dark.roles[MaterialRole.SURFACE_CONTAINER_HIGH]
+    tones = {tone: meter_bg for tone in TONES}
+    palettes = dict(theme.dark.palettes)
+    palettes[PaletteName.PRIMARY] = TonalPalette(name=PaletteName.PRIMARY, tones=tones)
+    mutated = replace(
+        theme,
+        dark=Mode(mode=ModeName.DARK, roles=theme.dark.roles, palettes=palettes),
+    )
+
+    with pytest.raises(RuntimeError, match="download_start: no primary tonal variant"):
+        build_btop_rows(mutated.dark)
+
+
 def test_render_emits_only_documented_keys(tmp_path: Path) -> None:
     output = ProjectionRegistry().render("btop", load_theme(), tmp_path)
     lines = [

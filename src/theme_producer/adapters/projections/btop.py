@@ -559,8 +559,10 @@ def _resolve_gradient_stop(
 
     The mode's anchor is the preferred tonal variant. When it fails the
     contrast guard, the nearest passing variant *in the same family* is used;
-    the guard never crosses into another family. The returned contrast is
-    measured against the stop's real btop background.
+    the guard never crosses into another family. If no variant in that family
+    can reach the guard, generation fails closed instead of emitting an
+    invisible graph. The returned contrast is measured against the stop's real
+    btop background.
     """
     palette = mode.palettes[stop.family]
     background_luminance = relative_luminance(background)
@@ -574,10 +576,10 @@ def _resolve_gradient_stop(
 
     passing = [entry for entry in scored if entry[2] >= MIN_GRAPH_CONTRAST]
     if not passing:
-        # No variant in this family can reach the guard against this background.
-        # Stay inside the family and use its most visible variant; the row keeps
-        # the measured ratio so the caller can diagnose it.
-        passing = [max(scored, key=lambda entry: (entry[2], -entry[0]))]
+        raise RuntimeError(
+            f"{stop.key}: no {stop.family.value} tonal variant reaches "
+            f"{MIN_GRAPH_CONTRAST}:1 against {background.hex}"
+        )
 
     available = [entry for entry in passing if entry[0] not in used_tones] or passing
     tone, color, ratio = min(available, key=lambda entry: (abs(entry[0] - anchor), entry[0]))

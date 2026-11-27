@@ -7,13 +7,17 @@ the catalog, templates, Jinja rendering, and canonical theme.json are real.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
 from typer.testing import CliRunner
 
 from tests.unit.cli.conftest import FakeEngine, invoke, make_image, make_solid_image
-from theme_producer.domain.models import Theme
+from theme_producer.domain.color_metrics import contrast_ratio, relative_luminance
+from theme_producer.domain.models import Color, Theme
+
+BTOP_LINE = re.compile(r'^theme\[([a-z0-9_]+)\]="(#[0-9a-f]{6})"$')
 
 
 def test_local_generate_writes_theme_json_and_all_eight_projections(
@@ -169,3 +173,49 @@ def test_local_generate_smart_bright_image_renders_light_without_new_artifacts(
         "colors.kitty",
         "colors.sequences",
     }
+
+
+def test_local_generate_btop_graphs_are_contrast_safe(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """CLI harness: the generated artifact, not just the projection API."""
+    from theme_producer.factory import create_dependencies
+
+    runner = CliRunner()
+    deps = create_dependencies()
+    deps.engine_registry = {"matugen": FakeEngine()}
+    image = make_image(tmp_path / "wallpaper.png")
+    output = tmp_path / "output-btop"
+
+    result = invoke(
+        runner,
+        deps,
+        ["generate", str(image), "-o", str(output)],
+        monkeypatch,
+    )
+    assert result.exit_code == 0, result.stderr
+
+    palette: dict[str, str] = {}
+    for line in (output / "colors.btop.theme").read_text(encoding="utf-8").splitlines():
+        match = BTOP_LINE.fullmatch(line)
+        if match:
+            palette[match.group(1)] = match.group(2)
+
+    assert len(palette) == 48
+    meter_bg = Color.from_hex(palette["meter_bg"])
+    assert palette["download_end"] != palette["meter_bg"]
+    assert palette["upload_end"] != palette["meter_bg"]
+    for key in (
+        "download_start",
+        "download_mid",
+        "download_end",
+        "upload_start",
+        "upload_mid",
+        "upload_end",
+    ):
+        measured = contrast_ratio(
+            relative_luminance(Color.from_hex(palette[key])),
+            relative_luminance(meter_bg),
+        )
+        assert measured >= 3.0, (key, measured)

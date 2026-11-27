@@ -66,7 +66,9 @@ def test_inverse_primary_mutation_only_changes_dependent_projections(tmp_path: P
 
 def test_mutating_a_btop_role_changes_btop_too(tmp_path: Path) -> None:
     theme = load_theme()
-    mutated = mutate_dark_role(theme, "primary_container", MUTATED_HEX)
+    # ``title``/``hi_fg`` emit the fixed primary role; gradient stops resolve
+    # from the primary palette instead (covered in test_btop.py).
+    mutated = mutate_dark_role(theme, "primary", MUTATED_HEX)
 
     before = render_bytes(theme, tmp_path / "before")
     after = render_bytes(mutated, tmp_path / "after")

@@ -47,17 +47,39 @@ free/available capacity families.
 
 ## Acceptance
 
-- [ ] Component contract covers exactly the 48 documented keys with no unknown
+- [x] Component contract covers exactly the 48 documented keys with no unknown
       keys and no unassigned intents.
-- [ ] `download_end != meter_bg`; every download/upload stop is >= 3:1 against
+- [x] `download_end != meter_bg`; every download/upload stop is >= 3:1 against
       `meter_bg` for both modes.
-- [ ] Every gradient component resolves through its assigned semantic family and
+- [x] Every gradient component resolves through its assigned semantic family and
       the guard only shifts inside that family.
-- [ ] Dark and light modes both pass the visibility and equivalence checks.
-- [ ] Golden `colors.btop.theme` snapshot is regenerated and byte-identical.
-- [ ] `make gates` passes (or every gate component is reported separately).
+- [x] Dark and light modes both pass the visibility and equivalence checks.
+- [x] Golden `colors.btop.theme` snapshot is regenerated and byte-identical.
+- [x] `make gates` passes (or every gate component is reported separately).
 - [ ] Closeout (tag/release) — out of scope for this ticket; owner approval is a
       separate gate.
+
+## Implementation evidence
+
+- `make gates` → exit 0: `test` 669 passed / 88 skipped, `lint` clean,
+  `hermetic` 666 passed / 37 skipped, `lock-check` clean, `docs-check` clean.
+- `make build` → exit 0: sdist + wheel `0.7.1`.
+- `make ci-gates-parity` → exit 0.
+- `make image IMAGE_ENGINE=podman` → exit 0: base, matugen 4.2.0 and native
+  `0.1.0` images at `v0.7.1`.
+- Fixture sample (`tests/fixtures/theme.json`, 48 keys):
+  - dark `meter_bg=#806a57`;
+    `download_start/mid/end = #f2c7a1/#f9cda6/#ffd2aa` at
+    `3.269/3.476/3.656:1`;
+    `upload_start/mid/end = #f2c8a2/#facea8/#ffd3ab` at
+    `3.293/3.512/3.682:1`.
+  - light `meter_bg=#9a8068`;
+    `download_start/mid/end = #40352b/#332a22/#191511` at
+    `3.213/3.787/4.895:1`;
+    `upload_start/mid/end = #40362c/#342b24/#1a1613` at
+    `3.177/3.732/4.847:1`.
+- Verify: `make gates && make build && make ci-gates-parity`; contrast table:
+  `uv run pytest -q tests/unit/adapters/projections/test_btop.py`.
 
 ## Evidence
 
